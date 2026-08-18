@@ -17,9 +17,11 @@
 - [Current system context](architecture/current/system-context.md)
 - [Current container view](architecture/current/container.md)
 - [Infrastructure automation components](architecture/current/component-home-infra.md)
+- [Home-agent components](architecture/current/component-home-agent.md)
 - [Current deployment](architecture/current/deployment.md)
 - [Current Ansible deployment flow](architecture/current/dynamic-ansible.md)
-- [Proposed home-agent architecture](architecture/proposed/README.md)
+- [Current agent health-check flow](architecture/current/dynamic-home-agent.md)
+- [Proposed public agent ingress](architecture/proposed/README.md)
 
 ## Decisions and runbooks
 

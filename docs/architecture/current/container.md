@@ -11,6 +11,8 @@ placement is shown separately in the deployment diagram.
 flowchart LR
     person["Julian<br/>[Person]<br/>Administrator and service user"]
     github["GitHub<br/>[External Software System]"]
+    openai["OpenAI Responses API<br/>[External Software System]"]
+    host["Debian, systemd, and Docker API<br/>[External Software System]"]
 
     subgraph home["Home Infrastructure [Software System]"]
         automation["Infrastructure Automation<br/>[Container: Ansible/YAML]<br/>Defines and applies reproducible host state"]
@@ -21,6 +23,9 @@ flowchart LR
         data["Nextcloud File Data<br/>[Container: ext4 data store]<br/>Stores user file content"]
         runner["GitHub Actions Runner<br/>[Container: Debian VM application]<br/>Executes trusted CI jobs in an isolated guest"]
         runner_disk["Runner VM Disk<br/>[Container: qcow2 data store]<br/>Persists the runner operating system"]
+        agent["home-agent API<br/>[Container: Python in Docker]<br/>Orchestrates bounded model and tool calls"]
+        tools["home-tools<br/>[Container: Python systemd service]<br/>Returns fixed, sanitised, read-only observations"]
+        agent_key["OpenAI API Key File<br/>[Container: Secret data store]<br/>SOPS-derived runtime credential"]
     end
 
     person -->|"Edits and runs playbooks"| automation
@@ -33,15 +38,20 @@ flowchart LR
     nextcloud -->|"Reads and writes private files"| data
     github -->|"Assigns trusted Actions jobs over HTTPS"| runner
     runner -->|"Reads and writes its VM filesystem"| runner_disk
+    person -->|"Calls JSON API through host loopback"| agent
+    agent -->|"Uses Responses API over HTTPS"| openai
+    agent -->|"Calls fixed GET endpoints over a Unix socket"| tools
+    agent_key -->|"Provides credential through a read-only file mount"| agent
+    tools -->|"Reads approved host, service, filesystem, and sanitised container state"| host
 
     classDef person fill:#08427b,color:#fff,stroke:#052e56
     classDef external fill:#666,color:#fff,stroke:#333
     classDef container fill:#438dd5,color:#fff,stroke:#0b4884
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class person person
-    class github external
-    class automation,aio_master,nextcloud,runner container
-    class postgres,redis,data,runner_disk datastore
+    class github,openai,host external
+    class automation,aio_master,nextcloud,runner,agent,tools container
+    class postgres,redis,data,runner_disk,agent_key datastore
 ```
 
 ## Container catalogue
@@ -56,6 +66,9 @@ flowchart LR
 | Nextcloud File Data | ext4 on `/mnt/black-hdd` | Persistent user files |
 | GitHub Actions Runner | Debian 13 VM and GitHub runner application | Trusted CI job execution |
 | Runner VM Disk | qcow2 on ext4 | Guest OS persistence |
+| `home-agent` API | Python 3.13, OpenAI SDK, Docker | Bounded natural-language health requests and tool orchestration |
+| `home-tools` | Python 3 standard library, systemd | Fixed read-only host collectors over a Unix socket |
+| OpenAI API Key File | Root-controlled file, read-only bind mount | Runtime credential without Docker environment-variable exposure |
 
 ## Legend
 

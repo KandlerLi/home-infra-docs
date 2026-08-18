@@ -21,4 +21,5 @@
 - Committed infrastructure repository at
   `/home/julian/projects/home-infra`
 - Read-only Ansible and host observations captured on 2026-08-18
-- Explicit operator statement that the home-agent changes have not been applied
+- Human-approved home-agent deployment and live end-to-end verification on
+  2026-08-18

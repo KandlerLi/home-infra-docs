@@ -2,11 +2,11 @@
 
 - **C4 type:** Component
 - **Scope:** `home-agent` API container
-- **Status:** Proposed; implemented locally but not deployed
+- **Status:** Current/deployed as of 2026-08-18
 
 ```mermaid
 flowchart LR
-    caller["Local/API Client<br/>[Person or External System]"]
+    caller["Local API Client<br/>[Person or External System]"]
     cloud["OpenAI Responses API<br/>[External Software System]"]
     host_tools["home-tools Unix API<br/>[External Container]"]
     key["API Key File<br/>[External Data Store]"]
@@ -19,18 +19,18 @@ flowchart LR
         config["Runtime Configuration<br/>[Component]<br/>Loads model, socket path, and key file"]
     end
 
-    caller -.->|"Would POST a message to /v1/chat"| http
-    http -.->|"Would request a response"| provider
-    config -.->|"Would read the key once at startup"| key
-    config -.->|"Would initialise"| provider
-    schema -.->|"Would constrain available function calls"| provider
-    provider -.->|"Would call model with tools and function outputs over HTTPS"| cloud
-    provider -.->|"Would dispatch an approved tool name"| client
-    client -.->|"Would GET one fixed endpoint over Unix HTTP"| host_tools
-    provider -.->|"Would return final natural-language text"| http
+    caller -->|"POSTs a message to /v1/chat through host loopback"| http
+    http -->|"Requests a response"| provider
+    config -->|"Reads the key once at startup"| key
+    config -->|"Initialises"| provider
+    schema -->|"Constrains available function calls"| provider
+    provider -->|"Calls model with tools and function outputs over HTTPS"| cloud
+    provider -->|"Dispatches an approved tool name"| client
+    client -->|"GETs one fixed endpoint over Unix HTTP"| host_tools
+    provider -->|"Returns final natural-language text"| http
 
-    classDef external fill:#666,color:#fff,stroke:#333,stroke-dasharray:5 5
-    classDef component fill:#85bbf0,color:#111,stroke:#0b4884,stroke-dasharray:5 5
+    classDef external fill:#666,color:#fff,stroke:#333
+    classDef component fill:#85bbf0,color:#111,stroke:#0b4884
     class caller,cloud,host_tools,key external
     class http,provider,schema,client,config component
 ```
@@ -53,4 +53,4 @@ argument.
 
 - Grey: person, external system, external container, or external data store
 - Light blue: component inside `home-agent`
-- Dashed styling: proposed/not deployed
+- Solid relationship: deployed runtime interaction

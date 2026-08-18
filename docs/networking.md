@@ -59,6 +59,7 @@ verified:
 | All addresses | 5201 | Likely iperf3 | Unknown; verify owner |
 | Loopback | 5900 | libvirt VM VNC | Ansible/libvirt |
 | Loopback | 43117 | Unknown | Verify owner |
+| Loopback IPv4 | 8090 | `home-agent` HTTP API | Ansible `home_agent` role |
 | VM bridges | 53 | libvirt dnsmasq | libvirt |
 
 UDP listeners were not fully inventoried. Nextcloud Talk also publishes UDP
@@ -71,5 +72,6 @@ Nextcloud AIO Apache directly owns port 443. Hosting another HTTPS service on
 the same public address and standard port requires a shared reverse proxy and
 a controlled Nextcloud AIO migration.
 
-The proposed routing is documented separately in the
-[home-agent deployment view](architecture/proposed/deployment.md).
+The proposed public routing is documented separately in the
+[public home-agent ingress view](architecture/proposed/deployment.md). The
+currently deployed agent remains reachable only at `127.0.0.1:8090`.

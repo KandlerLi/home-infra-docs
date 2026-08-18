@@ -9,6 +9,7 @@ flowchart TB
     browser["Browser / WebDAV Client<br/>[Client Device]"]
     controller["Ansible Controller<br/>[Deployment Node]<br/>/home/julian/projects/home-infra"]
     github["GitHub<br/>[External Software System]"]
+    openai["OpenAI Responses API<br/>[External Software System]"]
     dns["Route 53 and Dynamic DNS<br/>[Infrastructure Nodes]"]
 
     subgraph edge["Home Network Edge [Infrastructure Node]"]
@@ -18,12 +19,16 @@ flowchart TB
     subgraph physical["Fujitsu ESPRIMO P900 [Physical Deployment Node]"]
         subgraph debian["Debian 13.6 [Operating System Node]"]
             ssh["OpenSSH<br/>[Container: Host service]<br/>TCP 22"]
+            tools["home-tools.service<br/>[Container Instance]<br/>Fixed collectors on protected Unix socket"]
+            socket["/run/home-tools<br/>[Infrastructure Node]<br/>Group-restricted socket directory"]
+            agent_key["/etc/home-agent/openai-api-key<br/>[Infrastructure Node]<br/>Root-controlled credential file"]
             subgraph docker["Docker Engine [Container Runtime Node]"]
                 docker_daemon["Docker Daemon<br/>[Infrastructure Node]<br/>Manages images, networks, volumes, and containers"]
                 aio_master["Nextcloud AIO Master<br/>[Container Instance]<br/>TCP 80, 8080, 8443"]
                 aio_apache["Nextcloud Apache<br/>[Container Instance]<br/>TCP/UDP 443"]
                 aio_app["Nextcloud and Supporting Apps<br/>[Container Instances]"]
                 aio_db["PostgreSQL and Redis<br/>[Container Instances]"]
+                agent["home-agent<br/>[Container Instance]<br/>127.0.0.1:8090, read-only root, no capabilities"]
             end
 
             subgraph hypervisor["libvirt/KVM/QEMU [Virtualisation Node]"]
@@ -44,6 +49,7 @@ flowchart TB
     controller -->|"Applies Ansible over SSH with become"| ssh
     ssh -->|"Configures host services"| docker_daemon
     ssh -->|"Configures hypervisor and guest"| libvirt_daemon
+    ssh -->|"Invokes the private API through host loopback"| agent
     aio_master -->|"Manages sibling containers through Docker API"| docker_daemon
     aio_apache -->|"Forwards application requests over the AIO network"| aio_app
     aio_app -->|"Uses database and cache protocols"| aio_db
@@ -51,6 +57,11 @@ flowchart TB
     libvirt_daemon -->|"Runs VM on private NAT network 192.168.100.0/24"| runner
     runner -->|"Polls for and reports Actions jobs over HTTPS"| github
     runner -->|"Reads and writes qcow2 disk"| hdd
+    agent -->|"Calls model over HTTPS"| openai
+    agent -->|"Uses read-only mounted socket directory"| socket
+    socket -->|"Carries fixed HTTP GET requests"| tools
+    agent_key -->|"Is mounted read-only"| agent
+    tools -->|"Reads sanitised container state"| docker_daemon
     debian -->|"Runs operating system from"| system_disk
 
     classDef client fill:#08427b,color:#fff,stroke:#052e56
@@ -58,9 +69,9 @@ flowchart TB
     classDef node fill:#f5e6c8,color:#111,stroke:#9b6b21
     classDef instance fill:#85bbf0,color:#111,stroke:#0b4884
     class browser client
-    class github external
-    class controller,dns,fritzbox,ssh,docker_daemon,libvirt_daemon,system_disk,hdd node
-    class aio_master,aio_apache,aio_app,aio_db,runner instance
+    class github,openai external
+    class controller,dns,fritzbox,ssh,docker_daemon,libvirt_daemon,system_disk,hdd,socket,agent_key node
+    class aio_master,aio_apache,aio_app,aio_db,runner,tools,agent instance
 ```
 
 ## Deployment nodes
@@ -70,7 +81,9 @@ flowchart TB
 | Fritzbox | Router/NAT/firewall | External configuration; not managed by Ansible |
 | Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 8 GB RAM, no dedicated GPU |
 | Debian host | Debian 13.6 | Runs Docker, libvirt, SSH, and mounted storage |
-| Docker Engine | Docker CE | Runs the Nextcloud AIO suite |
+| Docker Engine | Docker CE | Runs the Nextcloud AIO suite and `home-agent` |
+| `home-tools` | Python 3 systemd service | Fixed read-only collectors on a group-protected Unix socket |
+| `home-agent` | Python 3.13 Docker container | Loopback-only API with hardened container settings |
 | GitHub runner VM | KVM/QEMU, Debian 13 | Private NAT at `192.168.100.10` |
 | System SSD | ext4 | Root operating system filesystem |
 | Large HDD | ext4 | Nextcloud data and runner VM files |
@@ -80,6 +93,7 @@ flowchart TB
 - Host LAN: `192.168.178.100/24`
 - Nextcloud AIO bridge: `172.18.0.0/16`
 - Runner NAT: `192.168.100.0/24`
+- Home-agent API: `127.0.0.1:8090` only
 - No shared reverse proxy is deployed.
 - Public DNS has no AAAA record, although the host has IPv6 addresses.
 

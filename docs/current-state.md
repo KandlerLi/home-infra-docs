@@ -15,8 +15,10 @@ dedicated bridge, guest interface, static neighbour entry, and VNC listener
 were observed. A non-privileged `virsh` query timed out, so the libvirt domain
 state was not independently enumerated during this snapshot.
 
-The home-agent code has **not** been applied. It must not appear in current
-deployment diagrams.
+The private home-agent stack is deployed and verified. The `home-tools`
+systemd service is active, the `home-agent` Docker container is running, and
+an end-to-end model request successfully called the restricted health tool.
+The agent API remains loopback-only and has no public hostname.
 
 ## Live evidence
 
@@ -32,6 +34,9 @@ deployment diagrams.
 | Docker service | Active |
 | libvirt service | Active |
 | Nextcloud AIO | Ten running containers, all reporting healthy |
+| `home-tools` service | Active; fixed read-only collectors over a protected Unix socket |
+| `home-agent` container | Running; healthy API on `127.0.0.1:8090` |
+| Agent end-to-end check | Successful OpenAI tool call and health report |
 | Runner network | `virbr10` active at `192.168.100.1/24` |
 | Runner guest evidence | `vnet9` present; `192.168.100.10` reachable in neighbour table |
 
@@ -49,8 +54,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-7dde15de1afcee81376c84225a60d12ab3a4500a
-Simplify GitHub runner automation
+3c24b530f4202f180b8d2ab14ab8ed8cb95add33
+Configure encrypted home-agent API credential
 ```
 
 The committed repository contains these roles:
@@ -61,9 +66,11 @@ The committed repository contains these roles:
 - `nextcloud_aio`
 - `libvirt_host`
 - `github_runner`
+- `home_agent`
 
-Uncommitted changes add `home_agent`, a dedicated playbook, tests, and README
-documentation. Those changes are **proposed**, not deployed.
+The `home_agent` role, dedicated playbook, tests, and encrypted API credential
+are committed. The dedicated playbook was applied with human-entered sudo
+credentials on 2026-08-18.
 
 ## Managed services
 
@@ -113,11 +120,20 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 ## Explicitly not deployed
 
-- `home-tools` restricted collector
-- `home-agent` container
-- OpenAI API credential
 - `ai.jkandler.de` DNS record
 - shared reverse proxy
 - public agent authentication
 - agent web UI
 - Nextcloud document retrieval or indexing
+
+## Agent verification evidence
+
+Observed on 2026-08-18:
+
+- `home-tools.service` active under systemd
+- `home-agent` running with a read-only root filesystem
+- Docker privileged mode disabled and every Linux capability dropped
+- only the protected tool socket directory and API-key file mounted read-only
+- host publication restricted to `127.0.0.1:8090`
+- live health request reported `/` at 50.9% and `/mnt/black-hdd` at 15.0%
+- no failed systemd units reported

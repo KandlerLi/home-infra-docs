@@ -47,12 +47,14 @@ DNS intentionally has no AAAA record for the documented external names.
 | --- | --- | --- |
 | Debian base packages | Ansible `base` role | Administrative tools and base accounts |
 | HDD mount | Ansible `storage` role | Persistent large storage |
-| Docker Engine | Ansible `docker` role | Nextcloud and future application runtime |
+| Docker Engine | Ansible `docker` role | Nextcloud and home-agent runtime |
 | Nextcloud AIO master | Ansible `nextcloud_aio` role | Lifecycle management for the AIO stack |
 | Nextcloud sibling containers | Nextcloud AIO | Files, database, cache, office, talk, and supporting services |
 | KVM/QEMU and libvirt | Ansible `libvirt_host` role | Virtual machine runtime |
 | GitHub runner VM | Ansible `github_runner` role | Isolated self-hosted CI runner |
 | SOPS/GPG | Ansible controller | Encrypted infrastructure secrets |
+| `home-tools` | Ansible `home_agent` role | Fixed, read-only host observations over a Unix socket |
+| `home-agent` | Ansible `home_agent` role | Loopback-only natural-language health API using OpenAI |
 
 ## Docker networks
 

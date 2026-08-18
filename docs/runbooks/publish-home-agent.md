@@ -1,18 +1,21 @@
 # Runbook: Publish the Home Agent
 
-Status: **Planning checklist only. Do not execute against the current
-production ingress without a reviewed implementation and rollback plan.**
+Status: **Local deployment completed and verified on 2026-08-18. Public
+ingress remains a planning checklist and must not be executed without a
+reviewed implementation and rollback plan.**
 
-## Phase A: Local deployment
+## Phase A: Local deployment — completed
 
-1. Review and commit the proposed `home_agent` role.
-2. Add the OpenAI API key through SOPS.
-3. Run unit tests, Python linting, `ansible-lint`, and Ansible syntax checks.
-4. Apply the dedicated agent playbook with human approval.
-5. Confirm that only `127.0.0.1:8090` is published.
-6. Confirm the agent container has no Docker socket, capabilities, or writable
+1. Reviewed and committed the `home_agent` role.
+2. Added the OpenAI API key through SOPS.
+3. Passed unit tests, Python checks, production-profile `ansible-lint`, and
+   Ansible syntax checks.
+4. Applied the dedicated agent playbook with human-entered sudo credentials.
+5. Confirmed that only `127.0.0.1:8090` is published.
+6. Confirmed the agent container has no Docker socket, capabilities, or writable
    root filesystem.
-7. Request a local health report and compare it with direct read-only checks.
+7. Completed a local health report and compared it with direct read-only
+   checks.
 
 ## Phase B: Shared ingress design
 

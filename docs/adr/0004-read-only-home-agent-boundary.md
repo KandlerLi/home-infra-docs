@@ -1,6 +1,6 @@
 # ADR 0004: Separate the AI Agent from Fixed Host Collectors
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-18
 
 ## Context
@@ -24,5 +24,5 @@ container.
   path reduce the exposed surface.
 - The agent can report but cannot remediate.
 - Selected host data leaves the server when sent to the cloud model.
-- This decision remains proposed until the implementation is reviewed and
-  deployed.
+- The implementation was reviewed, deployed, and verified on 2026-08-18. Its
+  HTTP endpoint remains loopback-only pending a separate ingress decision.

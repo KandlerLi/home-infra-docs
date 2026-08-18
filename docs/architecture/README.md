@@ -11,19 +11,19 @@ hierarchical views rather than one all-purpose diagram.
 2. [Container view](current/container.md) — major applications and data stores
 3. [Infrastructure automation components](current/component-home-infra.md) —
    internals of the Ansible automation container
-4. [Deployment view](current/deployment.md) — physical host, Docker, VM, DNS,
+4. [Home-agent components](current/component-home-agent.md) — bounded request,
+   model, and read-only tool orchestration
+5. [Deployment view](current/deployment.md) — physical host, Docker, VM, DNS,
    and network placement
-5. [Ansible deployment flow](current/dynamic-ansible.md) — runtime sequence for
+6. [Ansible deployment flow](current/dynamic-ansible.md) — runtime sequence for
    an infrastructure apply
+7. [Agent health-check flow](current/dynamic-home-agent.md) — runtime sequence
+   for a read-only health request
 
-### Proposed home-agent
+### Proposed public agent ingress
 
-1. [Proposed architecture index](proposed/README.md)
-2. [System context](proposed/system-context.md)
-3. [Container view](proposed/container.md)
-4. [Component view](proposed/component.md)
-5. [Deployment view](proposed/deployment.md)
-6. [Health-check flow](proposed/dynamic-health-check.md)
+1. [Proposed ingress index](proposed/README.md)
+2. [Deployment view](proposed/deployment.md)
 
 ## Notation
 

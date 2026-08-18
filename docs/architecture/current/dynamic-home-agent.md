@@ -1,8 +1,8 @@
 # Agent Health Check — Dynamic Diagram
 
 - **C4 type:** Dynamic
-- **Scope:** Proposed request: “Check my homeserver.”
-- **Status:** Proposed; not deployed
+- **Scope:** Deployed request: “Check my homeserver.”
+- **Status:** Current and verified as of 2026-08-18
 
 ```mermaid
 sequenceDiagram
@@ -14,7 +14,7 @@ sequenceDiagram
     participant Tools as home-tools
     participant Host as Debian/Docker/systemd
 
-    Julian->>API: POST /v1/chat with bounded JSON message
+    Julian->>API: POST /v1/chat with bounded JSON message through host loopback
     API->>Model: Send instructions and strict read-only tool schemas
     Model-->>API: Request get_system_health with no arguments
     API->>Client: Dispatch approved tool name
@@ -28,6 +28,12 @@ sequenceDiagram
     API-->>Julian: Return JSON answer
 ```
 
+## Verified result
+
+The production check on 2026-08-18 completed with HTTP 200. It reported root
+filesystem usage of 50.9%, `/mnt/black-hdd` usage of 15.0%, no failed systemd
+units, and healthy/running Docker services.
+
 ## Failure behaviour
 
 - Individual collectors return `unavailable` without raw exception details.
@@ -40,6 +46,6 @@ sequenceDiagram
 ## Legend
 
 - Actor: human caller
-- Participant: proposed C4 container, component, or external system instance
+- Participant: deployed C4 container, component, or external system instance
 - Solid arrow: request/action
 - Dashed arrow: result/response

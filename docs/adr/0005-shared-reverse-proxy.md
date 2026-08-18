@@ -5,7 +5,7 @@
 
 ## Context
 
-Nextcloud AIO directly owns public port 443. The proposed agent uses a
+Nextcloud AIO directly owns public port 443. The deployed agent uses a
 loopback-only HTTP API. Multiple hostnames on one public address need hostname
 routing, TLS termination, and independent authentication.
 

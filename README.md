@@ -21,10 +21,10 @@ The initial documentation snapshot was taken on **2026-08-18**.
 | Proposed | Designed or implemented locally, but not deployed |
 | Unknown | Observed state whose owner or purpose has not yet been confirmed |
 
-The `home-agent` implementation is **proposed and not deployed**. At the time
-of this snapshot, it exists only as uncommitted changes in the infrastructure
-repository. `ai.jkandler.de` has no DNS record and no reverse proxy is
-configured.
+The private `home-agent` implementation is **deployed and verified** on the
+homeserver. Its HTTP API is reachable only through `127.0.0.1:8090`; it is not
+publicly exposed. `ai.jkandler.de` has no DNS record and no shared reverse
+proxy is configured.
 
 ## Documentation map
 

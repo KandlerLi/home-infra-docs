@@ -43,5 +43,5 @@ Expected baseline:
 
 The current AIO instance directly owns port 443. A future shared proxy must use
 the officially supported AIO reverse-proxy mode, preserve the existing domain,
-and include a tested rollback. See ADR 0005 and the proposed agent deployment
-diagram.
+and include a tested rollback. See ADR 0005 and the proposed public agent
+ingress diagram.

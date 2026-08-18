@@ -62,8 +62,25 @@ GitHub runner only:
   --ask-become-pass
 ```
 
-The home-agent playbook exists only in uncommitted, unapplied work at the
-snapshot date. Do not treat it as a current operational command.
+Home-agent only:
+
+```bash
+.venv/bin/ansible-playbook ansible/playbooks/home-agent.yml \
+  --ask-become-pass
+```
+
+The dedicated playbook is opt-in. The main `site.yml` keeps the role disabled
+unless explicitly enabled.
+
+After deployment, verify from the homeserver or through Ansible:
+
+```bash
+curl --fail-with-body http://127.0.0.1:8090/healthz
+curl --fail-with-body \
+  --header 'Content-Type: application/json' \
+  --data '{"message":"Check my homeserver."}' \
+  http://127.0.0.1:8090/v1/chat
+```
 
 ## Inspect the host
 
@@ -101,6 +118,7 @@ Verify the file remains encrypted before staging it.
 
 - Git changes are prepared and reviewed before deployment.
 - Production Ansible is never run automatically by an AI agent.
+- The deployed home-agent can observe but cannot apply Ansible or remediate.
 - Nextcloud storage and AIO volumes are not reorganised during unrelated work.
 - Orphaned VM disks, libvirt domains, or Docker volumes require manual
   investigation before cleanup.

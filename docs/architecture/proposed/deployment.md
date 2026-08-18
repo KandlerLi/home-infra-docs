@@ -1,8 +1,8 @@
-# Private Homeserver Agent — Proposed Deployment Diagram
+# Public Home-Agent Ingress — Proposed Deployment Diagram
 
 - **C4 type:** Deployment
-- **Scope:** Proposed production deployment, including authenticated ingress
-- **Status:** Proposed; dashed elements and relationships are not deployed
+- **Scope:** Proposed authenticated public ingress around the deployed agent
+- **Status:** Mixed; agent boundary is current, dashed ingress is proposed
 
 ```mermaid
 flowchart TB
@@ -16,11 +16,11 @@ flowchart TB
 
     subgraph host["homeserver [Debian Deployment Node]"]
         proxy["Shared Reverse Proxy<br/>[Proposed Container Instance]<br/>HTTPS, authentication, routing, limits"]
-        tools["home-tools.service<br/>[Proposed Container Instance]<br/>Unprivileged systemd service with fixed collectors"]
-        socket["/run/home-tools<br/>[Infrastructure Node]<br/>Group-restricted Unix socket directory"]
+        tools["home-tools.service<br/>[Current Container Instance]<br/>Unprivileged systemd service with fixed collectors"]
+        socket["/run/home-tools<br/>[Current Infrastructure Node]<br/>Group-restricted Unix socket directory"]
 
         subgraph docker["Docker Engine [Execution Environment]"]
-            agent["home-agent<br/>[Proposed Container Instance]<br/>Read-only filesystem, no capabilities, local API"]
+            agent["home-agent<br/>[Current Container Instance]<br/>Read-only filesystem, no capabilities, 127.0.0.1:8090"]
             nextcloud["Nextcloud AIO Apache<br/>[Current Container Instance]<br/>Would move behind shared proxy"]
         end
     end
@@ -30,28 +30,27 @@ flowchart TB
     fritzbox -.->|"Would forward TCP 443"| proxy
     proxy -.->|"Would authenticate and proxy ai.jkandler.de"| agent
     proxy -.->|"Would route the existing Nextcloud hostname"| nextcloud
-    agent -.->|"Would call OpenAI Responses API over HTTPS"| cloud
-    agent -.->|"Would connect to mounted socket directory"| socket
-    socket -.->|"Would deliver fixed HTTP GET requests"| tools
+    agent -->|"Calls OpenAI Responses API over HTTPS"| cloud
+    agent -->|"Connects to read-only mounted socket directory"| socket
+    socket -->|"Delivers fixed HTTP GET requests"| tools
 
     classDef client fill:#08427b,color:#fff,stroke:#052e56
     classDef external fill:#666,color:#fff,stroke:#333
     classDef node fill:#f5e6c8,color:#111,stroke:#9b6b21
-    classDef proposedNode fill:#f5e6c8,color:#111,stroke:#9b6b21,stroke-dasharray:5 5
     classDef proposed fill:#85bbf0,color:#111,stroke:#0b4884,stroke-dasharray:5 5
     classDef current fill:#438dd5,color:#fff,stroke:#0b4884
     class user client
     class cloud external
     class route53,fritzbox node
-    class socket proposedNode
-    class proxy,tools,agent proposed
-    class nextcloud current
+    class proxy proposed
+    class socket node
+    class tools,agent,nextcloud current
 ```
 
 ## Important sequencing
 
-The local agent milestone does not require the shared reverse proxy. Its API
-would initially bind only to `127.0.0.1:8090`.
+The local agent milestone is complete. Its API binds only to
+`127.0.0.1:8090`.
 
 Publishing `ai.jkandler.de` is a later change because Nextcloud AIO currently
 owns port 443. A safe public deployment requires:
@@ -65,9 +64,9 @@ owns port 443. A safe public deployment requires:
 
 ## Legend
 
-- Blue: proposed client
+- Blue: client
 - Grey: external software system
 - Beige: infrastructure/deployment node
-- Light blue with dashed border: proposed container instance
-- Solid blue: existing Nextcloud instance that would be migrated
+- Light blue with dashed border: proposed reverse-proxy instance
+- Solid blue: deployed agent, collector, and Nextcloud instances
 - Dashed relationship: proposed/not deployed

@@ -14,9 +14,6 @@ ansible/inventory/group_vars/all/secrets.sops.yml
 Current encrypted variable names:
 
 - `github_runner_github_token`
-
-Proposed, not yet configured:
-
 - `home_agent_openai_api_key`
 
 Secret values must never be copied into this repository, defaults files,
@@ -45,9 +42,9 @@ host Docker socket, host SSH private key, or HDD mount. Separate runner Unix
 accounts reduce accidental repository crossover inside the VM, but do not
 provide kernel-level isolation from each other.
 
-### Proposed AI boundary
+### Deployed AI boundary
 
-The proposed design separates the model-facing container from host access:
+The deployed design separates the model-facing container from host access:
 
 ```text
 Cloud model
@@ -59,7 +56,7 @@ restricted Unix-socket API
 home-tools service (fixed read-only operations)
 ```
 
-The proposed agent has no arbitrary shell, unrestricted SSH, root account,
+The agent has no arbitrary shell, unrestricted SSH, root account,
 Docker socket, autonomous Ansible deployment, file deletion, or package
 installation capability.
 
@@ -78,9 +75,7 @@ The agent API is not ready for public exposure. Before publishing
 
 ## Data sent to cloud services
 
-No home-agent is currently deployed, so no host data is being sent by it.
-
-If deployed as proposed, selected health data such as load, disk usage,
-container names, and container health state will be sent to the configured
-cloud model when requested. Nextcloud documents are explicitly outside the
-first milestone and must remain opt-in in any future retrieval design.
+When requested, selected health data such as load, disk usage, container
+names, and container health state is sent to the configured OpenAI model.
+Nextcloud documents are explicitly outside the deployed milestone and must
+remain opt-in in any future retrieval design.
