@@ -50,3 +50,50 @@ persisted in Ansible with `nextcloud_aio_reverse_proxy_enabled`,
 `shared_ingress_enabled`, and `shared_ingress_start` set to true. Do not turn
 these off during an ordinary apply. See ADR 0005 and the publish-home-agent
 runbook for the guarded rollback procedure.
+
+## Shut down for physical hardware maintenance
+
+Use the tracked helper instead of cutting power or manually stopping individual
+containers. The helper checks that `/mnt/black-hdd` is mounted, refuses to
+continue while a libvirt VM is running, asks AIO to stop its application
+containers, verifies the stop, flushes filesystem buffers, and requests an OS
+poweroff. It does not create a backup.
+
+From the controller:
+
+```bash
+cd /home/julian/projects/home-infra
+
+scp scripts/shutdown-homeserver-for-maintenance.sh \
+  julian@192.168.178.100:/tmp/
+
+ssh -t julian@192.168.178.100 \
+  'sudo bash /tmp/shutdown-homeserver-for-maintenance.sh --check'
+```
+
+Verify that users have finished active uploads and that an appropriate recent
+backup exists. Then start the guarded shutdown and type the exact confirmation
+`POWER OFF`:
+
+```bash
+ssh -t julian@192.168.178.100 \
+  'sudo bash /tmp/shutdown-homeserver-for-maintenance.sh'
+```
+
+If the script reports an error after beginning the AIO stop, do not cut power.
+Follow its warning, inspect the remaining containers, and either rerun the
+script after resolving the problem or start the application containers again
+through the AIO interface.
+
+After the chassis is fully off, disconnect mains power and discharge standby
+power before opening it. Following the hardware work, boot the host and verify:
+
+```bash
+free -h
+systemctl --failed
+docker ps
+curl --fail-with-body https://nextcloud.jkandler.de/status.php
+```
+
+If the AIO application containers remain stopped, start them through the AIO
+interface and repeat the checks.
