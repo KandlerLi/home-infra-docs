@@ -1,17 +1,18 @@
 # ADR 0005: Introduce a Shared Authenticated HTTPS Ingress Layer
 
-- Status: Proposed
+- Status: Accepted and deployed
 - Date: 2026-08-18
+- Deployment date: 2026-08-19
 
 ## Context
 
-Nextcloud AIO directly owns public port 443. The deployed agent uses a
+Nextcloud AIO originally owned public port 443. The deployed agent uses a
 loopback-only HTTP API. Multiple hostnames on one public address need hostname
 routing, TLS termination, and independent authentication.
 
 ## Decision
 
-Before publishing `ai.jkandler.de`, introduce an Ansible-managed shared reverse
+Before publishing `ai.jkandler.de`, use an Ansible-managed shared reverse
 proxy using the pinned Traefik `v3.7.1` container and file provider. Do not
 mount the Docker socket. Move Nextcloud AIO to its supported reverse-proxy
 mode at `127.0.0.1:11000`, preserve `nextcloud.jkandler.de`, and protect the

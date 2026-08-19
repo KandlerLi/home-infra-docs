@@ -20,6 +20,11 @@ systemd service is active, the `home-agent` Docker container is running, and
 an end-to-end model request successfully called the restricted health tool.
 The agent API remains loopback-only and has no public hostname.
 
+Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
+443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
+Nextcloud AIO Apache on `127.0.0.1:11000`. The migration completed and was
+verified on 2026-08-19. The agent route remains disabled.
+
 ## Live evidence
 
 | Area | Observed state |
@@ -37,6 +42,9 @@ The agent API remains loopback-only and has no public hostname.
 | `home-tools` service | Active; fixed read-only collectors over a protected Unix socket |
 | `home-agent` container | Running; healthy API on `127.0.0.1:8090` |
 | Agent end-to-end check | Successful OpenAI tool call and health report |
+| Shared ingress | Traefik `v3.7.1`, healthy on ports 80/443; no Docker socket |
+| Nextcloud upstream | AIO Apache on `127.0.0.1:11000` only |
+| Public Nextcloud check | HTTP/2 200; maintenance disabled; valid Let's Encrypt certificate |
 | Runner network | `virbr10` active at `192.168.100.1/24` |
 | Runner guest evidence | `vnet9` present; `192.168.100.10` reachable in neighbour table |
 
@@ -54,8 +62,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-2820b17208ad0c85f92677433cf708a8b1c45ddc
-Configure shared ingress ACME contact
+2f8039d6a13f3c50219b62cb8d71b00287073fac
+Persist shared ingress deployment
 ```
 
 The committed repository contains these roles:
@@ -73,12 +81,9 @@ The `home_agent` role, dedicated playbook, tests, and encrypted API credential
 are committed. The dedicated playbook was applied with human-entered sudo
 credentials on 2026-08-18.
 
-Committed infrastructure work on 2026-08-19 adds a disabled-by-default
-Traefik shared-ingress role, guarded Nextcloud AIO reverse-proxy settings, and
-separate preparation, cutover, and agent-publication playbooks. The preparation
-playbook has installed and validated the pinned Traefik configuration and image.
-Traefik remains stopped, no public ports have changed ownership, and the
-Nextcloud cutover and agent publication have not been applied.
+The guarded Nextcloud migration completed on 2026-08-19. The deployed state is
+persisted with Nextcloud reverse-proxy mode and shared ingress enabled. Traefik
+is running and healthy; agent publication remains independently disabled.
 
 ## Managed services
 
@@ -118,7 +123,6 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Observation | Classification | Follow-up |
 | --- | --- | --- |
 | No monitoring role or monitoring containers | Current gap | Design lightweight monitoring separately |
-| Shared ingress implementation is committed but unapplied | Configured/proposed | Run preparation before maintenance cutover |
 | `ai.jkandler.de` does not resolve | Expected | Create only when authenticated ingress exists |
 | `iperf3`-typical port `5201` is listening | Unknown | Identify owner and decide whether to manage or remove it |
 | Loopback port `43117` is listening | Unknown | Identify owning process with privileged diagnostics if needed |
@@ -129,7 +133,6 @@ The currently configured repository is `KandlerLi/dyndns`.
 ## Explicitly not deployed
 
 - `ai.jkandler.de` DNS record
-- shared reverse proxy
 - public agent authentication
 - agent web UI
 - Nextcloud document retrieval or indexing

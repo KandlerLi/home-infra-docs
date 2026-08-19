@@ -102,6 +102,18 @@ docker network ls
 docker volume ls
 ```
 
+Shared-ingress checks:
+
+```bash
+docker inspect shared-ingress \
+  --format 'running={{.State.Running}} health={{.State.Health.Status}}'
+curl --fail-with-body http://127.0.0.1:8082/ping
+curl --fail-with-body \
+  --header 'Host: nextcloud.jkandler.de' \
+  http://127.0.0.1:11000/status.php
+curl --fail-with-body https://nextcloud.jkandler.de/status.php
+```
+
 Do not use `docker inspect` in logs or documentation without filtering because
 it can expose container environment variables and secrets.
 

@@ -50,6 +50,7 @@ DNS intentionally has no AAAA record for the documented external names.
 | Docker Engine | Ansible `docker` role | Nextcloud and home-agent runtime |
 | Nextcloud AIO master | Ansible `nextcloud_aio` role | Lifecycle management for the AIO stack |
 | Nextcloud sibling containers | Nextcloud AIO | Files, database, cache, office, talk, and supporting services |
+| Traefik `v3.7.1` | Ansible `shared_ingress` role | Public ACME TLS termination and hostname routing without Docker socket access |
 | KVM/QEMU and libvirt | Ansible `libvirt_host` role | Virtual machine runtime |
 | GitHub runner VM | Ansible `github_runner` role | Isolated self-hosted CI runner |
 | SOPS/GPG | Ansible controller | Encrypted infrastructure secrets |

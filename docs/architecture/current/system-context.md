@@ -2,7 +2,7 @@
 
 - **C4 type:** System context
 - **Scope:** Home Infrastructure software system
-- **Status:** Current/configured as of 2026-08-18
+- **Status:** Current/configured as of 2026-08-19
 
 ```mermaid
 flowchart LR

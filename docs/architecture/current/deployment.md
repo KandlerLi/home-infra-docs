@@ -2,7 +2,7 @@
 
 - **C4 type:** Deployment
 - **Scope:** Current production environment
-- **Status:** Current/configured as of 2026-08-18
+- **Status:** Current/configured as of 2026-08-19
 
 ```mermaid
 flowchart TB
@@ -10,6 +10,7 @@ flowchart TB
     controller["Ansible Controller<br/>[Deployment Node]<br/>/home/julian/projects/home-infra"]
     github["GitHub<br/>[External Software System]"]
     openai["OpenAI Responses API<br/>[External Software System]"]
+    letsencrypt["Let's Encrypt ACME<br/>[External Software System]"]
     dns["Route 53 and Dynamic DNS<br/>[Infrastructure Nodes]"]
 
     subgraph edge["Home Network Edge [Infrastructure Node]"]
@@ -24,8 +25,9 @@ flowchart TB
             agent_key["/etc/home-agent/openai-api-key<br/>[Infrastructure Node]<br/>Root-controlled credential file"]
             subgraph docker["Docker Engine [Container Runtime Node]"]
                 docker_daemon["Docker Daemon<br/>[Infrastructure Node]<br/>Manages images, networks, volumes, and containers"]
-                aio_master["Nextcloud AIO Master<br/>[Container Instance]<br/>TCP 80, 8080, 8443"]
-                aio_apache["Nextcloud Apache<br/>[Container Instance]<br/>TCP/UDP 443"]
+                ingress["Traefik v3.7.1<br/>[Container Instance]<br/>Host network TCP 80/443; file routing; no Docker socket"]
+                aio_master["Nextcloud AIO Master<br/>[Container Instance]<br/>TCP 8080, 8443"]
+                aio_apache["Nextcloud Apache<br/>[Container Instance]<br/>127.0.0.1:11000"]
                 aio_app["Nextcloud and Supporting Apps<br/>[Container Instances]"]
                 aio_db["PostgreSQL and Redis<br/>[Container Instances]"]
                 agent["home-agent<br/>[Container Instance]<br/>127.0.0.1:8090, read-only root, no capabilities"]
@@ -45,7 +47,9 @@ flowchart TB
 
     browser -->|"Resolves public hostnames with"| dns
     browser -->|"Sends HTTPS and WebDAV traffic"| fritzbox
-    fritzbox -->|"Forwards configured public traffic to 192.168.178.100"| aio_apache
+    fritzbox -->|"Forwards public TCP 80/443 to 192.168.178.100"| ingress
+    ingress -->|"Routes nextcloud.jkandler.de to 127.0.0.1:11000"| aio_apache
+    ingress -->|"Obtains and renews hostname certificates over ACME"| letsencrypt
     controller -->|"Applies Ansible over SSH with become"| ssh
     ssh -->|"Configures host services"| docker_daemon
     ssh -->|"Configures hypervisor and guest"| libvirt_daemon
@@ -69,9 +73,9 @@ flowchart TB
     classDef node fill:#f5e6c8,color:#111,stroke:#9b6b21
     classDef instance fill:#85bbf0,color:#111,stroke:#0b4884
     class browser client
-    class github,openai external
+    class github,openai,letsencrypt external
     class controller,dns,fritzbox,ssh,docker_daemon,libvirt_daemon,system_disk,hdd,socket,agent_key node
-    class aio_master,aio_apache,aio_app,aio_db,runner,tools,agent instance
+    class ingress,aio_master,aio_apache,aio_app,aio_db,runner,tools,agent instance
 ```
 
 ## Deployment nodes
@@ -82,6 +86,7 @@ flowchart TB
 | Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 8 GB RAM, no dedicated GPU |
 | Debian host | Debian 13.6 | Runs Docker, libvirt, SSH, and mounted storage |
 | Docker Engine | Docker CE | Runs the Nextcloud AIO suite and `home-agent` |
+| Shared ingress | Traefik `v3.7.1` | Host-network TLS termination and file-based routing; no Docker socket |
 | `home-tools` | Python 3 systemd service | Fixed read-only collectors on a group-protected Unix socket |
 | `home-agent` | Python 3.13 Docker container | Loopback-only API with hardened container settings |
 | GitHub runner VM | KVM/QEMU, Debian 13 | Private NAT at `192.168.100.10` |
@@ -93,8 +98,11 @@ flowchart TB
 - Host LAN: `192.168.178.100/24`
 - Nextcloud AIO bridge: `172.18.0.0/16`
 - Runner NAT: `192.168.100.0/24`
+- Shared HTTPS ingress: TCP 80/443 on all host addresses
+- Nextcloud Apache upstream: `127.0.0.1:11000` only
+- Traefik health endpoint: `127.0.0.1:8082` only
 - Home-agent API: `127.0.0.1:8090` only
-- No shared reverse proxy is deployed.
+- The `ai.jkandler.de` Traefik router remains disabled.
 - Public DNS has no AAAA record, although the host has IPv6 addresses.
 
 ## Legend

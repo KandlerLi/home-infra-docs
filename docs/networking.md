@@ -20,7 +20,7 @@ enumerated during the snapshot.
 
 ## DNS
 
-| Name | Provider | State on 2026-08-18 |
+| Name | Provider | State on 2026-08-19 |
 | --- | --- | --- |
 | `jkandler.dedyn.io` | Dynamic DNS provider | A record present; no AAAA record |
 | `jkandler.de` | AWS Route 53 | A record present; no AAAA record |
@@ -52,8 +52,8 @@ verified:
 | --- | ---: | --- | --- |
 | All IPv4 | 22 | OpenSSH | Debian host; not explicitly configured by current roles |
 | All IPv6 | 22 | OpenSSH | Debian host; not explicitly configured by current roles |
-| All IPv4 | 80 | Nextcloud AIO master | Ansible/AIO |
-| All IPv4 and IPv6 | 443 | Nextcloud AIO Apache | AIO |
+| All IPv4 and IPv6 | 80 | Traefik shared ingress | Ansible `shared_ingress` role |
+| All IPv4 and IPv6 | 443 | Traefik shared ingress | Ansible `shared_ingress` role |
 | All IPv4 | 8080 | Nextcloud AIO management interface | Ansible/AIO |
 | All IPv4 | 8443 | Nextcloud AIO master | Ansible/AIO |
 | All IPv4 and IPv6 | 3478 | Nextcloud Talk TURN | AIO |
@@ -61,18 +61,23 @@ verified:
 | Loopback | 5900 | libvirt VM VNC | Ansible/libvirt |
 | Loopback | 43117 | Unknown | Verify owner |
 | Loopback IPv4 | 8090 | `home-agent` HTTP API | Ansible `home_agent` role |
+| Loopback IPv4 | 8082 | Traefik health endpoint | Ansible `shared_ingress` role |
+| Loopback IPv4 | 11000 | Nextcloud AIO Apache upstream | AIO reverse-proxy mode |
 | VM bridges | 53 | libvirt dnsmasq | libvirt |
 
-UDP listeners were not fully inventoried. Nextcloud Talk also publishes UDP
-3478, and Nextcloud Apache publishes UDP 443 for HTTP/3.
+UDP listeners were not fully inventoried. Nextcloud Talk publishes UDP 3478.
+The shared ingress currently terminates HTTPS over TCP; UDP 443 is not part of
+the documented Traefik configuration.
 
 ## Reverse proxy status
 
-No shared reverse proxy is deployed. Nextcloud AIO Apache directly owns port
-443. Uncommitted infrastructure work prepares a guarded Traefik migration, but
-hosting another HTTPS service on the same public address and standard port
-still requires the controlled Nextcloud AIO cutover.
+Pinned Traefik `v3.7.1` is deployed with host networking and owns TCP ports 80
+and 443. Its configuration comes from the file provider; it has no Docker
+socket. It routes `nextcloud.jkandler.de` to the loopback-only AIO Apache
+upstream at `127.0.0.1:11000` and obtains the hostname certificate through
+ACME. The public agent router is disabled.
 
-The proposed public routing is documented separately in the
+The remaining agent publication work is documented separately in the
 [public home-agent ingress view](architecture/proposed/deployment.md). The
-currently deployed agent remains reachable only at `127.0.0.1:8090`.
+agent remains reachable only at `127.0.0.1:8090` until its authenticated route
+and DNS record are enabled.

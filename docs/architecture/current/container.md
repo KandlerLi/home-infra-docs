@@ -2,7 +2,7 @@
 
 - **C4 type:** Container
 - **Scope:** Home Infrastructure software system
-- **Status:** Current/configured as of 2026-08-18
+- **Status:** Current/configured as of 2026-08-19
 
 In C4 terminology, a container is an application or data store. Docker and VM
 placement is shown separately in the deployment diagram.
@@ -16,6 +16,7 @@ flowchart LR
 
     subgraph home["Home Infrastructure [Software System]"]
         automation["Infrastructure Automation<br/>[Container: Ansible/YAML]<br/>Defines and applies reproducible host state"]
+        ingress["Shared HTTPS Ingress<br/>[Container: Traefik]<br/>Terminates ACME TLS and routes public hostnames"]
         aio_master["Nextcloud AIO Control Plane<br/>[Container: Docker application]<br/>Manages the Nextcloud application suite"]
         nextcloud["Nextcloud Application Suite<br/>[Container: Docker applications]<br/>Files, WebDAV, collaboration, office, and talk"]
         postgres["Nextcloud Database<br/>[Container: PostgreSQL data store]<br/>Stores application metadata"]
@@ -31,7 +32,8 @@ flowchart LR
     person -->|"Edits and runs playbooks"| automation
     automation -->|"Configures host packages, storage, Docker, AIO, and libvirt"| aio_master
     automation -->|"Provisions and configures over libvirt and SSH"| runner
-    person -->|"Uses HTTPS and WebDAV"| nextcloud
+    person -->|"Uses HTTPS and WebDAV"| ingress
+    ingress -->|"Routes nextcloud.jkandler.de to loopback upstream"| nextcloud
     aio_master -->|"Creates and manages sibling containers through Docker API"| nextcloud
     nextcloud -->|"Reads and writes metadata over PostgreSQL protocol"| postgres
     nextcloud -->|"Uses cache and file locking over Redis protocol"| redis
@@ -50,7 +52,7 @@ flowchart LR
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class person person
     class github,openai,host external
-    class automation,aio_master,nextcloud,runner,agent,tools container
+    class automation,ingress,aio_master,nextcloud,runner,agent,tools container
     class postgres,redis,data,runner_disk,agent_key datastore
 ```
 
@@ -59,6 +61,7 @@ flowchart LR
 | Container | Technology | Responsibility |
 | --- | --- | --- |
 | Infrastructure Automation | Ansible 14.3, YAML, community collections | Converges declared infrastructure state |
+| Shared HTTPS Ingress | Traefik `v3.7.1`, file provider, ACME | Terminates public HTTP/TLS and routes Nextcloud without Docker API access |
 | Nextcloud AIO Control Plane | Nextcloud AIO master Docker image | Manages the AIO application lifecycle |
 | Nextcloud Application Suite | Nextcloud, Apache, Collabora, Talk, Imaginary, Notify Push, Whiteboard | User-facing private cloud features |
 | Nextcloud Database | PostgreSQL Docker container | Application metadata |

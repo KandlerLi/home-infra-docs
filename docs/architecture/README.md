@@ -20,10 +20,10 @@ hierarchical views rather than one all-purpose diagram.
 7. [Agent health-check flow](current/dynamic-home-agent.md) — runtime sequence
    for a read-only health request
 
-### Proposed public agent ingress
+### Remaining public agent routing
 
-1. [Proposed ingress index](proposed/README.md)
-2. [Deployment view](proposed/deployment.md)
+1. [Publication index](proposed/README.md)
+2. [Mixed current/proposed deployment view](proposed/deployment.md)
 
 ## Notation
 

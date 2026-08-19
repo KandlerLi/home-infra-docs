@@ -73,7 +73,11 @@ The agent API is not ready for public exposure. Before publishing
 - explicit proxy trust configuration
 - security headers appropriate to the UI/API
 - audit-friendly logs that exclude prompts, secret values, and tool payloads
-- a rollback plan for the Nextcloud ingress migration
+- verified preservation of the current Nextcloud route
+
+The shared proxy, Nextcloud reverse-proxy migration, and guarded rollback path
+are deployed. Agent authentication and limits are committed but remain
+inactive until the separate agent router is deliberately enabled.
 
 ## Data sent to cloud services
 

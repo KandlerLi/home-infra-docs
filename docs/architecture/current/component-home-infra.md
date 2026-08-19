@@ -2,7 +2,7 @@
 
 - **C4 type:** Component
 - **Scope:** Infrastructure Automation container
-- **Status:** Current committed configuration as of 2026-08-18
+- **Status:** Current committed configuration as of 2026-08-19
 
 ```mermaid
 flowchart LR
@@ -18,6 +18,8 @@ flowchart LR
         storage["Storage Role<br/>[Component: Ansible role]<br/>Mounts the large HDD safely"]
         docker["Docker Role<br/>[Component: Ansible role]<br/>Installs and starts Docker Engine"]
         nextcloud["Nextcloud AIO Role<br/>[Component: Ansible role]<br/>Runs the AIO master container"]
+        agent["Home Agent Role<br/>[Component: Ansible role]<br/>Runs the bounded API and read-only collector"]
+        ingress["Shared Ingress Role<br/>[Component: Ansible role]<br/>Runs guarded Traefik and file routing"]
         libvirt["libvirt Host Role<br/>[Component: Ansible role]<br/>Installs KVM/QEMU and libvirt"]
         runner["GitHub Runner Role<br/>[Component: Ansible role]<br/>Provisions the VM and runner services"]
     end
@@ -29,12 +31,16 @@ flowchart LR
     playbooks -->|"Includes"| storage
     playbooks -->|"Includes"| docker
     playbooks -->|"Includes"| nextcloud
+    playbooks -->|"Includes"| agent
+    playbooks -->|"Includes"| ingress
     playbooks -->|"Includes"| libvirt
     playbooks -->|"Includes"| runner
     base -->|"Configures through SSH with become"| host
     storage -->|"Mounts storage through SSH with become"| host
     docker -->|"Configures Docker through SSH with become"| host
     nextcloud -->|"Calls the Docker API through Ansible modules"| host
+    agent -->|"Configures systemd and Docker through SSH with become"| host
+    ingress -->|"Configures hardened Traefik through Docker modules"| host
     libvirt -->|"Calls libvirt through Ansible modules"| host
     runner -->|"Calls registration and runner APIs over HTTPS"| github
     runner -->|"Defines VM and configures guest over SSH"| host
@@ -44,7 +50,7 @@ flowchart LR
     classDef component fill:#85bbf0,color:#111,stroke:#0b4884
     class operator person
     class host,github external
-    class playbooks,inventory,secrets,base,storage,docker,nextcloud,libvirt,runner component
+    class playbooks,inventory,secrets,base,storage,docker,nextcloud,agent,ingress,libvirt,runner component
 ```
 
 ## Component responsibilities
@@ -53,11 +59,13 @@ flowchart LR
 | --- | --- |
 | Playbooks | Establish ordering and host scope |
 | Inventory and Group Variables | Resolve `homeserver`, LAN address, Python interpreter, and repository configuration |
-| Encrypted Variables | Keep GitHub tokens and future API keys encrypted in Git |
+| Encrypted Variables | Keep GitHub tokens, the OpenAI key, and agent authentication material encrypted in Git |
 | Base Role | Base packages and administrative group membership |
 | Storage Role | Safe mount-point ownership and UUID-based HDD mount |
 | Docker Role | Docker APT repository, packages, and service |
 | Nextcloud AIO Role | AIO volume and master-container configuration |
+| Home Agent Role | Hardened agent container, credential file, and fixed read-only host collector |
+| Shared Ingress Role | Pinned Traefik configuration, ACME state, routes, limits, and guarded cutover |
 | libvirt Host Role | Hypervisor packages, service, and image cache |
 | GitHub Runner Role | VM, private network, cloud-init, repository registration, and systemd services |
 

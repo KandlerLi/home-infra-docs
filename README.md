@@ -12,7 +12,8 @@ kept separately in:
 
 ## Snapshot status
 
-The initial documentation snapshot was taken on **2026-08-18**.
+The initial documentation snapshot was taken on **2026-08-18** and the shared
+ingress deployment was recorded on **2026-08-19**.
 
 | Label | Meaning |
 | --- | --- |
@@ -23,8 +24,9 @@ The initial documentation snapshot was taken on **2026-08-18**.
 
 The private `home-agent` implementation is **deployed and verified** on the
 homeserver. Its HTTP API is reachable only through `127.0.0.1:8090`; it is not
-publicly exposed. `ai.jkandler.de` has no DNS record and no shared reverse
-proxy is configured.
+publicly exposed. Pinned Traefik `v3.7.1` now routes public Nextcloud traffic to
+AIO Apache on `127.0.0.1:11000`. `ai.jkandler.de` has no DNS record and its
+authenticated Traefik router remains disabled.
 
 ## Documentation map
 

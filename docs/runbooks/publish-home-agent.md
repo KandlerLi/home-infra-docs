@@ -1,9 +1,9 @@
 # Runbook: Publish the Home Agent
 
-Status: **Local deployment completed and verified on 2026-08-18. The guarded,
-disabled-by-default Traefik preparation completed on 2026-08-19 without
-changing live ports. Public ingress has not been cut over and must not be
-changed without a maintenance window and verified rollback readiness.**
+Status: **Local agent deployment completed on 2026-08-18. Traefik preparation
+and the controlled Nextcloud ingress migration completed and were verified on
+2026-08-19. Nextcloud now uses the shared proxy; authenticated agent routing
+and `ai.jkandler.de` DNS remain pending.**
 
 ## Phase A: Local deployment — completed
 
@@ -42,7 +42,7 @@ security headers. Nextcloud is not placed behind additional authentication.
    running, Nextcloud still owns its original ports and returns HTTP 200, and
    the loopback-only home-agent health endpoint returns `{"status":"ok"}`.
 
-## Phase C: Controlled Nextcloud migration
+## Phase C: Controlled Nextcloud migration — completed
 
 1. Schedule a maintenance window.
 2. Verify a recent AIO backup, free disk capacity, and current AIO health.
@@ -68,6 +68,14 @@ security headers. Nextcloud is not placed behind additional authentication.
    variables so ordinary `site.yml` runs retain the deployed mode. Review and
    commit that state change.
 9. Roll back immediately if the existing service is degraded.
+
+The first cutover run stopped safely before creating Traefik because the local
+`community.docker` collection expects `capabilities` rather than `cap_add`.
+Infrastructure commit `2c50768` corrected the field and added a regression
+assertion. The idempotent retry succeeded. Final checks showed every AIO
+container healthy, Apache bound only to `127.0.0.1:11000`, Traefik healthy and
+hardened on ports 80/443, and public Nextcloud returning HTTP/2 200 with a
+valid Let's Encrypt certificate. Commit `2f8039d` persists the deployed mode.
 
 ### Rollback
 
