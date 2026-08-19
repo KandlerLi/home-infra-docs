@@ -1,6 +1,6 @@
 # Current State
 
-- Snapshot date: **2026-08-18**
+- Snapshot date: **2026-08-19**
 - Production host: `homeserver` (`192.168.178.100`)
 
 ## Executive summary
@@ -54,8 +54,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-3c24b530f4202f180b8d2ab14ab8ed8cb95add33
-Configure encrypted home-agent API credential
+761ae44a8bda9f42ff7aa9f8320e40cf54440701
+Prepare guarded shared ingress migration
 ```
 
 The committed repository contains these roles:
@@ -67,10 +67,16 @@ The committed repository contains these roles:
 - `libvirt_host`
 - `github_runner`
 - `home_agent`
+- `shared_ingress`
 
 The `home_agent` role, dedicated playbook, tests, and encrypted API credential
 are committed. The dedicated playbook was applied with human-entered sudo
 credentials on 2026-08-18.
+
+Committed infrastructure work on 2026-08-19 adds a disabled-by-default
+Traefik shared-ingress role, guarded Nextcloud AIO reverse-proxy settings, and
+separate preparation, cutover, and agent-publication playbooks. None of this
+ingress work has been applied.
 
 ## Managed services
 
@@ -110,7 +116,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Observation | Classification | Follow-up |
 | --- | --- | --- |
 | No monitoring role or monitoring containers | Current gap | Design lightweight monitoring separately |
-| No reverse proxy in Ansible | Current gap | Required before safely publishing more hostnames |
+| Shared ingress implementation is committed but unapplied | Configured/proposed | Run preparation before maintenance cutover |
 | `ai.jkandler.de` does not resolve | Expected | Create only when authenticated ingress exists |
 | `iperf3`-typical port `5201` is listening | Unknown | Identify owner and decide whether to manage or remove it |
 | Loopback port `43117` is listening | Unknown | Identify owning process with privileged diagnostics if needed |

@@ -12,6 +12,10 @@
 
 - [Nextcloud All-in-One](https://github.com/nextcloud/all-in-one)
 - [Nextcloud AIO reverse-proxy guidance](https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md)
+- [Traefik releases](https://github.com/traefik/traefik/releases)
+- [Traefik BasicAuth middleware](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/basicauth/)
+- [Traefik RateLimit middleware](https://doc.traefik.io/traefik/reference/routing-configuration/http/middlewares/ratelimit/)
+- [Traefik ACME configuration](https://doc.traefik.io/traefik/https/acme/)
 - [Ansible documentation](https://docs.ansible.com/ansible/latest/)
 - [SOPS documentation](https://getsops.io/)
 - [OpenAI function-calling documentation](https://developers.openai.com/api/docs/guides/function-calling)
@@ -23,3 +27,5 @@
 - Read-only Ansible and host observations captured on 2026-08-18
 - Human-approved home-agent deployment and live end-to-end verification on
   2026-08-18
+- Read-only AIO port, container-health, trusted-domain, and DNS observations on
+  2026-08-19

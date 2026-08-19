@@ -15,6 +15,8 @@ Current encrypted variable names:
 
 - `github_runner_github_token`
 - `home_agent_openai_api_key`
+- `shared_ingress_agent_auth_password`
+- `shared_ingress_agent_auth_password_hash`
 
 Secret values must never be copied into this repository, defaults files,
 Docker image layers, Compose files, command output, or architecture diagrams.

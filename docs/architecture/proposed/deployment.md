@@ -15,7 +15,7 @@ flowchart TB
     end
 
     subgraph host["homeserver [Debian Deployment Node]"]
-        proxy["Shared Reverse Proxy<br/>[Proposed Container Instance]<br/>HTTPS, authentication, routing, limits"]
+        proxy["Traefik v3.7.1<br/>[Proposed Container Instance]<br/>ACME TLS, file routing, authentication, limits; no Docker socket"]
         tools["home-tools.service<br/>[Current Container Instance]<br/>Unprivileged systemd service with fixed collectors"]
         socket["/run/home-tools<br/>[Current Infrastructure Node]<br/>Group-restricted Unix socket directory"]
 
@@ -28,8 +28,8 @@ flowchart TB
     user -.->|"Would resolve ai.jkandler.de"| route53
     user -.->|"Would connect to the resolved public IPv4 endpoint"| fritzbox
     fritzbox -.->|"Would forward TCP 443"| proxy
-    proxy -.->|"Would authenticate and proxy ai.jkandler.de"| agent
-    proxy -.->|"Would route the existing Nextcloud hostname"| nextcloud
+    proxy -.->|"Would apply Basic Auth and limits for ai.jkandler.de"| agent
+    proxy -.->|"Would route nextcloud.jkandler.de to 127.0.0.1:11000"| nextcloud
     agent -->|"Calls OpenAI Responses API over HTTPS"| cloud
     agent -->|"Connects to read-only mounted socket directory"| socket
     socket -->|"Delivers fixed HTTP GET requests"| tools
@@ -55,8 +55,8 @@ The local agent milestone is complete. Its API binds only to
 Publishing `ai.jkandler.de` is a later change because Nextcloud AIO currently
 owns port 443. A safe public deployment requires:
 
-1. configure Nextcloud AIO for supported reverse-proxy mode
-2. place a shared reverse proxy on ports 80/443
+1. configure Nextcloud AIO for supported reverse-proxy mode on loopback port 11000
+2. place pinned Traefik on ports 80/443 using file-based routing
 3. preserve and validate the existing Nextcloud hostname first
 4. add independent agent authentication and rate limits
 5. create `ai.jkandler.de` DNS without adding an unverified AAAA record

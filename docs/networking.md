@@ -24,6 +24,7 @@ enumerated during the snapshot.
 | --- | --- | --- |
 | `jkandler.dedyn.io` | Dynamic DNS provider | A record present; no AAAA record |
 | `jkandler.de` | AWS Route 53 | A record present; no AAAA record |
+| `nextcloud.jkandler.de` | AWS Route 53 | CNAME to `jkandler.de`; resulting A record; no AAAA record |
 | `ai.jkandler.de` | AWS Route 53 | No A or AAAA record |
 
 Transient public IP values are intentionally not recorded because the
@@ -67,10 +68,10 @@ UDP listeners were not fully inventoried. Nextcloud Talk also publishes UDP
 
 ## Reverse proxy status
 
-There is no shared reverse proxy in the committed infrastructure repository.
-Nextcloud AIO Apache directly owns port 443. Hosting another HTTPS service on
-the same public address and standard port requires a shared reverse proxy and
-a controlled Nextcloud AIO migration.
+No shared reverse proxy is deployed. Nextcloud AIO Apache directly owns port
+443. Uncommitted infrastructure work prepares a guarded Traefik migration, but
+hosting another HTTPS service on the same public address and standard port
+still requires the controlled Nextcloud AIO cutover.
 
 The proposed public routing is documented separately in the
 [public home-agent ingress view](architecture/proposed/deployment.md). The

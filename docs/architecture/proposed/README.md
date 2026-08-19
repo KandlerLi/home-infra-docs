@@ -12,14 +12,16 @@ documents only the remaining public-ingress design for `ai.jkandler.de`.
 ## Goals
 
 - Preserve the existing Nextcloud service during ingress migration.
-- Terminate HTTPS for both existing and new hostnames through a shared proxy.
+- Terminate HTTPS for both existing and new hostnames through pinned Traefik
+  `v3.7.1` using automatic ACME certificates.
 - Authenticate agent requests independently of model behaviour.
 - Apply request-size, rate, and upstream timeout limits.
 - Publish no AAAA record until IPv6 routing and TLS are verified end to end.
 
 ## Publication prerequisites
 
-- Select and configure an Ansible-managed shared reverse proxy.
+- Run the non-disruptive preparation playbook for the committed Ansible
+  `shared_ingress` role.
 - Prepare Nextcloud AIO's supported reverse-proxy mode and rollback plan.
 - Validate the existing Nextcloud hostname before adding agent routing.
 - Add authentication and rate limits for the agent upstream.
