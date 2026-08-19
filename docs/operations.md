@@ -26,6 +26,16 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
+The local-only AWS identity control-plane project is:
+
+```text
+/home/julian/projects/aws-account-bootstrap
+```
+
+It must never run through GitHub Actions or through a role it manages. Its
+initial no-destroy state handoff is documented in the dedicated migration
+runbook and requires a trusted, short-lived local bootstrap identity.
+
 It is a Git repository on `main`. Do not inspect or copy its ignored local
 state/backup contents during routine work. Enumerate every top-level directory
 under `/home/julian/projects` before workspace-wide tasks so future non-Git

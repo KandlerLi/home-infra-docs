@@ -35,6 +35,18 @@ with mode `0664`, which permits local non-owner reads. Treat them as potentially
 sensitive: do not open, copy, commit, upload, delete, or change them without a
 recovery-aware, explicitly approved plan.
 
+`/home/julian/projects/aws-account-bootstrap` is the prepared local-only
+administrative Terraform control plane for the account-wide GitHub OIDC
+provider and repository-bound plan/apply roles. It uses the isolated backend
+key `aws-account-bootstrap/terraform.tfstate` and has no GitHub Actions
+workflow. Its Terraform state handoff from `dyndns` is not yet applied.
+
+The control plane must run only with a human-selected, short-lived local
+bootstrap identity. A plan/apply role managed by that root must never be able
+to change its own trust or permissions. Migration uses configuration-driven
+removal with `destroy = false`, followed by local imports; any create,
+replacement, or destroy proposal is a stop condition.
+
 ## Trust boundaries
 
 ### Ansible controller to homeserver

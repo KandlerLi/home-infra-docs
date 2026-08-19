@@ -56,6 +56,7 @@ DNS intentionally has no AAAA record for the documented external names.
 | SOPS/GPG | Ansible controller | Encrypted infrastructure secrets |
 | Terraform DynDNS stack | `/home/julian/projects/dyndns` | Route 53 CNAMEs plus API Gateway/Lambda IPv4 updater |
 | Terraform state bootstrap | `/home/julian/projects/terraform-state` (Git `main`) | Versioned, encrypted, public-blocked central S3 state bucket |
+| AWS account bootstrap | `/home/julian/projects/aws-account-bootstrap` (local Git `main`) | Prepared local-only ownership of GitHub OIDC and repository plan/apply roles; state handoff pending |
 | `home-tools` | Ansible `home_agent` role | Fixed, read-only host observations over a Unix socket |
 | `home-agent` | Ansible `home_agent` role | Loopback-bound health API, published through authenticated Traefik routing |
 

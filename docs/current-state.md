@@ -105,6 +105,24 @@ non-empty backup and local backend metadata were observed with mode `0664`.
 Their contents were not inspected. Recovery verification, tighter local
 permissions, and remote repository protection remain follow-up work.
 
+AWS account bootstrap project:
+
+```text
+/home/julian/projects/aws-account-bootstrap
+a0f0b88
+Create local AWS account bootstrap control plane
+```
+
+This new local Git repository contains the prepared local-only Terraform root
+for the account-wide GitHub Actions OIDC provider and the DynDNS plan/apply
+roles and policies. Its remote backend key is
+`aws-account-bootstrap/terraform.tfstate`. The corresponding `dyndns` change
+is prepared at `dfa6445` with five `removed` blocks using `destroy = false`.
+
+The state handoff has **not** been applied. AWS and both remote state files are
+unchanged: the five resources remain managed by the `dyndns` state until the
+guarded removal and import sequence is explicitly approved and executed.
+
 The committed repository contains these roles:
 
 - `base`
@@ -169,6 +187,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Local `.venv` contains the obsolete repository path | Controller issue | Recreate the virtual environment at the current path |
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
+| AWS account-bootstrap handoff is prepared but not applied | Planned control-plane migration | Review both no-destroy plans, apply the DynDNS removal, then import locally |
 
 ## Explicitly not deployed
 

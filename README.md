@@ -22,9 +22,15 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
-It is a local Git repository whose tracked source excludes all Terraform state
-artifacts. The complete inventory boundary is every top-level directory under
-`/home/julian/projects`, not only Git roots.
+The local-only AWS identity and GitHub OIDC control plane is:
+
+```text
+/home/julian/projects/aws-account-bootstrap
+```
+
+Both bootstrap projects are local Git repositories whose tracked sources
+exclude all Terraform state artifacts. The complete inventory boundary is
+every top-level directory under `/home/julian/projects`, not only Git roots.
 
 ## Snapshot status
 
