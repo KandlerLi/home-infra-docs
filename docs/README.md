@@ -21,7 +21,7 @@
 - [Current deployment](architecture/current/deployment.md)
 - [Current Ansible deployment flow](architecture/current/dynamic-ansible.md)
 - [Current agent health-check flow](architecture/current/dynamic-home-agent.md)
-- [Remaining public agent routing](architecture/proposed/README.md)
+- [Public agent routing](architecture/proposed/README.md)
 
 ## Decisions and runbooks
 

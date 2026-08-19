@@ -14,6 +14,12 @@ The infrastructure repository is:
 /home/julian/projects/home-infra
 ```
 
+The Terraform DNS repository is:
+
+```text
+/home/julian/projects/dyndns
+```
+
 Do not use the obsolete `/home/julian/home-infra` path.
 
 The local virtual environment was moved with the repository and contains old
@@ -80,6 +86,17 @@ curl --fail-with-body \
   --header 'Content-Type: application/json' \
   --data '{"message":"Check my homeserver."}' \
   http://127.0.0.1:8090/v1/chat
+```
+
+Public authenticated checks prompt for the password instead of storing it in
+shell history:
+
+```bash
+curl --user julian https://ai.jkandler.de/healthz
+curl --user julian \
+  --header 'Content-Type: application/json' \
+  --data '{"message":"Check my homeserver."}' \
+  https://ai.jkandler.de/v1/chat
 ```
 
 ## Inspect the host

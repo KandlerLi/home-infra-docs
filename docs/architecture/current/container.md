@@ -12,10 +12,14 @@ flowchart LR
     person["Julian<br/>[Person]<br/>Administrator and service user"]
     github["GitHub<br/>[External Software System]"]
     openai["OpenAI Responses API<br/>[External Software System]"]
+    route53["AWS Route 53<br/>[External Software System]"]
+    fritzbox["FRITZ!Box<br/>[External Software System]"]
     host["Debian, systemd, and Docker API<br/>[External Software System]"]
 
     subgraph home["Home Infrastructure [Software System]"]
         automation["Infrastructure Automation<br/>[Container: Ansible/YAML]<br/>Defines and applies reproducible host state"]
+        dns_iac["DNS Automation<br/>[Container: Terraform]<br/>Defines Route 53 records and AWS DynDNS resources"]
+        dyndns["DynDNS Update Service<br/>[Container: API Gateway and Lambda]<br/>Authenticates FRITZ!Box IPv4 updates"]
         ingress["Shared HTTPS Ingress<br/>[Container: Traefik]<br/>Terminates ACME TLS and routes public hostnames"]
         aio_master["Nextcloud AIO Control Plane<br/>[Container: Docker application]<br/>Manages the Nextcloud application suite"]
         nextcloud["Nextcloud Application Suite<br/>[Container: Docker applications]<br/>Files, WebDAV, collaboration, office, and talk"]
@@ -30,10 +34,15 @@ flowchart LR
     end
 
     person -->|"Edits and runs playbooks"| automation
+    person -->|"Reviews and merges Terraform changes"| dns_iac
+    dns_iac -->|"Manages stable CNAME records and updater resources"| route53
+    fritzbox -->|"Submits authenticated public IPv4 updates"| dyndns
+    dyndns -->|"Updates the jkandler.de A record"| route53
     automation -->|"Configures host packages, storage, Docker, AIO, and libvirt"| aio_master
     automation -->|"Provisions and configures over libvirt and SSH"| runner
-    person -->|"Uses HTTPS and WebDAV"| ingress
+    person -->|"Uses HTTPS/WebDAV and authenticated agent API"| ingress
     ingress -->|"Routes nextcloud.jkandler.de to loopback upstream"| nextcloud
+    ingress -->|"Authenticates and routes ai.jkandler.de to loopback"| agent
     aio_master -->|"Creates and manages sibling containers through Docker API"| nextcloud
     nextcloud -->|"Reads and writes metadata over PostgreSQL protocol"| postgres
     nextcloud -->|"Uses cache and file locking over Redis protocol"| redis
@@ -51,8 +60,8 @@ flowchart LR
     classDef container fill:#438dd5,color:#fff,stroke:#0b4884
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class person person
-    class github,openai,host external
-    class automation,ingress,aio_master,nextcloud,runner,agent,tools container
+    class github,openai,route53,fritzbox,host external
+    class automation,dns_iac,dyndns,ingress,aio_master,nextcloud,runner,agent,tools container
     class postgres,redis,data,runner_disk,agent_key datastore
 ```
 
@@ -61,7 +70,9 @@ flowchart LR
 | Container | Technology | Responsibility |
 | --- | --- | --- |
 | Infrastructure Automation | Ansible 14.3, YAML, community collections | Converges declared infrastructure state |
-| Shared HTTPS Ingress | Traefik `v3.7.1`, file provider, ACME | Terminates public HTTP/TLS and routes Nextcloud without Docker API access |
+| DNS Automation | Terraform, AWS provider, GitHub Actions OIDC | Defines CNAME records and the least-privilege DynDNS stack |
+| DynDNS Update Service | API Gateway HTTP API, Python Lambda | Authenticates FRITZ!Box requests and updates the apex IPv4 record |
+| Shared HTTPS Ingress | Traefik `v3.7.1`, file provider, ACME | Routes Nextcloud and the authenticated agent without Docker API access |
 | Nextcloud AIO Control Plane | Nextcloud AIO master Docker image | Manages the AIO application lifecycle |
 | Nextcloud Application Suite | Nextcloud, Apache, Collabora, Talk, Imaginary, Notify Push, Whiteboard | User-facing private cloud features |
 | Nextcloud Database | PostgreSQL Docker container | Application metadata |

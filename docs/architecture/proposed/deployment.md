@@ -1,13 +1,13 @@
-# Public Home-Agent Routing — Mixed Deployment Diagram
+# Public Home-Agent Routing — Deployment Diagram
 
 - **C4 type:** Deployment
-- **Scope:** Remaining authenticated agent publication through current ingress
-- **Status:** Mixed as of 2026-08-19; only agent DNS and routing are proposed
+- **Scope:** Authenticated agent publication through shared ingress
+- **Status:** Current and verified as of 2026-08-19
 
 ```mermaid
 flowchart TB
     user["Julian's Browser or API Client<br/>[Client Device]"]
-    route53["AWS Route 53<br/>[Infrastructure Node]<br/>Future ai.jkandler.de record"]
+    route53["AWS Route 53<br/>[Infrastructure Node]<br/>ai.jkandler.de CNAME to jkandler.de"]
     cloud["OpenAI API<br/>[External Software System]"]
 
     subgraph edge["Home Network Edge [Infrastructure Node]"]
@@ -25,10 +25,10 @@ flowchart TB
         end
     end
 
-    user -.->|"Would resolve ai.jkandler.de"| route53
-    user -.->|"Would connect to the resolved public IPv4 endpoint"| fritzbox
+    user -->|"Resolves ai.jkandler.de"| route53
+    user -->|"Connects to the resolved public IPv4 endpoint"| fritzbox
     fritzbox -->|"Forwards TCP 443"| proxy
-    proxy -.->|"Would apply Basic Auth and limits for ai.jkandler.de"| agent
+    proxy -->|"Applies Basic Auth and limits for ai.jkandler.de"| agent
     proxy -->|"Routes nextcloud.jkandler.de to 127.0.0.1:11000"| nextcloud
     agent -->|"Calls OpenAI Responses API over HTTPS"| cloud
     agent -->|"Connects to read-only mounted socket directory"| socket
@@ -51,19 +51,18 @@ flowchart TB
 The local agent milestone is complete. Its API binds only to
 `127.0.0.1:8090`.
 
-Traefik now owns ports 80/443 and the Nextcloud migration is complete. Safe
-agent publication still requires:
+Traefik owns ports 80/443, the Nextcloud migration is complete, and the agent
+route is deployed with:
 
-1. preserve and validate the existing Nextcloud hostname
-2. add independent agent authentication and rate limits
-3. create `ai.jkandler.de` DNS without adding an unverified AAAA record
-4. expose the agent only after local and external security tests pass
+1. a preserved and verified Nextcloud hostname
+2. independent agent authentication, rate limits, and request-size limits
+3. `ai.jkandler.de` DNS without an AAAA record
+4. successful local and external security tests
 
 ## Legend
 
 - Blue: client
 - Grey: external software system
 - Beige: infrastructure/deployment node
-- Light blue with dashed border: proposed elements, where present
 - Solid blue: deployed proxy, agent, collector, and Nextcloud instances
-- Dashed relationship: proposed/not deployed
+- Solid relationship: deployed traffic flow

@@ -49,6 +49,7 @@ flowchart TB
     browser -->|"Sends HTTPS and WebDAV traffic"| fritzbox
     fritzbox -->|"Forwards public TCP 80/443 to 192.168.178.100"| ingress
     ingress -->|"Routes nextcloud.jkandler.de to 127.0.0.1:11000"| aio_apache
+    ingress -->|"Authenticates and routes ai.jkandler.de to 127.0.0.1:8090"| agent
     ingress -->|"Obtains and renews hostname certificates over ACME"| letsencrypt
     controller -->|"Applies Ansible over SSH with become"| ssh
     ssh -->|"Configures host services"| docker_daemon
@@ -102,7 +103,7 @@ flowchart TB
 - Nextcloud Apache upstream: `127.0.0.1:11000` only
 - Traefik health endpoint: `127.0.0.1:8082` only
 - Home-agent API: `127.0.0.1:8090` only
-- The `ai.jkandler.de` Traefik router remains disabled.
+- Agent hostname: `ai.jkandler.de`, Basic Auth protected
 - Public DNS has no AAAA record, although the host has IPv6 addresses.
 
 ## Legend

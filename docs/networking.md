@@ -25,7 +25,7 @@ enumerated during the snapshot.
 | `jkandler.dedyn.io` | Dynamic DNS provider | A record present; no AAAA record |
 | `jkandler.de` | AWS Route 53 | A record present; no AAAA record |
 | `nextcloud.jkandler.de` | AWS Route 53 | CNAME to `jkandler.de`; resulting A record; no AAAA record |
-| `ai.jkandler.de` | AWS Route 53 | No A or AAAA record |
+| `ai.jkandler.de` | AWS Route 53/Terraform | CNAME to `jkandler.de`; resulting A record; no AAAA record |
 
 Transient public IP values are intentionally not recorded because the
 connection is dynamic.
@@ -75,9 +75,10 @@ Pinned Traefik `v3.7.1` is deployed with host networking and owns TCP ports 80
 and 443. Its configuration comes from the file provider; it has no Docker
 socket. It routes `nextcloud.jkandler.de` to the loopback-only AIO Apache
 upstream at `127.0.0.1:11000` and obtains the hostname certificate through
-ACME. The public agent router is disabled.
+ACME. It routes `ai.jkandler.de` to `127.0.0.1:8090` only after Basic Auth,
+rate limiting, a 16 KiB request-size limit, and security-header middleware.
 
-The remaining agent publication work is documented separately in the
+The completed agent publication is documented in the
 [public home-agent ingress view](architecture/proposed/deployment.md). The
-agent remains reachable only at `127.0.0.1:8090` until its authenticated route
-and DNS record are enabled.
+application container remains loopback-only even though the authenticated
+route is public.

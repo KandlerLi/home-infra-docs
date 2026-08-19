@@ -2,19 +2,22 @@
 
 - **C4 type:** Dynamic
 - **Scope:** Deployed request: “Check my homeserver.”
-- **Status:** Current and verified as of 2026-08-18
+- **Status:** Current and publicly verified as of 2026-08-19
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Julian
+    participant Proxy as Traefik
     participant API as home-agent API
     participant Model as OpenAI Responses API
     participant Client as Home Tools Client
     participant Tools as home-tools
     participant Host as Debian/Docker/systemd
 
-    Julian->>API: POST /v1/chat with bounded JSON message through host loopback
+    Julian->>Proxy: POST /v1/chat over HTTPS with Basic Auth
+    Proxy->>Proxy: Enforce authentication, rate, size, and headers
+    Proxy->>API: Forward bounded JSON over 127.0.0.1:8090
     API->>Model: Send instructions and strict read-only tool schemas
     Model-->>API: Request get_system_health with no arguments
     API->>Client: Dispatch approved tool name
@@ -30,9 +33,11 @@ sequenceDiagram
 
 ## Verified result
 
-The production check on 2026-08-18 completed with HTTP 200. It reported root
+The initial production check on 2026-08-18 completed with HTTP 200. It reported root
 filesystem usage of 50.9%, `/mnt/black-hdd` usage of 15.0%, no failed systemd
-units, and healthy/running Docker services.
+units, and healthy/running Docker services. On 2026-08-19 the public endpoint
+returned HTTP 401 without credentials and HTTP 200 for authenticated health and
+chat requests.
 
 ## Failure behaviour
 

@@ -2,8 +2,8 @@
 
 Status: **Local agent deployment completed on 2026-08-18. Traefik preparation
 and the controlled Nextcloud ingress migration completed and were verified on
-2026-08-19. Nextcloud now uses the shared proxy; authenticated agent routing
-and `ai.jkandler.de` DNS remain pending.**
+2026-08-19. Nextcloud and the authenticated agent endpoint are now live through
+the shared proxy at their respective hostnames.**
 
 ## Phase A: Local deployment — completed
 
@@ -97,10 +97,11 @@ valid Let's Encrypt certificate. Commit `2f8039d` persists the deployed mode.
 6. Revalidate Nextcloud externally. Do not delete Traefik ACME state during
    rollback.
 
-## Phase D: Agent hostname
+## Phase D: Agent hostname — completed
 
-1. Create an AWS Route 53 CNAME for `ai.jkandler.de` pointing to
-   `jkandler.de`. Do not create an AAAA record.
+1. Add `ai` to the `subdomains` set in the `KandlerLi/dyndns` Terraform
+   repository. The merged apply creates a CNAME for `ai.jkandler.de` pointing
+   to `jkandler.de`. Do not create an AAAA record.
 2. Wait until the CNAME and resulting A record resolve externally.
 3. Retrieve the generated Basic Auth password directly into a password manager
    without copying it into documentation or chat:
@@ -127,3 +128,10 @@ valid Let's Encrypt certificate. Commit `2f8039d` persists the deployed mode.
 7. Validate from an external IPv4 network and confirm Nextcloud remains
    healthy.
 8. Update current C4 diagrams and the deployment inventory.
+
+Terraform change `0fde1dd` created the record. Both Cloudflare and Google
+resolvers returned the CNAME and resulting IPv4 address without an AAAA address.
+The public endpoint presented a valid Let's Encrypt certificate for
+`ai.jkandler.de`, returned 401 without credentials, and returned 200 for
+authenticated `/healthz` and `/v1/chat` calls. Nextcloud remained healthy.
+Infrastructure commit `c07fa3f` persists the enabled agent router.

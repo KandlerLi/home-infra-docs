@@ -62,10 +62,9 @@ The agent has no arbitrary shell, unrestricted SSH, root account,
 Docker socket, autonomous Ansible deployment, file deletion, or package
 installation capability.
 
-## Public exposure requirements
+## Public exposure controls
 
-The agent API is not ready for public exposure. Before publishing
-`ai.jkandler.de`, require at least:
+The agent API is published at `ai.jkandler.de` with:
 
 - HTTPS termination
 - authentication independent of the model prompt
@@ -75,9 +74,10 @@ The agent API is not ready for public exposure. Before publishing
 - audit-friendly logs that exclude prompts, secret values, and tool payloads
 - verified preservation of the current Nextcloud route
 
-The shared proxy, Nextcloud reverse-proxy migration, and guarded rollback path
-are deployed. Agent authentication and limits are committed but remain
-inactive until the separate agent router is deliberately enabled.
+The shared proxy, Nextcloud reverse-proxy migration, guarded rollback path,
+agent authentication, and limits are deployed. The Basic Auth username is
+`julian`; the password and verifier remain encrypted with SOPS. The underlying
+agent port remains bound to host loopback.
 
 ## Data sent to cloud services
 

@@ -15,15 +15,15 @@ dedicated bridge, guest interface, static neighbour entry, and VNC listener
 were observed. A non-privileged `virsh` query timed out, so the libvirt domain
 state was not independently enumerated during this snapshot.
 
-The private home-agent stack is deployed and verified. The `home-tools`
-systemd service is active, the `home-agent` Docker container is running, and
-an end-to-end model request successfully called the restricted health tool.
-The agent API remains loopback-only and has no public hostname.
+The home-agent stack is deployed and verified. The `home-tools` systemd service
+is active, the `home-agent` Docker container is running, and the container API
+remains bound to loopback. Traefik publishes it at `ai.jkandler.de` behind
+Basic Auth, rate and request-size limits, and security headers.
 
 Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
 443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
 Nextcloud AIO Apache on `127.0.0.1:11000`. The migration completed and was
-verified on 2026-08-19. The agent route remains disabled.
+verified on 2026-08-19. The authenticated agent route is enabled.
 
 ## Live evidence
 
@@ -42,6 +42,7 @@ verified on 2026-08-19. The agent route remains disabled.
 | `home-tools` service | Active; fixed read-only collectors over a protected Unix socket |
 | `home-agent` container | Running; healthy API on `127.0.0.1:8090` |
 | Agent end-to-end check | Successful OpenAI tool call and health report |
+| Public agent boundary | Valid Let's Encrypt certificate; unauthenticated 401; authenticated health and chat HTTP 200 |
 | Shared ingress | Traefik `v3.7.1`, healthy on ports 80/443; no Docker socket |
 | Nextcloud upstream | AIO Apache on `127.0.0.1:11000` only |
 | Public Nextcloud check | HTTP/2 200; maintenance disabled; valid Let's Encrypt certificate |
@@ -62,9 +63,20 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-2f8039d6a13f3c50219b62cb8d71b00287073fac
-Persist shared ingress deployment
+c07fa3f90c8baa37597ec81f4672a43b703d884a
+Persist public agent route
 ```
+
+DNS infrastructure repository root and current revision:
+
+```text
+/home/julian/projects/dyndns
+df2fa76dadad2d28b62a2c89bc5ece00ada5812a
+Restore protected production deployment (#7)
+```
+
+Merged Terraform change `0fde1dd449039abddd2de6c34c3075569f773703`
+introduced the `ai` CNAME declaration.
 
 The committed repository contains these roles:
 
@@ -82,8 +94,8 @@ are committed. The dedicated playbook was applied with human-entered sudo
 credentials on 2026-08-18.
 
 The guarded Nextcloud migration completed on 2026-08-19. The deployed state is
-persisted with Nextcloud reverse-proxy mode and shared ingress enabled. Traefik
-is running and healthy; agent publication remains independently disabled.
+persisted with Nextcloud reverse-proxy mode, shared ingress, and the
+authenticated agent router enabled. Traefik is running and healthy.
 
 ## Managed services
 
@@ -123,7 +135,6 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Observation | Classification | Follow-up |
 | --- | --- | --- |
 | No monitoring role or monitoring containers | Current gap | Design lightweight monitoring separately |
-| `ai.jkandler.de` does not resolve | Expected | Create only when authenticated ingress exists |
 | `iperf3`-typical port `5201` is listening | Unknown | Identify owner and decide whether to manage or remove it |
 | Loopback port `43117` is listening | Unknown | Identify owning process with privileged diagnostics if needed |
 | Legacy `owncloud-docker-server_*` Docker volumes exist | Unknown/legacy | Do not delete until contents and recovery need are confirmed |
@@ -132,14 +143,12 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 ## Explicitly not deployed
 
-- `ai.jkandler.de` DNS record
-- public agent authentication
 - agent web UI
 - Nextcloud document retrieval or indexing
 
 ## Agent verification evidence
 
-Observed on 2026-08-18:
+Observed initially on 2026-08-18 and revalidated publicly on 2026-08-19:
 
 - `home-tools.service` active under systemd
 - `home-agent` running with a read-only root filesystem
@@ -148,3 +157,6 @@ Observed on 2026-08-18:
 - host publication restricted to `127.0.0.1:8090`
 - live health request reported `/` at 50.9% and `/mnt/black-hdd` at 15.0%
 - no failed systemd units reported
+- `ai.jkandler.de` resolves by CNAME to `jkandler.de` with IPv4 and no AAAA
+- unauthenticated public requests return HTTP 401
+- authenticated `/healthz` and `/v1/chat` requests return HTTP 200

@@ -2,11 +2,12 @@
 
 - **C4 type:** Component
 - **Scope:** `home-agent` API container
-- **Status:** Current/deployed as of 2026-08-18
+- **Status:** Current/deployed and publicly routed as of 2026-08-19
 
 ```mermaid
 flowchart LR
-    caller["Local API Client<br/>[Person or External System]"]
+    caller["Authenticated API Client<br/>[Person or External System]"]
+    proxy["Traefik Basic Auth and Limits<br/>[External Container]"]
     cloud["OpenAI Responses API<br/>[External Software System]"]
     host_tools["home-tools Unix API<br/>[External Container]"]
     key["API Key File<br/>[External Data Store]"]
@@ -19,7 +20,8 @@ flowchart LR
         config["Runtime Configuration<br/>[Component]<br/>Loads model, socket path, and key file"]
     end
 
-    caller -->|"POSTs a message to /v1/chat through host loopback"| http
+    caller -->|"Uses HTTPS at ai.jkandler.de"| proxy
+    proxy -->|"Forwards bounded requests to 127.0.0.1:8090"| http
     http -->|"Requests a response"| provider
     config -->|"Reads the key once at startup"| key
     config -->|"Initialises"| provider
@@ -31,7 +33,7 @@ flowchart LR
 
     classDef external fill:#666,color:#fff,stroke:#333
     classDef component fill:#85bbf0,color:#111,stroke:#0b4884
-    class caller,cloud,host_tools,key external
+    class caller,proxy,cloud,host_tools,key external
     class http,provider,schema,client,config component
 ```
 

@@ -54,8 +54,9 @@ DNS intentionally has no AAAA record for the documented external names.
 | KVM/QEMU and libvirt | Ansible `libvirt_host` role | Virtual machine runtime |
 | GitHub runner VM | Ansible `github_runner` role | Isolated self-hosted CI runner |
 | SOPS/GPG | Ansible controller | Encrypted infrastructure secrets |
+| Terraform DynDNS stack | `/home/julian/projects/dyndns` | Route 53 CNAMEs plus API Gateway/Lambda IPv4 updater |
 | `home-tools` | Ansible `home_agent` role | Fixed, read-only host observations over a Unix socket |
-| `home-agent` | Ansible `home_agent` role | Loopback-only natural-language health API using OpenAI |
+| `home-agent` | Ansible `home_agent` role | Loopback-bound health API, published through authenticated Traefik routing |
 
 ## Docker networks
 

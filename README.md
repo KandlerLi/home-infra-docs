@@ -22,11 +22,10 @@ ingress deployment was recorded on **2026-08-19**.
 | Proposed | Designed or implemented locally, but not deployed |
 | Unknown | Observed state whose owner or purpose has not yet been confirmed |
 
-The private `home-agent` implementation is **deployed and verified** on the
-homeserver. Its HTTP API is reachable only through `127.0.0.1:8090`; it is not
-publicly exposed. Pinned Traefik `v3.7.1` now routes public Nextcloud traffic to
-AIO Apache on `127.0.0.1:11000`. `ai.jkandler.de` has no DNS record and its
-authenticated Traefik router remains disabled.
+The `home-agent` implementation is **deployed and verified**. Its container API
+remains loopback-only at `127.0.0.1:8090`; pinned Traefik `v3.7.1` publishes it
+at `ai.jkandler.de` behind Basic Auth and request limits. Traefik also routes
+public Nextcloud traffic to AIO Apache on `127.0.0.1:11000`.
 
 ## Documentation map
 
