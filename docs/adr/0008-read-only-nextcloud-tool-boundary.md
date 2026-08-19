@@ -1,0 +1,50 @@
+# ADR 0008: Put Nextcloud access behind a dedicated bounded service
+
+- Status: Accepted
+- Date: 2026-08-19
+- Deployment status: Prepared, not deployed
+
+## Context
+
+The user wants the homeserver agent to locate photos and documents and later
+create or update files. Open WebUI is an intentionally untrusted frontend, and
+`home-agent` is an unprivileged model-facing container. Giving either component
+a Nextcloud password, direct data mount, unrestricted WebDAV client, or bulk
+index would cross the established security and privacy boundary.
+
+## Decision
+
+Introduce Nextcloud capabilities through a dedicated host-side
+`nextcloud-tools` systemd service. It holds a device/app password for a
+non-admin Nextcloud account that can see only one explicitly shared folder.
+The service connects to AIO Apache exclusively on `127.0.0.1:11000` and exposes
+fixed operations to `home-agent` over a group-protected Unix socket.
+
+The first milestone implements only:
+
+- direct child listing below the approved root
+- bounded case-insensitive filename/path search
+- UTF-8 reads for approved text extensions up to 256 KiB
+
+Every caller path is relative and traversal-checked. Search is bounded to 500
+entries, depth four, and 50 results. Returned metadata is allowlisted. The
+service implements no WebDAV write method, and the agent receives neither the
+app password nor direct Nextcloud network access.
+
+Do not deploy until a dedicated account, read-only folder share, revocable app
+password, encrypted inventory values, and explicit production approval exist.
+Add writes only in a later ADR with per-operation confirmation, conflict
+protection, and safe auditing.
+
+## Consequences
+
+- A user-requested filename, metadata record, or text document may be sent to
+  the configured cloud model; there is no background or bulk indexing.
+- Photo files can be found by name, path, date, MIME type, and preview metadata,
+  but image content is not analysed.
+- PDF and Office contents remain unreadable in the first milestone.
+- Compromise of the service credential is bounded by the dedicated account and
+  read-only share; the token remains revocable independently.
+- Deployment and rollback recreate `home-agent` to attach or detach only the
+  Unix socket. Rollback stops the credential-bearing service without deleting
+  its configuration.

@@ -12,6 +12,7 @@ original rollout views for link stability.
 
 - [Deployment view](deployment.md)
 - [Open WebUI frontend](open-webui.md)
+- [Read-only Nextcloud tools](nextcloud-tools.md)
 
 ## Goals
 

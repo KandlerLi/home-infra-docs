@@ -147,3 +147,28 @@ The private web UI does not change that rule. Any future Nextcloud integration
 must use a separate least-privilege service, dedicated credentials, scoped
 paths and operations, explicit confirmation for writes, and audit records that
 do not disclose document contents.
+
+### Prepared read-only Nextcloud boundary
+
+Infrastructure revision `ac134e5` prepares but does not deploy that separate
+boundary. `nextcloud-tools.service` is a dedicated non-login identity with no
+Docker group, no capabilities, a strict protected filesystem, and network
+access restricted to Unix sockets plus `127.0.0.1`. It authenticates to the AIO
+Apache loopback endpoint with a service-owned `0400` app-password file.
+
+The future `home-agent` integration mounts only the protected Unix socket and
+adds its numeric client group. Neither `home-agent` nor Open WebUI receives the
+app password, Nextcloud data mount, or general WebDAV network client. The
+service supports only bounded `PROPFIND` metadata and small approved text-file
+`GET` requests below one configured root. It contains no WebDAV write methods.
+
+The dedicated Nextcloud account and app password do not yet exist. When
+created, both `nextcloud_tools_username` and
+`nextcloud_tools_app_password` must be stored in SOPS. The account must be
+non-admin and see only a read-only `AI Workspace` share. Revoke its app password
+independently if compromise is suspected.
+
+Requested filenames, metadata, and text contents cross the cloud boundary when
+the agent calls these tools. There is no background indexing. Populate the
+allowed folder only with data that may be disclosed to the configured provider
+on explicit request.

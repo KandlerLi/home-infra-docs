@@ -17,3 +17,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0005](0005-shared-reverse-proxy.md) | Accepted | Introduce a shared authenticated HTTPS ingress layer |
 | [0006](0006-local-aws-account-bootstrap.md) | Accepted | Manage AWS deployment identities from a local-only control plane |
 | [0007](0007-open-webui-over-restricted-agent.md) | Accepted | Use Open WebUI only as a frontend for the restricted home-agent |
+| [0008](0008-read-only-nextcloud-tool-boundary.md) | Accepted | Put read-only Nextcloud access behind a dedicated bounded service |

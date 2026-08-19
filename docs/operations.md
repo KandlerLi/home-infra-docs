@@ -98,6 +98,26 @@ Home-agent only:
   --ask-become-pass
 ```
 
+Prepared read-only Nextcloud tools, only after the dedicated identity, scoped
+share, SOPS values, and explicit production approval exist:
+
+```bash
+.venv/bin/ansible-playbook ansible/playbooks/nextcloud-tools.yml \
+  --ask-become-pass
+```
+
+Rollback detaches the agent socket before stopping the credential-bearing
+service:
+
+```bash
+.venv/bin/ansible-playbook ansible/playbooks/disable-nextcloud-tools.yml \
+  --ask-become-pass
+```
+
+These playbooks are prepared but have not been run. Follow the dedicated
+Nextcloud tools runbook; never put the app password in command arguments or
+logs.
+
 Privately deployed Open WebUI frontend, without changing the public route:
 
 ```bash

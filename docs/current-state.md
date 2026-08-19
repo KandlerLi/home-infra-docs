@@ -85,12 +85,13 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-941bb52
-Record Open WebUI as deployed
+ac134e5
+Add Nextcloud tool rollback
 ```
 
-This revision records the deployed Open WebUI frontend and public route as
-enabled desired state after authenticated browser-chat validation.
+This revision contains the disabled-by-default read-only Nextcloud tool
+implementation and its rollback path. The implementation is not deployed and
+the live Open WebUI state remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -107,8 +108,8 @@ AI handover repository root and orientation revision before this update:
 
 ```text
 /home/julian/projects/home-infra-ai-context
-e66a870
-Record Open WebUI private onboarding
+fa16655
+Close Open WebUI public validation
 ```
 
 This repository is a secret-free orientation layer for new models, chats, and
@@ -218,6 +219,13 @@ The currently configured repository is `KandlerLi/dyndns`.
 ## Explicitly not deployed
 
 - Nextcloud document retrieval or indexing
+
+Committed infrastructure now contains a prepared, disabled-by-default
+`nextcloud_tools` role and dedicated deployment/rollback playbooks. It is not
+enabled in inventory, has no configured credential, and has not been applied.
+Its intended scope is one read-only shared folder with bounded filename search,
+metadata listing, and small UTF-8 text reads. It does not implement WebDAV
+writes, binary document extraction, image-content analysis, or bulk indexing.
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI

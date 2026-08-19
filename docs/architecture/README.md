@@ -28,6 +28,11 @@ hierarchical views rather than one all-purpose diagram.
 2. [Deployed routing view](proposed/deployment.md)
 3. [Open WebUI rollout](proposed/open-webui.md) — retained deployed rollout view
 
+### Prepared capabilities
+
+1. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — implemented in
+   Ansible, disabled, and not deployed
+
 ## Notation
 
 Mermaid flowcharts are used as a portable notation. Each node includes its C4

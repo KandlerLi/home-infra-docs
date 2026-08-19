@@ -57,6 +57,12 @@ credential or host access, and Nextcloud data access remains a later separately
 reviewed milestone. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
+A disabled-by-default read-only Nextcloud tool boundary is **prepared but not
+deployed**. It uses a separate systemd service, dedicated credentials, one
+allowed folder, bounded WebDAV reads, and a Unix socket exposed to
+`home-agent`. No account, app password, inventory enable flag, or production
+service exists yet.
+
 ## Documentation map
 
 - [Documentation index](docs/README.md)
