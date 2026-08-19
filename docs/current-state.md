@@ -75,8 +75,10 @@ credentials on 2026-08-18.
 
 Committed infrastructure work on 2026-08-19 adds a disabled-by-default
 Traefik shared-ingress role, guarded Nextcloud AIO reverse-proxy settings, and
-separate preparation, cutover, and agent-publication playbooks. None of this
-ingress work has been applied.
+separate preparation, cutover, and agent-publication playbooks. The preparation
+playbook has installed and validated the pinned Traefik configuration and image.
+Traefik remains stopped, no public ports have changed ownership, and the
+Nextcloud cutover and agent publication have not been applied.
 
 ## Managed services
 

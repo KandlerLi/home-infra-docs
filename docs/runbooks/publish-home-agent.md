@@ -1,9 +1,9 @@
 # Runbook: Publish the Home Agent
 
-Status: **Local deployment completed and verified on 2026-08-18. A guarded,
-disabled-by-default Traefik implementation was prepared on 2026-08-19 but has
-not been applied. Public ingress must not be cut over without a maintenance
-window and verified rollback readiness.**
+Status: **Local deployment completed and verified on 2026-08-18. The guarded,
+disabled-by-default Traefik preparation completed on 2026-08-19 without
+changing live ports. Public ingress has not been cut over and must not be
+changed without a maintenance window and verified rollback readiness.**
 
 ## Phase A: Local deployment — completed
 
@@ -18,7 +18,7 @@ window and verified rollback readiness.**
 7. Completed a local health report and compared it with direct read-only
    checks.
 
-## Phase B: Shared ingress preparation — implementation prepared
+## Phase B: Shared ingress preparation — completed
 
 The prepared implementation uses pinned Traefik `v3.7.1`, host networking,
 file-based routing, and no Docker socket. The agent router uses Basic Auth,
@@ -37,6 +37,10 @@ security headers. Nextcloud is not placed behind additional authentication.
      ansible/playbooks/shared-ingress-prepare.yml \
      --ask-become-pass
    ```
+
+6. Verified that the pinned image is present, no `shared-ingress` container is
+   running, Nextcloud still owns its original ports and returns HTTP 200, and
+   the loopback-only home-agent health endpoint returns `{"status":"ok"}`.
 
 ## Phase C: Controlled Nextcloud migration
 
