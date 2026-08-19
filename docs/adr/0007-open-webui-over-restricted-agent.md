@@ -1,6 +1,6 @@
 # ADR 0007: Use Open WebUI over the restricted home-agent
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-08-19
 
 ## Context
@@ -15,8 +15,8 @@ Nextcloud storage would bypass the existing safety boundary.
 
 Use Open WebUI as an authenticated chat and conversation frontend only. It
 connects to a bounded OpenAI-compatible API implemented by `home-agent` over an
-internal Docker network. `home-agent` continues to hold the real provider key,
-fixed server-side instructions, tool registry, and request/tool limits.
+non-masqueraded Docker bridge. `home-agent` continues to hold the real provider
+key, fixed server-side instructions, tool registry, and request/tool limits.
 
 Pin Open WebUI by release and image digest. Publish it on host loopback first,
 bootstrap the initial administrator privately, and use a separately confirmed
@@ -28,6 +28,9 @@ WebUI features that widen the execution or data boundary.
 Do not connect Nextcloud in this milestone. Introduce future Nextcloud access
 as a separate least-privilege tool service with narrow credentials and explicit
 write confirmation.
+
+The private runtime was deployed and validated on 2026-08-19. Public routing
+remains a separate guarded step after private administrator onboarding.
 
 ## Consequences
 

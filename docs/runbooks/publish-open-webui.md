@@ -1,6 +1,7 @@
 # Runbook: Deploy and Publish Open WebUI
 
-Status: **Prepared in automation, not deployed as of 2026-08-19.**
+Status: **Private deployment completed and validated on 2026-08-19. Initial
+administrator onboarding and public publication remain pending.**
 
 This runbook adds a chat window without granting the frontend direct host,
 Nextcloud, or OpenAI access. Production deployment is a separate human-
@@ -26,9 +27,11 @@ cd /home/julian/projects/home-infra
   --ask-become-pass
 ```
 
-The play creates the internal `home-agent-frontend` network, recreates
+The play creates the non-masqueraded `home-agent-frontend` bridge, recreates
 `home-agent` with an additional network attachment, and starts Open WebUI on
-`127.0.0.1:8091`. It does not alter the public Traefik route.
+`127.0.0.1:8091`. It does not alter the public Traefik route. Disabling IP
+masquerading permits the loopback port mapping while blocking frontend
+external egress.
 
 Verify with filtered output only:
 
@@ -37,10 +40,33 @@ curl --fail-with-body http://127.0.0.1:8091/health
 docker inspect open-webui \
   --format 'running={{.State.Running}} health={{.State.Health.Status}} user={{.Config.User}}'
 docker network inspect home-agent-frontend \
-  --format 'internal={{.Internal}} containers={{len .Containers}}'
+  --format 'internal={{.Internal}} options={{json .Options}} containers={{len .Containers}}'
 ```
 
 Do not record an unfiltered `docker inspect`; it includes environment values.
+
+### Initial deployment recovery
+
+The first apply created Open WebUI on a Docker network with `internal: true`.
+Docker retained the requested port in `HostConfig` but suppressed the runtime
+port mapping, so the final loopback readiness task failed with connection
+refused. Open WebUI itself later became internally healthy; the current agent
+and Nextcloud stayed healthy throughout.
+
+Infrastructure commit `9c97e88` changed the bridge to
+`enable_ip_masquerade=false`, added an idempotent one-time network migration,
+enabled offline/RAG-bypass startup settings, and extended the readiness window.
+A bounded host test proved loopback publication worked and outbound HTTPS was
+blocked. The idempotent rerun then completed successfully. Final checks showed:
+
+- healthy Open WebUI and `home-agent` containers with zero Open WebUI restarts
+- listeners only on `127.0.0.1:8090` and `127.0.0.1:8091`
+- all capabilities dropped, `no-new-privileges`, non-privileged mode, and the
+  expected CPU, memory, and PID limits
+- only Open WebUI and `home-agent` attached to the frontend bridge
+- synthetic `home-agent` model discovery and a live compatibility completion
+- blocked Open WebUI external HTTPS egress
+- unchanged public agent HTTP 401 and healthy Nextcloud status
 
 ## 3. Bootstrap the first administrator
 

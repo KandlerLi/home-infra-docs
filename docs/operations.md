@@ -98,17 +98,18 @@ Home-agent only:
   --ask-become-pass
 ```
 
-Prepared Open WebUI frontend, without changing the public route:
+Privately deployed Open WebUI frontend, without changing the public route:
 
 ```bash
 .venv/bin/ansible-playbook ansible/playbooks/open-webui.yml \
   --ask-become-pass
 ```
 
-This creates new persistent state below `/var/lib/open-webui` and recreates
-`home-agent` so it also joins the isolated frontend network. It does not touch
-Nextcloud or switch `ai.jkandler.de`. Follow the dedicated runbook for the
-first administrator, validation, guarded publication, backup, and rollback.
+This creates persistent state below `/var/lib/open-webui` and recreates
+`home-agent` so it also joins the non-masqueraded frontend bridge. The private
+deployment completed on 2026-08-19. It did not touch Nextcloud or switch
+`ai.jkandler.de`. Follow the dedicated runbook for first-administrator
+onboarding, guarded publication, backup, and rollback.
 
 Both dedicated playbooks are opt-in. The main `site.yml` keeps these roles
 disabled unless explicitly enabled.

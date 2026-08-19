@@ -106,13 +106,14 @@ agent authentication, and limits are deployed. The Basic Auth username is
 `julian`; the password and verifier remain encrypted with SOPS. The underlying
 agent port remains bound to host loopback.
 
-### Prepared Open WebUI boundary
+### Private Open WebUI boundary
 
-The not-yet-deployed Open WebUI role keeps the existing home-agent as the
-security and provider boundary. Open WebUI receives a placeholder API key,
-not `home_agent_openai_api_key`, and can reach only the agent's compatibility
-API over an internal Docker network. It receives no Docker socket, Nextcloud
-mount, host tool socket, shell, or SSH credential.
+The privately deployed Open WebUI keeps the existing home-agent as the security
+and provider boundary. Open WebUI receives a placeholder API key, not
+`home_agent_openai_api_key`, and can reach only the agent's compatibility API
+over a non-masqueraded Docker bridge. It receives no Docker socket, Nextcloud
+mount, host tool socket, shell, or SSH credential. Live validation confirmed
+that outbound HTTPS is blocked.
 
 Uploads, plugins, runtime package installation, code execution, the code
 interpreter, web search, image generation, API keys, subagents, and workspace
@@ -129,6 +130,10 @@ Open WebUI authentication; stacking Traefik Basic Auth would collide with the
 Bearer `Authorization` header used by signed-in Open WebUI requests. The exact
 legacy `/healthz` and `/v1/chat` routes retain Traefik Basic Auth.
 
+The first administrator has not yet been created. Until private onboarding is
+complete and anonymous signup is confirmed disabled, the guarded public route
+must remain off.
+
 ## Data sent to cloud services
 
 When requested, selected health data such as load, disk usage, container
@@ -136,7 +141,7 @@ names, and container health state is sent to the configured OpenAI model.
 Nextcloud documents are explicitly outside the deployed milestone and must
 remain opt-in in any future retrieval design.
 
-The prepared web UI does not change that rule. Any future Nextcloud integration
+The private web UI does not change that rule. Any future Nextcloud integration
 must use a separate least-privilege service, dedicated credentials, scoped
 paths and operations, explicit confirmation for writes, and audit records that
 do not disclose document contents.

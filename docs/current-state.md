@@ -27,9 +27,12 @@ is active, the `home-agent` Docker container is running, and the container API
 remains bound to loopback. Traefik publishes it at `ai.jkandler.de` behind
 Basic Auth, rate and request-size limits, and security headers.
 
-Open WebUI support is prepared in infrastructure code but is not deployed.
-The public hostname still routes directly to the JSON home-agent API, so a
-browser request to `/` does not yet show a chat window.
+Open WebUI is privately deployed and healthy on `127.0.0.1:8091`. Its
+non-masqueraded Docker bridge blocks external egress while allowing it to reach
+only `home-agent` and publish on host loopback. The initial administrator has
+not been created and the public hostname still routes directly to the JSON
+home-agent API, so a public browser request to `/` does not yet show a chat
+window.
 
 Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
 443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
@@ -52,6 +55,8 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Nextcloud AIO | Ten running containers, all reporting healthy |
 | `home-tools` service | Active; fixed read-only collectors over a protected Unix socket |
 | `home-agent` container | Running; healthy API on `127.0.0.1:8090` |
+| Open WebUI container | Running and healthy on `127.0.0.1:8091`; private onboarding pending |
+| Frontend network | `home-agent-frontend`; IP masquerading disabled; only Open WebUI and `home-agent` attached |
 | Agent end-to-end check | Successful OpenAI tool call and health report |
 | Public agent boundary | Valid Let's Encrypt certificate; unauthenticated 401; authenticated health and chat HTTP 200 |
 | Shared ingress | Traefik `v3.7.1`, healthy on ports 80/443; no Docker socket |
@@ -76,12 +81,12 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-d52d1b3
-Prepare secure Open WebUI frontend
+9c97e88
+Fix Open WebUI private network startup
 ```
 
-This revision contains the opt-in Open WebUI preparation. It does not mean the
-frontend or its route has been applied to production.
+This revision contains the deployed private Open WebUI implementation. The
+public Open WebUI route is still intentionally disabled.
 
 DNS infrastructure repository root and current revision:
 
@@ -98,8 +103,8 @@ AI handover repository root and orientation revision before this update:
 
 ```text
 /home/julian/projects/home-infra-ai-context
-0d7119b
-Record memory upgrade validation
+e6ab855
+Record Open WebUI preparation handover
 ```
 
 This repository is a secret-free orientation layer for new models, chats, and
@@ -149,7 +154,7 @@ The committed repository contains these roles:
 - `libvirt_host`
 - `github_runner`
 - `home_agent`
-- `open_webui` (prepared, opt-in, not deployed)
+- `open_webui` (privately deployed; public route disabled)
 - `shared_ingress`
 
 The `home_agent` role, dedicated playbook, tests, and encrypted API credential
@@ -208,13 +213,13 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 ## Explicitly not deployed
 
-- agent web UI
+- public Open WebUI route at `ai.jkandler.de`
 - Nextcloud document retrieval or indexing
 
-The prepared web-UI change adds an isolated frontend network, an
-OpenAI-compatible endpoint on `home-agent`, a loopback-only Open WebUI service
-on port 8091, and guarded publish/rollback playbooks. None of those prepared
-runtime changes were applied during this documentation update.
+The private deployment added a non-masqueraded frontend bridge, an
+OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI
+service on port 8091. The guarded publish/rollback playbooks exist, but the
+public route was not changed.
 
 ## Agent verification evidence
 
@@ -230,3 +235,8 @@ Observed initially on 2026-08-18 and revalidated publicly on 2026-08-19:
 - `ai.jkandler.de` resolves by CNAME to `jkandler.de` with IPv4 and no AAAA
 - unauthenticated public requests return HTTP 401
 - authenticated `/healthz` and `/v1/chat` requests return HTTP 200
+- Open WebUI is healthy on `127.0.0.1:8091`, runs as UID `995` with GID `0`,
+  has all capabilities dropped, and has no Docker socket
+- Open WebUI can list the synthetic `home-agent` model over the dedicated
+  bridge, while an outbound HTTPS test from the container is blocked
+- a live compatibility completion returned exactly `compatibility-ok`

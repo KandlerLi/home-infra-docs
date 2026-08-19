@@ -4,9 +4,10 @@ The public home-agent routing view is **deployed and verified** as of
 2026-08-19 and remains here for link stability. The deployed AWS
 account-bootstrap view has moved to `../current/account-bootstrap.md`.
 
-The private agent is deployed and verified on `127.0.0.1:8090`. This section
-retains its publication view and documents the prepared, not-yet-deployed
-Open WebUI frontend for `ai.jkandler.de`.
+The private agent is deployed and verified on `127.0.0.1:8090`, and Open WebUI
+is privately deployed on `127.0.0.1:8091`. This section retains the original
+publication view and documents the still-proposed Open WebUI public route for
+`ai.jkandler.de`.
 
 ## Views
 
@@ -27,11 +28,11 @@ Open WebUI frontend for `ai.jkandler.de`.
 - Agent authentication, rate limits, request-size limits, and headers are active.
 - `ai.jkandler.de` resolves through the Terraform-managed CNAME without AAAA.
 - Unauthenticated requests return 401; authenticated health and chat return 200.
+- Open WebUI is healthy on loopback and reaches only the synthetic `home-agent`
+  model over a non-masqueraded bridge.
 
 ## Prepared next step
 
-- Deploy Open WebUI on host loopback port 8091.
-- Connect it only to the restricted home-agent over an internal Docker network.
 - Bootstrap and validate the first UI administrator over an SSH tunnel.
 - Replace only the hostname catch-all route after an explicit publish confirmation.
 - Preserve the exact `/healthz` and `/v1/chat` API routes for compatibility.

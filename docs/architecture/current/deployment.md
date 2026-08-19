@@ -31,6 +31,7 @@ flowchart TB
                 aio_app["Nextcloud and Supporting Apps<br/>[Container Instances]"]
                 aio_db["PostgreSQL and Redis<br/>[Container Instances]"]
                 agent["home-agent<br/>[Container Instance]<br/>127.0.0.1:8090, read-only root, no capabilities"]
+                webui["Open WebUI v0.11.0-slim<br/>[Container Instance]<br/>127.0.0.1:8091, private onboarding"]
             end
 
             subgraph hypervisor["libvirt/KVM/QEMU [Virtualisation Node]"]
@@ -43,6 +44,7 @@ flowchart TB
 
         system_disk["System SSD<br/>[Infrastructure Node]<br/>/dev/sdb2 mounted at /"]
         hdd["Large HDD<br/>[Infrastructure Node]<br/>/dev/sda1 mounted at /mnt/black-hdd"]
+        webui_data["Open WebUI State<br/>[Infrastructure Node]<br/>/var/lib/open-webui"]
     end
 
     browser -->|"Resolves public hostnames with"| dns
@@ -55,6 +57,7 @@ flowchart TB
     ssh -->|"Configures host services"| docker_daemon
     ssh -->|"Configures hypervisor and guest"| libvirt_daemon
     ssh -->|"Invokes the private API through host loopback"| agent
+    ssh -->|"Forwards private browser access to 127.0.0.1:8091"| webui
     aio_master -->|"Manages sibling containers through Docker API"| docker_daemon
     aio_apache -->|"Forwards application requests over the AIO network"| aio_app
     aio_app -->|"Uses database and cache protocols"| aio_db
@@ -63,6 +66,8 @@ flowchart TB
     runner -->|"Polls for and reports Actions jobs over HTTPS"| github
     runner -->|"Reads and writes qcow2 disk"| hdd
     agent -->|"Calls model over HTTPS"| openai
+    webui -->|"Calls OpenAI-compatible API over non-masqueraded bridge"| agent
+    webui -->|"Persists account and chat state"| webui_data
     agent -->|"Uses read-only mounted socket directory"| socket
     socket -->|"Carries fixed HTTP GET requests"| tools
     agent_key -->|"Is mounted read-only"| agent
@@ -75,8 +80,8 @@ flowchart TB
     classDef instance fill:#85bbf0,color:#111,stroke:#0b4884
     class browser client
     class github,openai,letsencrypt external
-    class controller,dns,fritzbox,ssh,docker_daemon,libvirt_daemon,system_disk,hdd,socket,agent_key node
-    class ingress,aio_master,aio_apache,aio_app,aio_db,runner,tools,agent instance
+    class controller,dns,fritzbox,ssh,docker_daemon,libvirt_daemon,system_disk,hdd,webui_data,socket,agent_key node
+    class ingress,aio_master,aio_apache,aio_app,aio_db,runner,tools,agent,webui instance
 ```
 
 ## Deployment nodes
@@ -86,10 +91,11 @@ flowchart TB
 | Fritzbox | Router/NAT/firewall | External configuration; not managed by Ansible |
 | Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 16 GiB RAM, no dedicated GPU |
 | Debian host | Debian 13.6 | Runs Docker, libvirt, SSH, and mounted storage |
-| Docker Engine | Docker CE | Runs the Nextcloud AIO suite and `home-agent` |
+| Docker Engine | Docker CE | Runs the Nextcloud AIO suite, `home-agent`, and private Open WebUI |
 | Shared ingress | Traefik `v3.7.1` | Host-network TLS termination and file-based routing; no Docker socket |
 | `home-tools` | Python 3 systemd service | Fixed read-only collectors on a group-protected Unix socket |
 | `home-agent` | Python 3.13 Docker container | Loopback-only API with hardened container settings |
+| Open WebUI | Digest-pinned Docker container | Private loopback UI; non-masqueraded bridge; public route disabled |
 | GitHub runner VM | KVM/QEMU, Debian 13 | Private NAT at `192.168.100.10` |
 | System SSD | ext4 | Root operating system filesystem |
 | Large HDD | ext4 | Nextcloud data and runner VM files |
@@ -103,6 +109,8 @@ flowchart TB
 - Nextcloud Apache upstream: `127.0.0.1:11000` only
 - Traefik health endpoint: `127.0.0.1:8082` only
 - Home-agent API: `127.0.0.1:8090` only
+- Open WebUI: `127.0.0.1:8091` only
+- Frontend bridge: `home-agent-frontend`, IP masquerading disabled
 - Agent hostname: `ai.jkandler.de`, Basic Auth protected
 - Public DNS has no AAAA record, although the host has IPv6 addresses.
 

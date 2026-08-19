@@ -1,8 +1,8 @@
 # Open WebUI Frontend — Deployment View
 
 - **C4 type:** Deployment
-- **Scope:** Prepared chat frontend for `ai.jkandler.de`
-- **Status:** Proposed/implemented in automation, not deployed as of 2026-08-19
+- **Scope:** Private chat frontend and proposed publication at `ai.jkandler.de`
+- **Status:** Private runtime deployed; public route not deployed as of 2026-08-19
 
 ```mermaid
 flowchart LR
@@ -20,8 +20,8 @@ flowchart LR
     person -->|"HTTPS"| ingress
     ingress -.->|"Proposed catch-all route to 127.0.0.1:8091"| webui
     ingress -->|"Retained exact /healthz and /v1/chat routes to 127.0.0.1:8090"| agent
-    webui -.->|"OpenAI-compatible API over isolated internal Docker network"| agent
-    webui -.->|"Persists accounts and chats"| webui_data
+    webui -->|"OpenAI-compatible API over non-masqueraded Docker bridge"| agent
+    webui -->|"Persists accounts and chats"| webui_data
     agent -->|"Responses API with server-held credential"| openai
     agent -->|"Fixed Unix-socket GET requests"| tools
 
@@ -29,11 +29,10 @@ flowchart LR
     classDef external fill:#666,color:#fff,stroke:#333
     classDef current fill:#438dd5,color:#fff,stroke:#0b4884
     classDef proposed fill:#fff2cc,color:#111,stroke:#8a6d1d,stroke-dasharray: 5 5
-    classDef datastore fill:#d5ead8,color:#111,stroke:#3b7044,stroke-dasharray: 5 5
+    classDef datastore fill:#d5ead8,color:#111,stroke:#3b7044
     class person person
     class openai external
-    class ingress,agent,tools current
-    class webui proposed
+    class ingress,agent,webui,tools current
     class webui_data datastore
 ```
 
@@ -47,7 +46,8 @@ flowchart LR
   model rounds remain bounded.
 - Open WebUI has no Docker socket, host filesystem access, shell, code
   interpreter, plugin installation, file upload, web search, or workspace tool
-  access. Its Docker network is internal and reaches only `home-agent`.
+  access. Its non-masqueraded Docker bridge reaches `home-agent`, permits the
+  loopback publication, and blocks external egress.
 - The public UI uses Open WebUI's own account login. HTTP Basic Auth cannot be
   stacked on that route because both mechanisms need the `Authorization`
   header. The retained direct API routes continue to use Traefik Basic Auth,
@@ -69,5 +69,5 @@ confirmation for writes, audit logs, and dedicated credentials.
 ## Legend
 
 - Solid blue node/relationship: currently deployed component or route
-- Dashed beige/green node or relationship: prepared but not deployed
+- Dashed beige relationship: prepared but not deployed
 - Grey node: external software system

@@ -49,10 +49,11 @@ remains loopback-only at `127.0.0.1:8090`; pinned Traefik `v3.7.1` publishes it
 at `ai.jkandler.de` behind Basic Auth and request limits. Traefik also routes
 public Nextcloud traffic to AIO Apache on `127.0.0.1:11000`.
 
-An Open WebUI frontend is **implemented but not deployed**. The prepared design
-keeps the current agent as the only model/tool boundary, gives the frontend no
-real provider credential or host access, and leaves Nextcloud data access for
-a later separately reviewed milestone.
+Open WebUI is **deployed privately but not publicly routed**. It is healthy on
+`127.0.0.1:8091`; the public hostname still routes directly to the existing
+Basic-Auth-protected JSON agent API. The frontend has no real provider
+credential or host access, and Nextcloud data access remains a later separately
+reviewed milestone.
 
 ## Documentation map
 
