@@ -54,8 +54,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-761ae44a8bda9f42ff7aa9f8320e40cf54440701
-Prepare guarded shared ingress migration
+2820b17208ad0c85f92677433cf708a8b1c45ddc
+Configure shared ingress ACME contact
 ```
 
 The committed repository contains these roles:
