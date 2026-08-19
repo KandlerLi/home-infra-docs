@@ -1,8 +1,8 @@
 # Runbook: Deploy and Publish Open WebUI
 
-Status: **Private deployment, administrator onboarding, and guarded public
-publication completed on 2026-08-19. Final authenticated public chat validation
-and inventory-flag persistence remain pending.**
+Status: **Private deployment, administrator onboarding, guarded public
+publication, authenticated chat validation, and inventory-flag persistence
+completed on 2026-08-19.**
 
 This runbook adds a chat window without granting the frontend direct host,
 Nextcloud, or OpenAI access. Production deployment is a separate human-
@@ -110,6 +110,8 @@ The guarded apply completed with 16 tasks successful, two expected skips, and
 no failures. Public `/`, `/health`, and `/api/config` returned Open WebUI
 successfully; signup remained disabled. Unauthenticated legacy health/chat
 requests returned 401, Traefik reported healthy, and Nextcloud remained healthy.
+The user subsequently confirmed an authenticated public chat, and infrastructure
+commit `941bb52` persisted all deployed enable flags in inventory.
 
 Verify:
 
@@ -122,8 +124,8 @@ Verify:
 5. Nextcloud status, login, WebDAV, and AIO health remain unchanged.
 6. Logs contain no password, API key, prompt, or tool payload.
 
-Only after successful production verification should the deployed enable flags
-be persisted in inventory so a later `site.yml` run retains the state.
+The deployed enable flags are persisted in inventory so later `site.yml` runs
+retain the verified state.
 
 ## 5. Roll back the route
 

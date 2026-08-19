@@ -54,8 +54,8 @@ healthy on `127.0.0.1:8091`; exact `/healthz` and `/v1/chat` routes continue to
 use the existing Basic-Auth-protected JSON agent API. Administrator onboarding
 is complete and anonymous signup is disabled. The frontend has no real provider
 credential or host access, and Nextcloud data access remains a later separately
-reviewed milestone. Public login/chat awaits final user confirmation before
-the deployed enable flags are persisted.
+reviewed milestone. Authenticated public login/chat is user-confirmed and the
+deployed enable flags are persisted in inventory.
 
 ## Documentation map
 

@@ -185,8 +185,8 @@ Verify the file remains encrypted before staging it.
 - Production Ansible is never run automatically by an AI agent.
 - The deployed home-agent can observe but cannot apply Ansible or remediate.
 - Open WebUI deployment and its public route switch require separate human
-  confirmations; both completed on 2026-08-19. Persist the deployed flags only
-  after final public login/chat validation.
+  confirmations; both completed on 2026-08-19. Authenticated public chat was
+  subsequently confirmed and the deployed flags were persisted.
 - Nextcloud storage and AIO volumes are not reorganised during unrelated work.
 - Orphaned VM disks, libvirt domains, or Docker volumes require manual
   investigation before cleanup.

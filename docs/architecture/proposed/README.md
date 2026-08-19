@@ -29,8 +29,5 @@ original rollout views for link stability.
 - Unauthenticated requests return 401; authenticated health and chat return 200.
 - Open WebUI is healthy on loopback and reaches only the synthetic `home-agent`
   model over a non-masqueraded bridge.
-
-## Remaining validation
-
-- Confirm authenticated public UI login and chat from the user's browser.
-- Persist the deployed inventory flags after that validation.
+- Authenticated public UI login/chat is user-confirmed, and the deployed
+  inventory flags are persisted.

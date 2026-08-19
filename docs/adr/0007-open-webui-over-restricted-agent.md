@@ -29,8 +29,9 @@ Do not connect Nextcloud in this milestone. Introduce future Nextcloud access
 as a separate least-privilege tool service with narrow credentials and explicit
 write confirmation.
 
-The private runtime was deployed and validated on 2026-08-19. Public routing
-remains a separate guarded step after private administrator onboarding.
+The private runtime, administrator onboarding, guarded public route, and
+authenticated public chat were deployed and validated on 2026-08-19. The
+deployed inventory flags are persisted.
 
 ## Consequences
 
