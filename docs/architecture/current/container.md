@@ -18,6 +18,8 @@ flowchart LR
 
     subgraph home["Home Infrastructure [Software System]"]
         automation["Infrastructure Automation<br/>[Container: Ansible/YAML]<br/>Defines and applies reproducible host state"]
+        state_iac["State Bootstrap Automation<br/>[Container: Terraform]<br/>Defines the central Terraform state bucket"]
+        tf_state["Terraform State Backend<br/>[Container: S3 data store]<br/>Stores versioned and encrypted state under isolated keys"]
         dns_iac["DNS Automation<br/>[Container: Terraform]<br/>Defines Route 53 records and AWS DynDNS resources"]
         dyndns["DynDNS Update Service<br/>[Container: API Gateway and Lambda]<br/>Authenticates FRITZ!Box IPv4 updates"]
         ingress["Shared HTTPS Ingress<br/>[Container: Traefik]<br/>Terminates ACME TLS and routes public hostnames"]
@@ -34,7 +36,10 @@ flowchart LR
     end
 
     person -->|"Edits and runs playbooks"| automation
+    person -->|"Runs bootstrap Terraform locally"| state_iac
+    state_iac -->|"Creates and configures the central bucket"| tf_state
     person -->|"Reviews and merges Terraform changes"| dns_iac
+    dns_iac -->|"Reads, locks, and writes dyndns/terraform.tfstate"| tf_state
     dns_iac -->|"Manages stable CNAME records and updater resources"| route53
     fritzbox -->|"Submits authenticated public IPv4 updates"| dyndns
     dyndns -->|"Updates the jkandler.de A record"| route53
@@ -61,8 +66,8 @@ flowchart LR
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class person person
     class github,openai,route53,fritzbox,host external
-    class automation,dns_iac,dyndns,ingress,aio_master,nextcloud,runner,agent,tools container
-    class postgres,redis,data,runner_disk,agent_key datastore
+    class automation,state_iac,dns_iac,dyndns,ingress,aio_master,nextcloud,runner,agent,tools container
+    class tf_state,postgres,redis,data,runner_disk,agent_key datastore
 ```
 
 ## Container catalogue
@@ -70,6 +75,8 @@ flowchart LR
 | Container | Technology | Responsibility |
 | --- | --- | --- |
 | Infrastructure Automation | Ansible 14.3, YAML, community collections | Converges declared infrastructure state |
+| State Bootstrap Automation | Terraform, AWS provider | Defines the shared `jkandler-terraform-state` S3 bucket; its local project is not currently version-controlled |
+| Terraform State Backend | Amazon S3 | Stores versioned, AES256-encrypted Terraform state with public access blocked and lock files enabled |
 | DNS Automation | Terraform, AWS provider, GitHub Actions OIDC | Defines CNAME records and the least-privilege DynDNS stack |
 | DynDNS Update Service | API Gateway HTTP API, Python Lambda | Authenticates FRITZ!Box requests and updates the apex IPv4 record |
 | Shared HTTPS Ingress | Traefik `v3.7.1`, file provider, ACME | Routes Nextcloud and the authenticated agent without Docker API access |

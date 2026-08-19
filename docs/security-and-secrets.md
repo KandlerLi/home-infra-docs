@@ -21,6 +21,18 @@ Current encrypted variable names:
 Secret values must never be copied into this repository, defaults files,
 Docker image layers, Compose files, command output, or architecture diagrams.
 
+### Terraform state
+
+`/home/julian/projects/terraform-state` owns the central S3 state-bucket
+configuration but is currently not version-controlled. The bucket is configured
+with versioning, AES-256 server-side encryption, and full public-access blocking.
+
+Ignored local state artifacts remain from bootstrap/migration. Their contents
+were not inspected. A non-empty backup and local backend metadata were observed
+with mode `0664`, which permits local non-owner reads. Treat them as potentially
+sensitive: do not open, copy, commit, upload, delete, or change them without a
+recovery-aware, explicitly approved plan.
+
 ## Trust boundaries
 
 ### Ansible controller to homeserver

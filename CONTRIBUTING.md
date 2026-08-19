@@ -2,7 +2,9 @@
 
 ## Update workflow
 
-1. Check the infrastructure repository status before documenting a change.
+1. Enumerate every top-level directory under `/home/julian/projects`, then
+   check Git status in each relevant Git repository and explicitly note any
+   affected project without version control.
 2. Distinguish committed configuration, uncommitted work, and deployed state.
 3. Gather live state with read-only commands only.
 4. Update the relevant inventory or runbook page.

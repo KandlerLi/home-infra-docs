@@ -16,6 +16,15 @@ Secret-free cross-chat and cross-model handover context is kept separately in:
 /home/julian/projects/home-infra-ai-context
 ```
 
+The central Terraform state-bucket bootstrap project is:
+
+```text
+/home/julian/projects/terraform-state
+```
+
+It is currently a local non-Git Terraform root. The complete inventory boundary
+is every top-level directory under `/home/julian/projects`, not only Git roots.
+
 ## Snapshot status
 
 The initial documentation snapshot was taken on **2026-08-18** and the shared

@@ -14,8 +14,9 @@ Update this repository whenever a change affects:
 
 ## Procedure
 
-1. Record the current date and inspect all relevant implementation and
-   documentation repositories.
+1. Record the current date, enumerate all top-level directories under
+   `/home/julian/projects`, and inspect every relevant project—including those
+   without Git—plus both documentation repositories.
 2. Review committed infrastructure and uncommitted changes separately.
 3. Gather only the minimum read-only runtime evidence needed.
 4. Update `current-state.md` and the affected detailed pages.

@@ -20,6 +20,17 @@ The Terraform DNS repository is:
 /home/julian/projects/dyndns
 ```
 
+The central Terraform state-bucket bootstrap project is:
+
+```text
+/home/julian/projects/terraform-state
+```
+
+It is currently not a Git repository. Do not inspect or copy its ignored local
+state/backup contents during routine work. Enumerate every top-level directory
+under `/home/julian/projects` before workspace-wide tasks so non-Git projects
+are not omitted.
+
 Do not use the obsolete `/home/julian/home-infra` path.
 
 The local virtual environment was moved with the repository and contains old
