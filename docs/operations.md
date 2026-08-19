@@ -26,10 +26,10 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
-It is currently not a Git repository. Do not inspect or copy its ignored local
+It is a Git repository on `main`. Do not inspect or copy its ignored local
 state/backup contents during routine work. Enumerate every top-level directory
-under `/home/julian/projects` before workspace-wide tasks so non-Git projects
-are not omitted.
+under `/home/julian/projects` before workspace-wide tasks so future non-Git
+projects are not omitted.
 
 Do not use the obsolete `/home/julian/home-infra` path.
 

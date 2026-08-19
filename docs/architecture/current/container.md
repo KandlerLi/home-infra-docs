@@ -75,7 +75,7 @@ flowchart LR
 | Container | Technology | Responsibility |
 | --- | --- | --- |
 | Infrastructure Automation | Ansible 14.3, YAML, community collections | Converges declared infrastructure state |
-| State Bootstrap Automation | Terraform, AWS provider | Defines the shared `jkandler-terraform-state` S3 bucket; its local project is not currently version-controlled |
+| State Bootstrap Automation | Terraform, AWS provider | Defines the shared `jkandler-terraform-state` S3 bucket from a dedicated local Git repository |
 | Terraform State Backend | Amazon S3 | Stores versioned, AES256-encrypted Terraform state with public access blocked and lock files enabled |
 | DNS Automation | Terraform, AWS provider, GitHub Actions OIDC | Defines CNAME records and the least-privilege DynDNS stack |
 | DynDNS Update Service | API Gateway HTTP API, Python Lambda | Authenticates FRITZ!Box requests and updates the apex IPv4 record |

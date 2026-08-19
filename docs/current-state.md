@@ -95,13 +95,15 @@ Terraform state-bucket bootstrap project:
 /home/julian/projects/terraform-state
 ```
 
-This is currently not a Git repository. It manages the versioned, encrypted,
-public-access-blocked `jkandler-terraform-state` S3 bucket and now uses that
-bucket for its own `terraform-state/terraform.tfstate` backend key. Ignored
-local state artifacts remain: the root state file is empty, while a non-empty
-backup and local backend metadata were observed with mode `0664`. Their contents
-were not inspected. Version control, recovery verification, and tighter local
-permissions remain follow-up work.
+This is a Git repository on `main`, initialized at revision `fbac0af`. It manages
+the versioned, encrypted, public-access-blocked `jkandler-terraform-state` S3
+bucket and uses that bucket for its own `terraform-state/terraform.tfstate`
+backend key. Its tracked initial commit contains only Terraform source, the
+provider lock file, ignore rules, repository instructions, and documentation.
+Ignored local state artifacts remain: the root state file is empty, while a
+non-empty backup and local backend metadata were observed with mode `0664`.
+Their contents were not inspected. Recovery verification, tighter local
+permissions, and remote repository protection remain follow-up work.
 
 The committed repository contains these roles:
 
@@ -165,7 +167,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Legacy `owncloud-docker-server_*` Docker volumes exist | Unknown/legacy | Do not delete until contents and recovery need are confirmed |
 | One anonymous Docker volume exists | Unknown | Identify owner without exposing stored data |
 | Local `.venv` contains the obsolete repository path | Controller issue | Recreate the virtual environment at the current path |
-| `terraform-state` project is not version-controlled | Source-control gap | Verify state recovery/exclusions, then initialize and secure deliberately |
+| `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
 
 ## Explicitly not deployed

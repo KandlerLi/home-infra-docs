@@ -22,8 +22,9 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
-It is currently a local non-Git Terraform root. The complete inventory boundary
-is every top-level directory under `/home/julian/projects`, not only Git roots.
+It is a local Git repository whose tracked source excludes all Terraform state
+artifacts. The complete inventory boundary is every top-level directory under
+`/home/julian/projects`, not only Git roots.
 
 ## Snapshot status
 
