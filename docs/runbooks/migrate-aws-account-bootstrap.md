@@ -50,8 +50,11 @@ terraform init -input=false
 terraform plan
 ```
 
-Review the plan. It must import the five existing resources selected by
-`imports.tf`. Apply locally only after that review and explicit confirmation.
+At the time of migration, the plan imported the five existing resources
+selected by the committed `imports.tf`. It was applied locally only after that
+review and explicit confirmation. The one-time import file was removed from
+the active root after successful verification; this runbook retains the
+procedure.
 
 ## Phase 3: verify
 
@@ -70,3 +73,5 @@ Review the plan. It must import the five existing resources selected by
 - The existing OIDC provider, both roles, and both inline policies were imported
   into the local-only bootstrap state without replacement or destruction.
 - Final no-change plans and both GitHub role paths were user-confirmed.
+- The one-time destination import configuration was removed after completion;
+  its history remains available in Git and this runbook.
