@@ -7,8 +7,23 @@
 3. Gather live state with read-only commands only.
 4. Update the relevant inventory or runbook page.
 5. Update affected C4 diagrams and architecture decision records.
-6. Verify that no secrets or document contents were added.
-7. Check Markdown links and Mermaid syntax before committing.
+6. Review and update `/home/julian/projects/home-infra-ai-context` so another
+   model/chat receives the same current state, decisions, safety rules, and
+   continuation point.
+7. Add or amend a dated AI handover for material work; if no AI-context content
+   change is needed, record that it was reviewed and why.
+8. Verify that no secrets, Terraform state, or document contents were added.
+9. Check Markdown links and Mermaid syntax before committing.
+
+The reciprocal synchronization contract is:
+
+```text
+/home/julian/projects/home-infra-ai-context/context/synchronization.md
+```
+
+It applies to relevant implementation, DNS/cloud, workflow, security,
+architecture, operations, repository, and production-state changes—not only
+large deployments.
 
 ## C4 diagram rules
 
@@ -31,3 +46,4 @@ hostnames, and secret variable names. Do not record:
 - Docker container environments
 - document names or contents from private Nextcloud collections
 - transient public IP addresses
+- raw Terraform state or saved plan files
