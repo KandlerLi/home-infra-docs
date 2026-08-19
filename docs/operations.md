@@ -33,8 +33,9 @@ The local-only AWS identity control-plane project is:
 ```
 
 It must never run through GitHub Actions or through a role it manages. Its
-initial no-destroy state handoff is documented in the dedicated migration
-runbook and requires a trusted, short-lived local bootstrap identity.
+initial no-destroy state handoff completed on 2026-08-19 and is retained in the
+dedicated migration runbook. Future plans and applies require a trusted,
+short-lived local bootstrap identity.
 
 It is a Git repository on `main`. Do not inspect or copy its ignored local
 state/backup contents during routine work. Enumerate every top-level directory

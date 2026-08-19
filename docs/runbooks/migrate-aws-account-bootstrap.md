@@ -1,6 +1,6 @@
 # Runbook: Migrate AWS Account Bootstrap Ownership
 
-Status: prepared, not executed.
+Status: completed on 2026-08-19; retained as migration and recovery evidence.
 
 ## Scope
 
@@ -62,5 +62,11 @@ Review the plan. It must import the five existing resources selected by
 - GitHub repository variables still match the bootstrap outputs.
 - The `aws-account-bootstrap` state key is not accessible to either DynDNS role.
 
-After successful verification, promote the prepared architecture and migration
-status to deployed in both documentation repositories.
+## Completion evidence
+
+- DynDNS PR #8 merged as `d8d6541`.
+- PR validation, speculative plan, exact-commit approval, and protected apply
+  completed successfully.
+- The existing OIDC provider, both roles, and both inline policies were imported
+  into the local-only bootstrap state without replacement or destruction.
+- Final no-change plans and both GitHub role paths were user-confirmed.

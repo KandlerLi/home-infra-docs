@@ -19,8 +19,10 @@ hierarchical views rather than one all-purpose diagram.
    an infrastructure apply
 7. [Agent health-check flow](current/dynamic-home-agent.md) — runtime sequence
    for a read-only health request
+8. [AWS account-bootstrap control plane](current/account-bootstrap.md) —
+   local-only identity ownership and GitHub OIDC trust path
 
-### Public agent routing
+### Retained deployment views
 
 1. [Publication index](proposed/README.md)
 2. [Deployed routing view](proposed/deployment.md)

@@ -1,8 +1,8 @@
 # Proposed and Retained Architecture Views
 
 The public home-agent routing view is **deployed and verified** as of
-2026-08-19 and remains here for link stability. The AWS account-bootstrap view
-is prepared but its Terraform state handoff has not been deployed.
+2026-08-19 and remains here for link stability. The deployed AWS
+account-bootstrap view has moved to `../current/account-bootstrap.md`.
 
 The private agent is deployed and verified on `127.0.0.1:8090`. This section
 documents the authenticated publication of `ai.jkandler.de`.
@@ -10,7 +10,6 @@ documents the authenticated publication of `ai.jkandler.de`.
 ## Views
 
 - [Deployment view](deployment.md)
-- [Prepared AWS account-bootstrap control plane](account-bootstrap.md)
 
 ## Goals
 

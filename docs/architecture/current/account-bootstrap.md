@@ -2,7 +2,7 @@
 
 - **C4 type:** Container
 - **Scope:** AWS identity and Terraform deployment control plane
-- **Status:** Prepared; state handoff not deployed as of 2026-08-19
+- **Status:** Current/deployed as of 2026-08-19
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,7 @@ flowchart LR
     class state datastore
 ```
 
-## Prepared boundary
+## Deployed boundary
 
 | Container | Technology | Responsibility |
 | --- | --- | --- |

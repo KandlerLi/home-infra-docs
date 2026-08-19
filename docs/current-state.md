@@ -48,6 +48,8 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Public Nextcloud check | HTTP/2 200; maintenance disabled; valid Let's Encrypt certificate |
 | Runner network | `virbr10` active at `192.168.100.1/24` |
 | Runner guest evidence | `vnet9` present; `192.168.100.10` reachable in neighbour table |
+| AWS identity control plane | OIDC provider and DynDNS plan/apply roles owned by local-only `aws-account-bootstrap`; migration completed |
+| DynDNS automation after handoff | PR #8 checks and protected apply succeeded; final no-change plans and role tests user-confirmed |
 
 Disk values above are human-readable `df` values and may differ slightly from
 byte-level filesystem statistics.
@@ -71,8 +73,8 @@ DNS infrastructure repository root and current revision:
 
 ```text
 /home/julian/projects/dyndns
-df2fa76dadad2d28b62a2c89bc5ece00ada5812a
-Restore protected production deployment (#7)
+d8d654154f29519a06fe730300e6ec0f4c6ec243
+Move GitHub deployment roles to account bootstrap (#8)
 ```
 
 Merged Terraform change `0fde1dd449039abddd2de6c34c3075569f773703`
@@ -113,15 +115,16 @@ a0f0b88
 Create local AWS account bootstrap control plane
 ```
 
-This new local Git repository contains the prepared local-only Terraform root
+This local Git repository contains the deployed local-only Terraform root
 for the account-wide GitHub Actions OIDC provider and the DynDNS plan/apply
 roles and policies. Its remote backend key is
-`aws-account-bootstrap/terraform.tfstate`. The corresponding `dyndns` change
-is prepared at `dfa6445` with five `removed` blocks using `destroy = false`.
+`aws-account-bootstrap/terraform.tfstate`.
 
-The state handoff has **not** been applied. AWS and both remote state files are
-unchanged: the five resources remain managed by the `dyndns` state until the
-guarded removal and import sequence is explicitly approved and executed.
+The state handoff completed on 2026-08-19. DynDNS PR #8 merged as `d8d6541`;
+its validation, speculative plan, exact-commit approval, and protected apply
+succeeded. The five source bindings were removed with `destroy = false`, then
+the existing resources were imported through the local bootstrap root. The
+user confirmed final no-change plans and successful plan/apply role tests.
 
 The committed repository contains these roles:
 
@@ -187,7 +190,6 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Local `.venv` contains the obsolete repository path | Controller issue | Recreate the virtual environment at the current path |
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
-| AWS account-bootstrap handoff is prepared but not applied | Planned control-plane migration | Review both no-destroy plans, apply the DynDNS removal, then import locally |
 
 ## Explicitly not deployed
 

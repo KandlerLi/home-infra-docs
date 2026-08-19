@@ -15,4 +15,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0003](0003-nextcloud-aio.md) | Accepted | Operate Nextcloud through AIO without reorganising its data |
 | [0004](0004-read-only-home-agent-boundary.md) | Accepted | Separate a cloud-model agent from fixed host collectors |
 | [0005](0005-shared-reverse-proxy.md) | Accepted | Introduce a shared authenticated HTTPS ingress layer |
-| [0006](0006-local-aws-account-bootstrap.md) | Accepted; migration pending | Manage AWS deployment identities from a local-only control plane |
+| [0006](0006-local-aws-account-bootstrap.md) | Accepted | Manage AWS deployment identities from a local-only control plane |
