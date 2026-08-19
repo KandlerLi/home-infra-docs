@@ -31,7 +31,7 @@ flowchart TB
                 aio_app["Nextcloud and Supporting Apps<br/>[Container Instances]"]
                 aio_db["PostgreSQL and Redis<br/>[Container Instances]"]
                 agent["home-agent<br/>[Container Instance]<br/>127.0.0.1:8090, read-only root, no capabilities"]
-                webui["Open WebUI v0.11.0-slim<br/>[Container Instance]<br/>127.0.0.1:8091, private onboarding"]
+                webui["Open WebUI v0.11.0-slim<br/>[Container Instance]<br/>127.0.0.1:8091, public via Traefik"]
             end
 
             subgraph hypervisor["libvirt/KVM/QEMU [Virtualisation Node]"]
@@ -51,7 +51,8 @@ flowchart TB
     browser -->|"Sends HTTPS and WebDAV traffic"| fritzbox
     fritzbox -->|"Forwards public TCP 80/443 to 192.168.178.100"| ingress
     ingress -->|"Routes nextcloud.jkandler.de to 127.0.0.1:11000"| aio_apache
-    ingress -->|"Authenticates and routes ai.jkandler.de to 127.0.0.1:8090"| agent
+    ingress -->|"Routes ai.jkandler.de catch-all to 127.0.0.1:8091"| webui
+    ingress -->|"Basic-Auth routes exact health/chat paths to 127.0.0.1:8090"| agent
     ingress -->|"Obtains and renews hostname certificates over ACME"| letsencrypt
     controller -->|"Applies Ansible over SSH with become"| ssh
     ssh -->|"Configures host services"| docker_daemon
@@ -91,11 +92,11 @@ flowchart TB
 | Fritzbox | Router/NAT/firewall | External configuration; not managed by Ansible |
 | Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 16 GiB RAM, no dedicated GPU |
 | Debian host | Debian 13.6 | Runs Docker, libvirt, SSH, and mounted storage |
-| Docker Engine | Docker CE | Runs the Nextcloud AIO suite, `home-agent`, and private Open WebUI |
+| Docker Engine | Docker CE | Runs the Nextcloud AIO suite, `home-agent`, and Open WebUI |
 | Shared ingress | Traefik `v3.7.1` | Host-network TLS termination and file-based routing; no Docker socket |
 | `home-tools` | Python 3 systemd service | Fixed read-only collectors on a group-protected Unix socket |
 | `home-agent` | Python 3.13 Docker container | Loopback-only API with hardened container settings |
-| Open WebUI | Digest-pinned Docker container | Private loopback UI; non-masqueraded bridge; public route disabled |
+| Open WebUI | Digest-pinned Docker container | Public via Traefik; loopback upstream; non-masqueraded bridge |
 | GitHub runner VM | KVM/QEMU, Debian 13 | Private NAT at `192.168.100.10` |
 | System SSD | ext4 | Root operating system filesystem |
 | Large HDD | ext4 | Nextcloud data and runner VM files |
@@ -111,7 +112,8 @@ flowchart TB
 - Home-agent API: `127.0.0.1:8090` only
 - Open WebUI: `127.0.0.1:8091` only
 - Frontend bridge: `home-agent-frontend`, IP masquerading disabled
-- Agent hostname: `ai.jkandler.de`, Basic Auth protected
+- Agent hostname: `ai.jkandler.de`; Open WebUI auth for the UI, Basic Auth for
+  exact legacy API routes
 - Public DNS has no AAAA record, although the host has IPv6 addresses.
 
 ## Legend

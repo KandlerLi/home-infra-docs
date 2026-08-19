@@ -61,7 +61,7 @@ verified:
 | Loopback | 5900 | libvirt VM VNC | Ansible/libvirt |
 | Loopback | 43117 | Unknown | Verify owner |
 | Loopback IPv4 | 8090 | `home-agent` HTTP API | Ansible `home_agent` role |
-| Loopback IPv4 | 8091 | Open WebUI HTTP frontend | Privately deployed; public route disabled |
+| Loopback IPv4 | 8091 | Open WebUI HTTP frontend | Deployed; public catch-all route enabled |
 | Loopback IPv4 | 8082 | Traefik health endpoint | Ansible `shared_ingress` role |
 | Loopback IPv4 | 11000 | Nextcloud AIO Apache upstream | AIO reverse-proxy mode |
 | VM bridges | 53 | libvirt dnsmasq | libvirt |
@@ -84,9 +84,9 @@ The completed agent publication is documented in the
 application container remains loopback-only even though the authenticated
 route is public.
 
-The prepared Open WebUI publication retains exact `/healthz` and `/v1/chat`
+The deployed Open WebUI publication retains exact `/healthz` and `/v1/chat`
 routes to port 8090 and sends the hostname catch-all to loopback port 8091.
-That routing change is guarded and has not been applied. The private Open WebUI
-container reaches `home-agent` through the `home-agent-frontend` bridge. The
+The Open WebUI container reaches `home-agent` through the
+`home-agent-frontend` bridge. The
 bridge has IP masquerading disabled: loopback publication works, while a live
 outbound HTTPS test from Open WebUI was blocked.

@@ -5,9 +5,8 @@ The public home-agent routing view is **deployed and verified** as of
 account-bootstrap view has moved to `../current/account-bootstrap.md`.
 
 The private agent is deployed and verified on `127.0.0.1:8090`, and Open WebUI
-is privately deployed on `127.0.0.1:8091`. This section retains the original
-publication view and documents the still-proposed Open WebUI public route for
-`ai.jkandler.de`.
+is deployed on `127.0.0.1:8091` and publicly routed. This section retains the
+original rollout views for link stability.
 
 ## Views
 
@@ -31,7 +30,7 @@ publication view and documents the still-proposed Open WebUI public route for
 - Open WebUI is healthy on loopback and reaches only the synthetic `home-agent`
   model over a non-masqueraded bridge.
 
-## Prepared next step
+## Remaining validation
 
-- Replace only the hostname catch-all route after an explicit publish confirmation.
-- Preserve the exact `/healthz` and `/v1/chat` API routes for compatibility.
+- Confirm authenticated public UI login and chat from the user's browser.
+- Persist the deployed inventory flags after that validation.

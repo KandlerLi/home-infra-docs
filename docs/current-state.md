@@ -31,9 +31,8 @@ Open WebUI is privately deployed and healthy on `127.0.0.1:8091`. Its
 non-masqueraded Docker bridge blocks external egress while allowing it to reach
 only `home-agent` and publish on host loopback. The initial administrator has
 been created privately, anonymous signup is disabled, and the user reported the
-private UI working. The public hostname still routes directly to the JSON
-home-agent API, so a public browser request to `/` does not yet show a chat
-window.
+private UI working. The public hostname now routes its catch-all path to Open
+WebUI while retaining exact Basic-Auth routes for `/healthz` and `/v1/chat`.
 
 Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
 443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
@@ -60,6 +59,7 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Frontend network | `home-agent-frontend`; IP masquerading disabled; only Open WebUI and `home-agent` attached |
 | Agent end-to-end check | Successful OpenAI tool call and health report |
 | Public agent boundary | Valid Let's Encrypt certificate; unauthenticated 401; authenticated health and chat HTTP 200 |
+| Public Open WebUI | Login page HTTP 200; onboarding closed; signup disabled; authenticated chat confirmation pending |
 | Shared ingress | Traefik `v3.7.1`, healthy on ports 80/443; no Docker socket |
 | Nextcloud upstream | AIO Apache on `127.0.0.1:11000` only |
 | Public Nextcloud check | HTTP/2 200; maintenance disabled; valid Let's Encrypt certificate |
@@ -104,8 +104,8 @@ AI handover repository root and orientation revision before this update:
 
 ```text
 /home/julian/projects/home-infra-ai-context
-e6ab855
-Record Open WebUI preparation handover
+e66a870
+Record Open WebUI private onboarding
 ```
 
 This repository is a secret-free orientation layer for new models, chats, and
@@ -155,7 +155,7 @@ The committed repository contains these roles:
 - `libvirt_host`
 - `github_runner`
 - `home_agent`
-- `open_webui` (privately deployed; public route disabled)
+- `open_webui` (deployed; public catch-all route enabled)
 - `shared_ingress`
 
 The `home_agent` role, dedicated playbook, tests, and encrypted API credential
@@ -214,13 +214,13 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 ## Explicitly not deployed
 
-- public Open WebUI route at `ai.jkandler.de`
 - Nextcloud document retrieval or indexing
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI
-service on port 8091. The guarded publish/rollback playbooks exist, but the
-public route was not changed.
+service on port 8091. The guarded publication completed successfully. Final
+authenticated browser chat confirmation and persistence of its inventory flags
+remain pending.
 
 ## Agent verification evidence
 
@@ -244,3 +244,8 @@ Observed initially on 2026-08-18 and revalidated publicly on 2026-08-19:
 - `/api/config` reported onboarding false, authentication/login enabled, and
   anonymous signup disabled after the first administrator was created
 - the user reported that the private Open WebUI session works
+- public `/` and `/health` return Open WebUI HTTP 200
+- public `/api/config` reports onboarding false, authentication/login enabled,
+  and signup disabled
+- unauthenticated legacy `/healthz` and `/v1/chat` continue to return HTTP 401
+- Traefik loaded distinct high-priority legacy API and catch-all UI routers

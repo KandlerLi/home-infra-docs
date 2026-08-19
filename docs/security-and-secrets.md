@@ -132,8 +132,9 @@ legacy `/healthz` and `/v1/chat` routes retain Traefik Basic Auth.
 
 The first administrator was created privately on 2026-08-19. A post-onboarding
 check confirmed authentication and login enabled, onboarding closed, and
-anonymous signup disabled. The public route remains off until a separate
-publication approval.
+anonymous signup disabled. The guarded public route was enabled on 2026-08-19;
+public login/chat awaits final user confirmation before inventory flags are
+persisted.
 
 ## Data sent to cloud services
 

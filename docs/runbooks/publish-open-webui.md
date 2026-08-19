@@ -1,7 +1,8 @@
 # Runbook: Deploy and Publish Open WebUI
 
-Status: **Private deployment and administrator onboarding completed and were
-validated on 2026-08-19. Public publication remains pending.**
+Status: **Private deployment, administrator onboarding, and guarded public
+publication completed on 2026-08-19. Final authenticated public chat validation
+and inventory-flag persistence remain pending.**
 
 This runbook adds a chat window without granting the frontend direct host,
 Nextcloud, or OpenAI access. Production deployment is a separate human-
@@ -104,6 +105,11 @@ confirmation is supplied:
 
 This preserves exact `/healthz` and `/v1/chat` routes to the existing API and
 sends other `ai.jkandler.de` requests to Open WebUI.
+
+The guarded apply completed with 16 tasks successful, two expected skips, and
+no failures. Public `/`, `/health`, and `/api/config` returned Open WebUI
+successfully; signup remained disabled. Unauthenticated legacy health/chat
+requests returned 401, Traefik reported healthy, and Nextcloud remained healthy.
 
 Verify:
 

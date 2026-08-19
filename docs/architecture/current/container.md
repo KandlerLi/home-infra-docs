@@ -33,7 +33,7 @@ flowchart LR
         runner["GitHub Actions Runner<br/>[Container: Debian VM application]<br/>Executes trusted CI jobs in an isolated guest"]
         runner_disk["Runner VM Disk<br/>[Container: qcow2 data store]<br/>Persists the runner operating system"]
         agent["home-agent API<br/>[Container: Python in Docker]<br/>Orchestrates bounded model and tool calls"]
-        webui["Open WebUI<br/>[Container: Docker application]<br/>Private chat and conversation frontend"]
+        webui["Open WebUI<br/>[Container: Docker application]<br/>Authenticated public chat and conversation frontend"]
         webui_data["Open WebUI State<br/>[Container: SQLite/file data store]<br/>Accounts, configuration, and chats"]
         tools["home-tools<br/>[Container: Python systemd service]<br/>Returns fixed, sanitised, read-only observations"]
         agent_key["OpenAI API Key File<br/>[Container: Secret data store]<br/>SOPS-derived runtime credential"]
@@ -56,7 +56,8 @@ flowchart LR
     automation -->|"Provisions and configures over libvirt and SSH"| runner
     person -->|"Uses HTTPS/WebDAV and authenticated agent API"| ingress
     ingress -->|"Routes nextcloud.jkandler.de to loopback upstream"| nextcloud
-    ingress -->|"Authenticates and routes ai.jkandler.de to loopback"| agent
+    ingress -->|"Routes ai.jkandler.de catch-all to Open WebUI"| webui
+    ingress -->|"Basic-Auth routes exact health/chat API paths"| agent
     aio_master -->|"Creates and manages sibling containers through Docker API"| nextcloud
     nextcloud -->|"Reads and writes metadata over PostgreSQL protocol"| postgres
     nextcloud -->|"Uses cache and file locking over Redis protocol"| redis
@@ -64,7 +65,7 @@ flowchart LR
     github -->|"Assigns trusted Actions jobs over HTTPS"| runner
     runner -->|"Reads and writes its VM filesystem"| runner_disk
     person -->|"Calls JSON API through host loopback"| agent
-    person -->|"Uses private UI through an SSH loopback tunnel"| webui
+    person -->|"Uses authenticated public chat UI"| ingress
     webui -->|"Calls the synthetic home-agent model over a non-masqueraded bridge"| agent
     webui -->|"Persists private frontend state"| webui_data
     agent -->|"Uses Responses API over HTTPS"| openai
@@ -101,7 +102,7 @@ flowchart LR
 | GitHub Actions Runner | Debian 13 VM and GitHub runner application | Trusted CI job execution |
 | Runner VM Disk | qcow2 on ext4 | Guest OS persistence |
 | `home-agent` API | Python 3.13, OpenAI SDK, Docker | Bounded natural-language health requests and tool orchestration |
-| Open WebUI | Open WebUI `v0.11.0-slim`, Docker | Private loopback chat frontend for the synthetic `home-agent` model |
+| Open WebUI | Open WebUI `v0.11.0-slim`, Docker | Authenticated public chat frontend for the synthetic `home-agent` model |
 | Open WebUI State | SQLite and application files on `/var/lib/open-webui` | Persists accounts, configuration, and chat history |
 | `home-tools` | Python 3 standard library, systemd | Fixed read-only host collectors over a Unix socket |
 | OpenAI API Key File | Root-controlled file, read-only bind mount | Runtime credential without Docker environment-variable exposure |

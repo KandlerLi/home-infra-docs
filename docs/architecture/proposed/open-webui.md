@@ -2,7 +2,7 @@
 
 - **C4 type:** Deployment
 - **Scope:** Private chat frontend and proposed publication at `ai.jkandler.de`
-- **Status:** Private runtime deployed; public route not deployed as of 2026-08-19
+- **Status:** Deployed; retained here for rollout history as of 2026-08-19
 
 ```mermaid
 flowchart LR
@@ -18,7 +18,7 @@ flowchart LR
     end
 
     person -->|"HTTPS"| ingress
-    ingress -.->|"Proposed catch-all route to 127.0.0.1:8091"| webui
+    ingress -->|"Catch-all route to 127.0.0.1:8091"| webui
     ingress -->|"Retained exact /healthz and /v1/chat routes to 127.0.0.1:8090"| agent
     webui -->|"OpenAI-compatible API over non-masqueraded Docker bridge"| agent
     webui -->|"Persists accounts and chats"| webui_data
@@ -69,5 +69,5 @@ confirmation for writes, audit logs, and dedicated credentials.
 ## Legend
 
 - Solid blue node/relationship: currently deployed component or route
-- Dashed beige relationship: prepared but not deployed
+- Beige styling: retained rollout notation; every shown relationship is deployed
 - Grey node: external software system
