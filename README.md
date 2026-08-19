@@ -51,7 +51,8 @@ public Nextcloud traffic to AIO Apache on `127.0.0.1:11000`.
 
 Open WebUI is **deployed privately but not publicly routed**. It is healthy on
 `127.0.0.1:8091`; the public hostname still routes directly to the existing
-Basic-Auth-protected JSON agent API. The frontend has no real provider
+Basic-Auth-protected JSON agent API. Private administrator onboarding is
+complete and anonymous signup is disabled. The frontend has no real provider
 credential or host access, and Nextcloud data access remains a later separately
 reviewed milestone.
 

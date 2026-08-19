@@ -33,6 +33,5 @@ publication view and documents the still-proposed Open WebUI public route for
 
 ## Prepared next step
 
-- Bootstrap and validate the first UI administrator over an SSH tunnel.
 - Replace only the hostname catch-all route after an explicit publish confirmation.
 - Preserve the exact `/healthz` and `/v1/chat` API routes for compatibility.

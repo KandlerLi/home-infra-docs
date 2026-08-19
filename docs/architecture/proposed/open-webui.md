@@ -51,7 +51,7 @@ flowchart LR
 - The public UI uses Open WebUI's own account login. HTTP Basic Auth cannot be
   stacked on that route because both mechanisms need the `Authorization`
   header. The retained direct API routes continue to use Traefik Basic Auth,
-  and the first Open WebUI administrator is created before publication.
+  and the first Open WebUI administrator was created before publication.
 - Open WebUI account and chat data is new sensitive state. It is kept in
   `/var/lib/open-webui` and must be backed up before upgrades.
 - The upstream image rewrites static assets at startup, so its root filesystem

@@ -1,7 +1,7 @@
 # Runbook: Deploy and Publish Open WebUI
 
-Status: **Private deployment completed and validated on 2026-08-19. Initial
-administrator onboarding and public publication remain pending.**
+Status: **Private deployment and administrator onboarding completed and were
+validated on 2026-08-19. Public publication remains pending.**
 
 This runbook adds a chat window without granting the frontend direct host,
 Nextcloud, or OpenAI access. Production deployment is a separate human-
@@ -85,6 +85,11 @@ first administrator; confirm that a second anonymous signup is unavailable.
 Start a chat with `home-agent` and request “Check my homeserver.” Confirm the
 response uses the current health tools. Confirm uploads, workspace tools,
 plugins, web search, and code execution are unavailable.
+
+Onboarding completed on 2026-08-19. The user reported the private UI working,
+and a secret-free `/api/config` check confirmed onboarding false,
+authentication/login enabled, and anonymous signup disabled. Open WebUI,
+`home-agent`, the existing public 401 boundary, and Nextcloud remained healthy.
 
 ## 4. Publish the chat window
 

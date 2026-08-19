@@ -30,7 +30,8 @@ Basic Auth, rate and request-size limits, and security headers.
 Open WebUI is privately deployed and healthy on `127.0.0.1:8091`. Its
 non-masqueraded Docker bridge blocks external egress while allowing it to reach
 only `home-agent` and publish on host loopback. The initial administrator has
-not been created and the public hostname still routes directly to the JSON
+been created privately, anonymous signup is disabled, and the user reported the
+private UI working. The public hostname still routes directly to the JSON
 home-agent API, so a public browser request to `/` does not yet show a chat
 window.
 
@@ -55,7 +56,7 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Nextcloud AIO | Ten running containers, all reporting healthy |
 | `home-tools` service | Active; fixed read-only collectors over a protected Unix socket |
 | `home-agent` container | Running; healthy API on `127.0.0.1:8090` |
-| Open WebUI container | Running and healthy on `127.0.0.1:8091`; private onboarding pending |
+| Open WebUI container | Running and healthy on `127.0.0.1:8091`; private onboarding complete; signup disabled |
 | Frontend network | `home-agent-frontend`; IP masquerading disabled; only Open WebUI and `home-agent` attached |
 | Agent end-to-end check | Successful OpenAI tool call and health report |
 | Public agent boundary | Valid Let's Encrypt certificate; unauthenticated 401; authenticated health and chat HTTP 200 |
@@ -240,3 +241,6 @@ Observed initially on 2026-08-18 and revalidated publicly on 2026-08-19:
 - Open WebUI can list the synthetic `home-agent` model over the dedicated
   bridge, while an outbound HTTPS test from the container is blocked
 - a live compatibility completion returned exactly `compatibility-ok`
+- `/api/config` reported onboarding false, authentication/login enabled, and
+  anonymous signup disabled after the first administrator was created
+- the user reported that the private Open WebUI session works

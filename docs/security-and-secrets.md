@@ -130,9 +130,10 @@ Open WebUI authentication; stacking Traefik Basic Auth would collide with the
 Bearer `Authorization` header used by signed-in Open WebUI requests. The exact
 legacy `/healthz` and `/v1/chat` routes retain Traefik Basic Auth.
 
-The first administrator has not yet been created. Until private onboarding is
-complete and anonymous signup is confirmed disabled, the guarded public route
-must remain off.
+The first administrator was created privately on 2026-08-19. A post-onboarding
+check confirmed authentication and login enabled, onboarding closed, and
+anonymous signup disabled. The public route remains off until a separate
+publication approval.
 
 ## Data sent to cloud services
 
