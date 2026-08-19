@@ -10,6 +10,12 @@ kept separately in:
 /home/julian/projects/home-infra
 ```
 
+Secret-free cross-chat and cross-model handover context is kept separately in:
+
+```text
+/home/julian/projects/home-infra-ai-context
+```
+
 ## Snapshot status
 
 The initial documentation snapshot was taken on **2026-08-18** and the shared

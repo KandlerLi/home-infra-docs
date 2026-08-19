@@ -78,6 +78,17 @@ Restore protected production deployment (#7)
 Merged Terraform change `0fde1dd449039abddd2de6c34c3075569f773703`
 introduced the `ai` CNAME declaration.
 
+AI handover repository root and initial revision:
+
+```text
+/home/julian/projects/home-infra-ai-context
+25f7e4c4d223dfcc5831a9353c39e87f39d2104a
+Create AI handover context repository
+```
+
+This repository is a secret-free orientation layer for new models, chats, and
+tasks. It points back to the implementation and C4 sources of truth.
+
 The committed repository contains these roles:
 
 - `base`
