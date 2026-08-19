@@ -61,6 +61,7 @@ verified:
 | Loopback | 5900 | libvirt VM VNC | Ansible/libvirt |
 | Loopback | 43117 | Unknown | Verify owner |
 | Loopback IPv4 | 8090 | `home-agent` HTTP API | Ansible `home_agent` role |
+| Loopback IPv4 | 8091 | Open WebUI HTTP frontend | Prepared in Ansible; not listening until deployed |
 | Loopback IPv4 | 8082 | Traefik health endpoint | Ansible `shared_ingress` role |
 | Loopback IPv4 | 11000 | Nextcloud AIO Apache upstream | AIO reverse-proxy mode |
 | VM bridges | 53 | libvirt dnsmasq | libvirt |
@@ -82,3 +83,9 @@ The completed agent publication is documented in the
 [public home-agent ingress view](architecture/proposed/deployment.md). The
 application container remains loopback-only even though the authenticated
 route is public.
+
+The prepared Open WebUI publication retains exact `/healthz` and `/v1/chat`
+routes to port 8090 and sends the hostname catch-all to loopback port 8091.
+That routing change is guarded and has not been applied. Open WebUI would reach
+`home-agent` only through the internal `home-agent-frontend` Docker network;
+the frontend network has no external egress.

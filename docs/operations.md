@@ -98,8 +98,20 @@ Home-agent only:
   --ask-become-pass
 ```
 
-The dedicated playbook is opt-in. The main `site.yml` keeps the role disabled
-unless explicitly enabled.
+Prepared Open WebUI frontend, without changing the public route:
+
+```bash
+.venv/bin/ansible-playbook ansible/playbooks/open-webui.yml \
+  --ask-become-pass
+```
+
+This creates new persistent state below `/var/lib/open-webui` and recreates
+`home-agent` so it also joins the isolated frontend network. It does not touch
+Nextcloud or switch `ai.jkandler.de`. Follow the dedicated runbook for the
+first administrator, validation, guarded publication, backup, and rollback.
+
+Both dedicated playbooks are opt-in. The main `site.yml` keeps these roles
+disabled unless explicitly enabled.
 
 After deployment, verify from the homeserver or through Ansible:
 
@@ -171,6 +183,8 @@ Verify the file remains encrypted before staging it.
 - Git changes are prepared and reviewed before deployment.
 - Production Ansible is never run automatically by an AI agent.
 - The deployed home-agent can observe but cannot apply Ansible or remediate.
+- Open WebUI deployment and its public route switch require separate human
+  confirmations; neither is part of this documentation update.
 - Nextcloud storage and AIO volumes are not reorganised during unrelated work.
 - Orphaned VM disks, libvirt domains, or Docker volumes require manual
   investigation before cleanup.

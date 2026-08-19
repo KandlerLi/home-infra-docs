@@ -7,6 +7,8 @@
 - [Update this documentation](update-documentation.md)
 - [Operate and publish the home-agent](publish-home-agent.md) — local operation
   and proposed public-ingress checklist
+- [Deploy and publish Open WebUI](publish-open-webui.md) — private bootstrap,
+  guarded route switch, validation, backup, and rollback
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.

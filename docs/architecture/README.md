@@ -26,6 +26,7 @@ hierarchical views rather than one all-purpose diagram.
 
 1. [Publication index](proposed/README.md)
 2. [Deployed routing view](proposed/deployment.md)
+3. [Proposed Open WebUI frontend](proposed/open-webui.md)
 
 ## Notation
 

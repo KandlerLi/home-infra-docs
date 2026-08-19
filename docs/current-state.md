@@ -27,6 +27,10 @@ is active, the `home-agent` Docker container is running, and the container API
 remains bound to loopback. Traefik publishes it at `ai.jkandler.de` behind
 Basic Auth, rate and request-size limits, and security headers.
 
+Open WebUI support is prepared in infrastructure code but is not deployed.
+The public hostname still routes directly to the JSON home-agent API, so a
+browser request to `/` does not yet show a chat window.
+
 Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
 443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
 Nextcloud AIO Apache on `127.0.0.1:11000`. The migration completed and was
@@ -72,27 +76,30 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-608a68247cc28cb215136ce51eac33a94950214f
-Record completed memory upgrade
+d52d1b3
+Prepare secure Open WebUI frontend
 ```
+
+This revision contains the opt-in Open WebUI preparation. It does not mean the
+frontend or its route has been applied to production.
 
 DNS infrastructure repository root and current revision:
 
 ```text
 /home/julian/projects/dyndns
-d8d654154f29519a06fe730300e6ec0f4c6ec243
-Move GitHub deployment roles to account bootstrap (#8)
+b44f17a
+Remove completed state handoff scaffolding (#9)
 ```
 
 Merged Terraform change `0fde1dd449039abddd2de6c34c3075569f773703`
 introduced the `ai` CNAME declaration.
 
-AI handover repository root and initial revision:
+AI handover repository root and orientation revision before this update:
 
 ```text
 /home/julian/projects/home-infra-ai-context
-25f7e4c4d223dfcc5831a9353c39e87f39d2104a
-Create AI handover context repository
+0d7119b
+Record memory upgrade validation
 ```
 
 This repository is a secret-free orientation layer for new models, chats, and
@@ -118,8 +125,8 @@ AWS account bootstrap project:
 
 ```text
 /home/julian/projects/aws-account-bootstrap
-a0f0b88
-Create local AWS account bootstrap control plane
+1a42299
+Remove completed import scaffolding
 ```
 
 This local Git repository contains the deployed local-only Terraform root
@@ -142,6 +149,7 @@ The committed repository contains these roles:
 - `libvirt_host`
 - `github_runner`
 - `home_agent`
+- `open_webui` (prepared, opt-in, not deployed)
 - `shared_ingress`
 
 The `home_agent` role, dedicated playbook, tests, and encrypted API credential
@@ -202,6 +210,11 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 - agent web UI
 - Nextcloud document retrieval or indexing
+
+The prepared web-UI change adds an isolated frontend network, an
+OpenAI-compatible endpoint on `home-agent`, a loopback-only Open WebUI service
+on port 8091, and guarded publish/rollback playbooks. None of those prepared
+runtime changes were applied during this documentation update.
 
 ## Agent verification evidence
 

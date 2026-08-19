@@ -106,9 +106,37 @@ agent authentication, and limits are deployed. The Basic Auth username is
 `julian`; the password and verifier remain encrypted with SOPS. The underlying
 agent port remains bound to host loopback.
 
+### Prepared Open WebUI boundary
+
+The not-yet-deployed Open WebUI role keeps the existing home-agent as the
+security and provider boundary. Open WebUI receives a placeholder API key,
+not `home_agent_openai_api_key`, and can reach only the agent's compatibility
+API over an internal Docker network. It receives no Docker socket, Nextcloud
+mount, host tool socket, shell, or SSH credential.
+
+Uploads, plugins, runtime package installation, code execution, the code
+interpreter, web search, image generation, API keys, subagents, and workspace
+tools are disabled. The image is pinned by tag and digest, runs under a
+non-login host UID with all capabilities dropped and `no-new-privileges`, and
+has memory, CPU, process, and log limits. Its upstream startup behaviour
+requires a writable container root filesystem; this residual risk is recorded
+and must be reconsidered on each image upgrade.
+
+Open WebUI introduces sensitive local account and chat history under
+`/var/lib/open-webui`. Back it up before upgrades, protect backups as private
+data, and do not copy chats into logs or documentation. The public UI relies on
+Open WebUI authentication; stacking Traefik Basic Auth would collide with the
+Bearer `Authorization` header used by signed-in Open WebUI requests. The exact
+legacy `/healthz` and `/v1/chat` routes retain Traefik Basic Auth.
+
 ## Data sent to cloud services
 
 When requested, selected health data such as load, disk usage, container
 names, and container health state is sent to the configured OpenAI model.
 Nextcloud documents are explicitly outside the deployed milestone and must
 remain opt-in in any future retrieval design.
+
+The prepared web UI does not change that rule. Any future Nextcloud integration
+must use a separate least-privilege service, dedicated credentials, scoped
+paths and operations, explicit confirmation for writes, and audit records that
+do not disclose document contents.
