@@ -95,5 +95,6 @@ docker ps
 curl --fail-with-body https://nextcloud.jkandler.de/status.php
 ```
 
-If the AIO application containers remain stopped, start them through the AIO
-interface and repeat the checks.
+The 2026-08-19 RAM maintenance confirmed that the deliberately stopped AIO
+application containers remained stopped after the host boot. Start them through
+the AIO interface at `https://192.168.178.100:8080`, then repeat the checks.

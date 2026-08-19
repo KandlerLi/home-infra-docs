@@ -84,7 +84,7 @@ flowchart TB
 | Node | Technology | Notes |
 | --- | --- | --- |
 | Fritzbox | Router/NAT/firewall | External configuration; not managed by Ansible |
-| Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 8 GB RAM, no dedicated GPU |
+| Physical host | Fujitsu ESPRIMO P900 | 4 CPU threads, 16 GiB RAM, no dedicated GPU |
 | Debian host | Debian 13.6 | Runs Docker, libvirt, SSH, and mounted storage |
 | Docker Engine | Docker CE | Runs the Nextcloud AIO suite and `home-agent` |
 | Shared ingress | Traefik `v3.7.1` | Host-network TLS termination and file-based routing; no Docker socket |

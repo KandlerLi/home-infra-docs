@@ -7,7 +7,7 @@
 | Inventory name | `homeserver` |
 | Hardware | Fujitsu ESPRIMO P900 |
 | CPU | Intel Core i5-2400, 4 cores / 4 threads, 3.10 GHz |
-| Memory | 8 GB DDR3; approximately 7.8 GiB usable |
+| Memory | 16 GiB DDR3 online; approximately 15.5 GiB usable |
 | GPU | None dedicated |
 | Operating system | Debian 13.6 (`trixie`) |
 | Architecture | x86-64 |
@@ -17,6 +17,12 @@
 
 The host is suitable for orchestration and lightweight services. It is not a
 sensible primary inference host for modern large language models.
+
+The memory was upgraded on 2026-08-19. Post-boot validation reported 16 GiB
+online, no offline memory blocks, and no memory, EDAC, MCE, or hardware-error
+indicators in the current boot's accessible kernel journal. This confirms
+normal recognition and initial operation, not an exhaustive offline memory
+test.
 
 ## Storage devices
 

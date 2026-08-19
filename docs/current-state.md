@@ -10,6 +10,13 @@ Nextcloud AIO is the primary production application and all ten observed AIO
 containers report healthy. The large HDD is mounted and has substantial free
 capacity. No failed systemd units were observed.
 
+The physical RAM was upgraded from 8 GiB to 16 GiB on 2026-08-19. After the
+maintenance boot, Debian reported all 16 GiB online, approximately 15.5 GiB
+usable, and no offline blocks or memory-related hardware errors in the current
+boot's accessible kernel journal. The AIO application containers remained
+stopped after boot and were started manually through the AIO interface; their
+final state and public endpoint were healthy.
+
 The GitHub Actions runner is configured by committed Ansible code. The
 dedicated bridge, guest interface, static neighbour entry, and VNC listener
 were observed. A non-privileged `virsh` query timed out, so the libvirt domain
@@ -30,9 +37,9 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Area | Observed state |
 | --- | --- |
 | Operating system | Debian 13.6 (`trixie`) |
-| Kernel | `6.12.95+deb13-amd64` |
+| Kernel | `6.12.101+deb13-amd64` |
 | CPU | 4 logical CPUs; Intel Core i5-2400 documented hardware |
-| Memory | 7.8 GiB usable |
+| Memory | 16 GiB online; 15.5 GiB usable; no offline blocks |
 | Root filesystem | 51 GiB total, 26 GiB used, 23 GiB available, 54% used |
 | Large HDD | 916 GiB total, 138 GiB used, 732 GiB available, 16% used |
 | Failed systemd units | None observed |
@@ -65,8 +72,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-c07fa3f90c8baa37597ec81f4672a43b703d884a
-Persist public agent route
+608a68247cc28cb215136ce51eac33a94950214f
+Record completed memory upgrade
 ```
 
 DNS infrastructure repository root and current revision:
