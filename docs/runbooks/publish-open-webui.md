@@ -127,6 +127,29 @@ Verify:
 The deployed enable flags are persisted in inventory so later `site.yml` runs
 retain the verified state.
 
+### Recover a cold-client HTTP 429/500 startup failure
+
+If a fresh browser shows the Open WebUI logo, stalls, and then reports
+`500: Internal Error`, check the initial assets for HTTP 429 responses. The
+original 60-request burst was smaller than the HTML, 56 referenced assets, and
+startup API traffic required by Open WebUI `v0.11.0`.
+
+Infrastructure revision `784ed03` keeps the sustained UI limit at 120 requests
+per minute and raises only its burst allowance to 240. Apply it through the
+existing publication playbook; because the route is already published, the
+initial-publication confirmation is not required:
+
+```bash
+cd /home/julian/projects/home-infra
+.venv/bin/ansible-playbook ansible/playbooks/publish-open-webui.yml \
+  --ask-become-pass
+```
+
+Then open a new private tab on the affected phone, load
+`https://ai.jkandler.de`, and confirm the login page completes without an HTTP
+429 or 500 response. Also confirm `/healthz` remains 401 without Basic Auth and
+Nextcloud remains healthy.
+
 ## 5. Roll back the route
 
 If the UI or chat path fails, restore the previous direct API route:

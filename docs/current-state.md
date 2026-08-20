@@ -36,6 +36,14 @@ WebUI while retaining exact Basic-Auth routes for `/healthz` and `/v1/chat`.
 The user confirmed authenticated public chat on 2026-08-19, and the deployed
 enable flags are persisted in inventory.
 
+On 2026-08-20, an uncached iPhone load exposed that the deployed Open WebUI
+rate-limit burst of 60 is too small for a cold frontend bootstrap. The page
+currently references 56 same-origin assets before its startup API requests;
+an external reproduction received HTTP 429 responses after the burst was
+exhausted. Infrastructure revision `784ed03` raises only the UI burst to 240
+while retaining the sustained 120 requests/minute limit. That revision is
+committed but not yet deployed.
+
 Traefik `v3.7.1` is the shared production ingress. It owns TCP ports 80 and
 443, obtains certificates through ACME, and routes `nextcloud.jkandler.de` to
 Nextcloud AIO Apache on `127.0.0.1:11000`. The migration completed and was
@@ -228,6 +236,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | Local `.venv` contains the obsolete repository path | Controller issue | Recreate the virtual environment at the current path |
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
+| Fresh Open WebUI clients can exhaust the deployed 60-request ingress burst | Known production issue | Apply infrastructure revision `784ed03`, then verify an uncached iPhone load and absence of HTTP 429 asset responses |
 
 ## Validated Nextcloud tool deployment
 

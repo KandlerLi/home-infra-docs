@@ -90,3 +90,10 @@ The Open WebUI container reaches `home-agent` through the
 `home-agent-frontend` bridge. The
 bridge has IP masquerading disabled: loopback publication works, while a live
 outbound HTTPS test from Open WebUI was blocked.
+
+The UI catch-all has a sustained ingress limit of 120 requests per minute.
+Its initially deployed burst of 60 is insufficient for a cold Open WebUI load,
+which currently references 56 same-origin assets before startup API traffic.
+Revision `784ed03` raises the UI-only burst to 240 without changing the stricter
+legacy API limit; the change is committed and awaiting a human-confirmed
+Ansible apply.
