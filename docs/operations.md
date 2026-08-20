@@ -132,12 +132,13 @@ service:
 ```
 
 Bootstrap and recovery have run; rollback and aggregate enable have not. The
-service/socket are healthy and the owner share is mounted, but the first direct
-list returned 503. Revision `c720e00` adds privacy-safe upstream diagnostics and
-must be reapplied with the bootstrap command; because the host credential file
-exists, that reapply does not create an account or token. Do not persist the
-inventory flag until list/search/read validation passes. Follow the dedicated
-runbook; never put the app password in command arguments or logs.
+owner share is mounted, but the first direct list returned 503. The diagnostic
+reapply then exposed a shutdown unlink race that removed the live socket
+pathname while the service process kept listening. Revision `60bfafb` removes
+that cleanup race and must be reapplied with the bootstrap command; because the
+host credential file exists, the reapply creates no account or token. Do not
+persist the inventory flag until list/search/read validation passes. Follow the
+dedicated runbook; never put the app password in command arguments or logs.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

@@ -143,6 +143,11 @@ Repeat one bounded request, then inspect only the relevant
 `nextcloud-tools.service` warning. Keep the inventory enable flag false until
 the cause is corrected and list/search/read validation passes.
 
+If `ss` reports the listener while the socket pathname is absent, deploy at
+least revision `60bfafb`. It leaves stale-socket removal at startup but relies
+on systemd's `RuntimeDirectory` lifecycle for shutdown cleanup, preventing an
+exiting process from unlinking a replacement listener.
+
 ## 7. Roll back
 
 To detach the agent socket first and then stop the credential-bearing service:

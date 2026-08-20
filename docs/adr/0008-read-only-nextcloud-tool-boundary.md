@@ -51,7 +51,10 @@ subsequently validated and installed a replacement, deployed the private
 service/socket, and revoked the unusable token. The owner share is now mounted,
 but the first bounded listing returned a generic 503. Privacy-safe diagnostics
 log only upstream HTTP status or exception class; they never log paths,
-filenames, content, or credentials. Functional validation remains pending.
+filenames, content, or credentials. Their reapply revealed that shutdown-time
+socket cleanup could unlink a replacement listener during restart. Systemd
+already owns the runtime directory, so revision `60bfafb` removes that cleanup
+and adds regression coverage. Functional validation remains pending.
 
 ## Consequences
 

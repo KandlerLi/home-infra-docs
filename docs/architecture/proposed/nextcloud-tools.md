@@ -69,7 +69,8 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 - Guarded recovery replaced and revoked the unusable bootstrap token, installed
   the credential, and deployed the service/socket. The owner has granted the
   share and Nextcloud reports its mount. The first list request returned 503;
-  privacy-safe upstream diagnostics await deployment.
+  diagnostic reapply then exposed a socket restart race. Revision `60bfafb`
+  awaits reapply before functional validation continues.
 
 ## Deliberately deferred
 

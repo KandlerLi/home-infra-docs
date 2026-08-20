@@ -59,10 +59,10 @@ deployed enable flags are persisted in inventory.
 
 The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
 privately**, but functional validation is pending. The service/socket health
-checks pass and the share is mounted for `home-agent`; the first bounded list
-returned a generic 503. Revision `c720e00` adds privacy-safe upstream status
-diagnostics and awaits a safe reapply. No persistent inventory enable flag
-exists yet.
+checks initially passed and the share is mounted for `home-agent`. After the
+diagnostic reapply, the running service retained a listener but its filesystem
+socket entry was removed. Revision `60bfafb` removes the shutdown unlink race
+and awaits a safe reapply. No persistent inventory enable flag exists yet.
 
 ## Documentation map
 

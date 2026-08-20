@@ -85,8 +85,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-c720e00
-Add safe Nextcloud tool diagnostics
+60bfafb
+Fix Nextcloud tools socket restart race
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
@@ -95,7 +95,10 @@ Guarded recovery installed a validated replacement credential, deployed and
 enabled the service, attached its socket read-only to `home-agent`, and revoked
 the unusable bootstrap token. The owner share exists and Nextcloud reports its
 mount, but a direct bounded list returns 503. Privacy-safe diagnostics are
-committed but not yet deployed. Open WebUI itself remains unchanged.
+deployed. The diagnostic reapply exposed a socket lifecycle race: the service
+process retained a Unix listener after the pathname was removed, preventing
+the container from reaching it. The fix is committed but not yet reapplied.
+Open WebUI itself remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -228,9 +231,10 @@ Committed infrastructure now contains a prepared, disabled-by-default
 `nextcloud_tools` role and guarded bootstrap, rotation, and rollback playbooks.
 The non-admin `home-agent` account, service-owned credential, enabled
 `nextcloud-tools` service, and read-only socket attachment to `home-agent` are
-deployed. The service and agent health endpoints pass. The `AI Workspace` share
-exists and is mounted for the account, but the first
-bounded list returned 503; privacy-safe status diagnostics await deployment.
+deployed. The `AI Workspace` share exists and is mounted for the account. The
+service process is running, but its filesystem socket pathname disappeared
+after restart; revision `60bfafb` removes the shutdown unlink and awaits
+reapply. A bounded list cannot currently reach the service.
 No persistent inventory enable flag exists yet. The intended scope is bounded
 filename search, metadata listing, and small UTF-8 text reads. It does not
 implement WebDAV writes, binary document extraction, image-content analysis,
