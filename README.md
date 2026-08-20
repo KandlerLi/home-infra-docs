@@ -53,20 +53,20 @@ Open WebUI is **deployed and publicly routed** at `ai.jkandler.de`. It is
 healthy on `127.0.0.1:8091`; exact `/healthz` and `/v1/chat` routes continue to
 use the existing Basic-Auth-protected JSON agent API. Administrator onboarding
 is complete and anonymous signup is disabled. The frontend has no real provider
-credential or host access, and Nextcloud data access remains a later separately
-reviewed milestone. Authenticated public login/chat is user-confirmed and the
+credential or host access; Nextcloud data access uses the separately reviewed
+bounded tool service. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
 The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
-privately**, but functional validation is pending. The service/socket health
+and validated**. The service/socket health
 checks initially passed and the share is mounted for `home-agent`. After the
 runtime-directory fix, the container can reach the socket reliably. The bounded
 list reported an allowlisted upstream HTTP 404. Nextcloud mounts received shares
 under its configured `/Shared` folder, so revision `bffedd8` persists the actual
 bounded root `Shared/AI Workspace`. It is deployed: local-only bounded list,
 filename search, and harmless small-text read checks all return 200 without
-printing names or content. Open WebUI acceptance and the persistent inventory
-enable flag remain pending.
+printing names or content. Open WebUI acceptance passed, and the agent/tool
+enable flags are persisted in inventory.
 
 ## Documentation map
 

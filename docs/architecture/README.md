@@ -21,18 +21,14 @@ hierarchical views rather than one all-purpose diagram.
    for a read-only health request
 8. [AWS account-bootstrap control plane](current/account-bootstrap.md) —
    local-only identity ownership and GitHub OIDC trust path
+9. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — retained deployed
+   view of the validated bounded data path
 
 ### Retained deployment views
 
 1. [Publication index](proposed/README.md)
 2. [Deployed routing view](proposed/deployment.md)
 3. [Open WebUI rollout](proposed/open-webui.md) — retained deployed rollout view
-
-### Prepared capabilities
-
-1. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — implemented in
-   Ansible and deployed privately; folder share and desired-state persistence
-   remain pending
 
 ## Notation
 

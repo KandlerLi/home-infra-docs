@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-19
-- Deployment status: Private service/share deployed; diagnostics pending
+- Deployment status: Deployed and validated
 
 ## Context
 
@@ -63,8 +63,8 @@ map to the generic category. It reported HTTP 404 because this deployment's
 Nextcloud `share_folder` is `/Shared`; the environment-specific allowed root is
 therefore `Shared/AI Workspace`, while the owner-visible share remains named
 `AI Workspace`. Local-only list, filename search, and harmless small-text-read
-validation now passes. Cloud-mediated Open WebUI acceptance and desired-state
-persistence remain pending.
+validation passes. The user confirmed cloud-mediated Open WebUI acceptance with
+the harmless validation file, and the agent/tool enable flags are persisted.
 
 ## Consequences
 

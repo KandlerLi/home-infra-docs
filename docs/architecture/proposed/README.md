@@ -6,7 +6,8 @@ account-bootstrap view has moved to `../current/account-bootstrap.md`.
 
 The private agent is deployed and verified on `127.0.0.1:8090`, and Open WebUI
 is deployed on `127.0.0.1:8091` and publicly routed. This section retains the
-original rollout views for link stability.
+original rollout views for link stability. The read-only Nextcloud tools view
+is also deployed, validated, and retained here for link stability.
 
 ## Views
 

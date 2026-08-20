@@ -131,7 +131,7 @@ service:
   --ask-become-pass
 ```
 
-Bootstrap and recovery have run; rollback and aggregate enable have not. The
+Bootstrap and recovery have run; rollback has not. The
 owner share is mounted, but the first direct list returned 503. The diagnostic
 reapply then exposed a shutdown unlink race that removed the live socket
 pathname while the service process kept listening. The root cause is
@@ -141,8 +141,10 @@ remount during dedicated applies and is deployed. The bounded list still
 returns 503 with allowlisted reason `upstream_http_404`. Nextcloud mounts
 received shares below `/Shared`; revision `bffedd8` persists the bounded root as
 `Shared/AI Workspace` and is deployed. Local-only list/search/small-text-read
-validation passes without exposing names or content. Complete one harmless
-Open WebUI acceptance prompt before persisting the inventory flag.
+validation passes without exposing names or content, and the user confirmed the
+harmless Open WebUI acceptance. `home_agent_enabled` and
+`nextcloud_tools_enabled` are now persisted for aggregate applies. Rollback has
+not run.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

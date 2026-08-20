@@ -85,8 +85,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-bffedd8
-Use Nextcloud shared-folder mount path
+54a521e
+Persist validated Nextcloud agent tools
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
@@ -103,7 +103,8 @@ the container now reaches the socket. The list still returns 503 and journald
 provides no warning; the protected response identified upstream HTTP 404.
 Nextcloud's configured received-share folder is `/Shared`, so the corrected
 bounded root is deployed. Direct local-only list, filename search, and harmless
-small-text read checks return 200. Open WebUI acceptance remains pending.
+small-text read checks return 200. Open WebUI acceptance passed and the desired
+state is persisted.
 
 DNS infrastructure repository root and current revision:
 
@@ -228,7 +229,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
 
-## Nextcloud tool deployment pending functional validation
+## Validated Nextcloud tool deployment
 
 - Nextcloud document retrieval or indexing
 
@@ -245,12 +246,12 @@ Nextcloud reports the share one level below its configured `/Shared` mount, so
 revision `bffedd8` sets `nextcloud_tools_allowed_root: Shared/AI Workspace` and
 is deployed. Direct checks listed one root entry, found one harmless validation
 match, and read its ten-character UTF-8 content without printing the name or
-content. No cloud-model call was made. The inventory enable flag remains
-pending until Open WebUI acceptance.
-No persistent inventory enable flag exists yet. The intended scope is bounded
-filename search, metadata listing, and small UTF-8 text reads. It does not
-implement WebDAV writes, binary document extraction, image-content analysis,
-or bulk indexing.
+content. No cloud-model call was made during direct checks. The user then
+confirmed an Open WebUI search/read of the harmless validation file, and
+`home_agent_enabled: true` plus `nextcloud_tools_enabled: true` are persisted.
+The scope remains bounded filename search, metadata listing, and small UTF-8
+text reads. It does not implement WebDAV writes, binary document extraction,
+image-content analysis, or bulk indexing.
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI

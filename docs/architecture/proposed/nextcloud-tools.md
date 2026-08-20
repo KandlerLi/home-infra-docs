@@ -2,7 +2,7 @@
 
 Scope: C4 container/deployment view for the read-only Nextcloud retrieval
 milestone. The private service and data share are deployed; functional
-validation and the persistent desired-state flag remain pending.
+validation and desired-state persistence are complete.
 
 ```mermaid
 flowchart LR
@@ -52,7 +52,8 @@ flowchart LR
 The logical share is `AI Workspace`. Nextcloud mounts received shares below its
 configured `/Shared` folder on this deployment, so the service's bounded WebDAV
 root is `Shared/AI Workspace`. Direct list, filename search, and small UTF-8
-text-read validation passes; Open WebUI acceptance remains pending.
+text-read validation and Open WebUI acceptance pass; desired-state flags are
+persisted.
 
 The returned fields are path, name, file/folder type, size, modification time,
 MIME type, ETag, file ID, permissions, and preview availability. Owner names,
