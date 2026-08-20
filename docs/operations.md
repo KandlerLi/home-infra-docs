@@ -98,8 +98,8 @@ Home-agent only:
   --ask-become-pass
 ```
 
-Prepared read-only Nextcloud tools account/token bootstrap and deployment,
-only after explicit production approval:
+Read-only Nextcloud tools account/token bootstrap and deployment, only after
+explicit production approval:
 
 ```bash
 .venv/bin/ansible-playbook ansible/playbooks/nextcloud-tools.yml \
@@ -111,9 +111,9 @@ only after explicit production approval:
 The user then creates/shares `AI Workspace` read-only from the owning account.
 Ansible deliberately does not receive that account's credential.
 
-The first bootstrap created the account and a managed token, then stopped
-before secret installation. Do not rerun it: token rotation/partial-bootstrap
-recovery is the required, separately guarded continuation:
+The first bootstrap stopped before secret installation. Guarded recovery then
+installed and validated a replacement and revoked the unusable token. Future
+token rotation uses the same separately guarded command:
 
 ```bash
 .venv/bin/ansible-playbook \
@@ -131,9 +131,10 @@ service:
   --ask-become-pass
 ```
 
-The bootstrap has run partially; the recovery, rollback, and aggregate enable
-paths have not run. Follow the dedicated Nextcloud tools runbook; never put the
-app password in command arguments or logs.
+Bootstrap and recovery have run; rollback and aggregate enable have not. The
+service/socket are healthy, but the owner must still share `AI Workspace`
+read-only and validate the tools before persisting the inventory flag. Follow
+the dedicated runbook; never put the app password in command arguments or logs.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

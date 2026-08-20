@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-19
-- Deployment status: Partial bootstrap; recovery pending
+- Deployment status: Private service deployed; data share/validation pending
 
 ## Context
 
@@ -46,9 +46,10 @@ confirmation, conflict protection, and safe auditing.
 The first production bootstrap created the dedicated account and a managed
 token, then stopped before secret installation because a backslash validation
 expression was incorrectly YAML-escaped. Revision `e2ef617` fixes the
-expression and adds compile coverage for every assertion. The token secret is
-unrecoverable; the guarded rotation/recovery play is the approved path to
-validate and install a replacement before revoking the orphan.
+expression and adds compile coverage for every assertion. Guarded recovery
+subsequently validated and installed a replacement, deployed the private
+service/socket, and revoked the unusable token. The data share and functional
+validation remain pending.
 
 ## Consequences
 

@@ -22,7 +22,7 @@
 - [Current Ansible deployment flow](architecture/current/dynamic-ansible.md)
 - [Current agent health-check flow](architecture/current/dynamic-home-agent.md)
 - [Public agent routing](architecture/proposed/README.md)
-- [Prepared read-only Nextcloud tools](architecture/proposed/nextcloud-tools.md)
+- [Deployed read-only Nextcloud tools](architecture/proposed/nextcloud-tools.md)
 
 ## Decisions and runbooks
 

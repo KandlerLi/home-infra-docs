@@ -57,13 +57,11 @@ credential or host access, and Nextcloud data access remains a later separately
 reviewed milestone. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
-A disabled-by-default read-only Nextcloud tool boundary is **prepared but not
-deployed**. Its first guarded bootstrap created the dedicated non-admin account
-and one managed token, then stopped on an invalid path-validation expression
-before installing the secret or service. The expression is fixed at
-`home-infra` revision `e2ef617`; the guarded rotation/recovery play is now the
-required continuation. No credential file, inventory enable flag, production
-service, or personal-folder share exists yet.
+The read-only Nextcloud tool boundary is **deployed privately and awaiting its
+folder share**. Guarded recovery installed a validated replacement token,
+started and enabled the dedicated service, attached its socket read-only to
+`home-agent`, and revoked the unusable bootstrap token. Runtime health checks
+pass. No personal-folder share or persistent inventory enable flag exists yet.
 
 ## Documentation map
 

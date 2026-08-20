@@ -31,7 +31,8 @@ hierarchical views rather than one all-purpose diagram.
 ### Prepared capabilities
 
 1. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — implemented in
-   Ansible, disabled, and not deployed
+   Ansible and deployed privately; folder share and desired-state persistence
+   remain pending
 
 ## Notation
 

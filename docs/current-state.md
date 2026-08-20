@@ -91,9 +91,9 @@ Fix Nextcloud tools path validation
 
 This revision contains the disabled-by-default read-only Nextcloud tool
 implementation plus guarded account/token bootstrap, rotation, and rollback.
-The first bootstrap created the `home-agent` account and one managed token but
-stopped before installing the credential or service. Rotation/recovery is the
-required continuation. The live Open WebUI state remains unchanged.
+Guarded recovery has installed a validated replacement credential, deployed
+and enabled the service, attached its socket read-only to `home-agent`, and
+revoked the unusable bootstrap token. Open WebUI itself remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -218,20 +218,20 @@ The currently configured repository is `KandlerLi/dyndns`.
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
 
-## Explicitly not deployed
+## Nextcloud tool deployment pending data share
 
 - Nextcloud document retrieval or indexing
 
 Committed infrastructure now contains a prepared, disabled-by-default
 `nextcloud_tools` role and guarded bootstrap, rotation, and rollback playbooks.
-It is not enabled in inventory. A partial bootstrap created the non-admin
-`home-agent` account and a managed token whose secret was never installed; no
-host credential file, service, agent socket, or folder share exists. The
-guarded rotation/recovery play must replace and revoke that token before
-continuing. Its intended scope is one read-only shared folder with bounded
-filename search, metadata listing, and small UTF-8 text reads. It does not
-implement WebDAV writes, binary document extraction, image-content analysis,
-or bulk indexing.
+The non-admin `home-agent` account, service-owned credential, enabled
+`nextcloud-tools` service, and read-only socket attachment to `home-agent` are
+deployed. The service and agent health endpoints pass. No `AI Workspace` share
+or persistent inventory enable flag exists yet, so functional data access is
+not ready. Its scope is one read-only shared folder with bounded filename
+search, metadata listing, and small UTF-8 text reads. It does not implement
+WebDAV writes, binary document extraction, image-content analysis, or bulk
+indexing.
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI

@@ -1,8 +1,8 @@
-# Read-Only Nextcloud Tools — Partial Bootstrap Deployment View
+# Read-Only Nextcloud Tools — Deployed Private View
 
-Scope: C4 container/deployment view for the disabled Nextcloud retrieval
-milestone. The identity and an unusable server-side token record exist; the
-dashed service boundary is not deployed.
+Scope: C4 container/deployment view for the read-only Nextcloud retrieval
+milestone. The private service path is deployed; only the dashed data share and
+persistent desired-state flag remain pending.
 
 ```mermaid
 flowchart LR
@@ -10,7 +10,7 @@ flowchart LR
     webui["Open WebUI<br/>[Container]<br/>Deployed chat frontend"]
     agent["home-agent<br/>[Container]<br/>Fixed model/tool orchestration"]
 
-    subgraph prepared["Prepared, not deployed"]
+    subgraph deployed["Deployed private tool boundary"]
         socket["Protected Unix socket<br/>[Interface]"]
         tools["nextcloud-tools<br/>[Systemd service]<br/>Bounded read-only WebDAV client"]
         credential["App password file<br/>[Credential]<br/>0400, service-owned"]
@@ -19,17 +19,15 @@ flowchart LR
 
     nextcloud["Nextcloud AIO Apache<br/>[Container]<br/>127.0.0.1:11000"]
     account["Dedicated Nextcloud account<br/>[Identity]<br/>Non-admin, created"]
-    orphan["Managed token record<br/>[Credential record]<br/>Secret unavailable; recovery pending"]
     model["OpenAI Responses API<br/>[External system]"]
 
     user -->|"Explicit file request"| webui
     webui -->|"Synthetic home-agent API"| agent
-    agent -.->|"Fixed list/search/read calls"| socket
-    socket -.-> tools
-    credential -.->|"Read at service start"| tools
-    tools -.->|"PROPFIND and bounded GET only"| nextcloud
+    agent -->|"Fixed list/search/read calls"| socket
+    socket --> tools
+    credential -->|"Read at service start"| tools
+    tools -->|"PROPFIND and bounded GET only"| nextcloud
     account -->|"Exists in"| nextcloud
-    orphan -->|"Belongs to; cannot be used"| account
     folder -.->|"Shared read-only"| account
     agent -->|"Only requested metadata/content"| model
 
@@ -39,8 +37,7 @@ flowchart LR
     classDef datastore fill:#d5ead8,color:#111,stroke:#3b7044,stroke-dasharray: 5 5
     classDef external fill:#e5e5e5,color:#111,stroke:#666
     class user person
-    class webui,agent,nextcloud,account,orphan current
-    class socket,tools,credential proposed
+    class webui,agent,nextcloud,account,socket,tools,credential current
     class folder datastore
     class model external
 ```
@@ -70,9 +67,9 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 - The guarded bootstrap creates the non-admin service account and limited token.
   The personal-data owner creates the read-only folder share manually; Ansible
   receives no owner-account credential and does not alter shares.
-- The first bootstrap stopped before installing its generated token. The
-  guarded recovery path replaces it, validates and installs the replacement,
-  then revokes the unusable managed token record.
+- Guarded recovery replaced and revoked the unusable bootstrap token, installed
+  the credential, and deployed the service/socket. The share remains manual and
+  absent until the owner grants it.
 
 ## Deliberately deferred
 
@@ -85,5 +82,5 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 ## Legend
 
 - Solid blue: currently deployed component or request path
-- Dashed beige/green: prepared but not deployed component, identity, or data
+- Dashed beige/green: prepared but not deployed data share
 - Grey: external cloud model provider
