@@ -19,59 +19,69 @@ The service is restricted to `127.0.0.1:11000`, the HTTP host header
 Unix sockets and loopback IPv4. The agent receives only
 `/run/nextcloud-tools/nextcloud-tools.sock` and a supplementary socket group.
 
-## 2. Create the dedicated Nextcloud identity
+## 2. Bootstrap the identity, token, and private service
 
-In the Nextcloud administration UI, create a non-admin account such as
-`home-agent`. Give it a small quota and do not add it to privileged groups.
-Do not reuse the human administrator account.
+The live Nextcloud version supports `occ user:add --generate-password` and
+`occ user:auth-tokens:add --no-interaction`. The second command explicitly
+creates a limited token when no login password is provided. The guarded
+playbook uses those supported commands inside `nextcloud-aio-nextcloud`.
 
-From the human account that owns the intended data:
-
-1. Create or select a folder named `AI Workspace`.
-2. Share it only with the dedicated account.
-3. Disable editing so the share is read-only.
-4. Keep downloading allowed because bounded text reads use WebDAV `GET`.
-5. Add only files that may be sent to the configured cloud model when asked.
-
-Log in as the dedicated account and create one device/app password named
-`home-agent-readonly` under personal Security settings. Nextcloud shows the
-plain value only when it is created, and a unique token can later be revoked
-independently. See the official [device password documentation](https://docs.nextcloud.com/server/stable/user_manual/en/session_management.html)
-and [WebDAV file-operation documentation](https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/basic.html).
-
-## 3. Store the credential with SOPS
-
-Edit only the encrypted inventory:
-
-```bash
-cd /home/julian/projects/home-infra
-sops ansible/inventory/group_vars/all/secrets.sops.yml
-```
-
-Add the dedicated username and app password:
-
-```yaml
-nextcloud_tools_username: "home-agent"
-nextcloud_tools_app_password: "generated-device-password"
-```
-
-Never paste the value into chat, shell arguments, documentation, or Git in
-plaintext. Do not enable the persistent inventory flag yet.
-
-## 4. Deploy privately
-
-Only after explicit production approval, run:
+Only after explicitly approving creation of the Nextcloud account/token and
+deployment of the host service, run:
 
 ```bash
 cd /home/julian/projects/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/nextcloud-tools.yml \
-  --ask-become-pass
+  --ask-become-pass \
+  --extra-vars \
+  nextcloud_tools_bootstrap_confirmation=BOOTSTRAP_NEXTCLOUD_TOOLS
 ```
 
-The play installs `nextcloud-tools.service`, writes the token as a root-managed
-`0400` file owned by the service account, starts the Unix socket service, and
-recreates `home-agent` with the read-only socket mount. It does not alter
-Traefik, Open WebUI, Nextcloud AIO configuration, shares, or public routes.
+The play:
+
+1. Requires the exact confirmation sentinel.
+2. Verifies that the AIO Nextcloud container is running.
+3. Creates non-admin account `home-agent` with a generated login password that
+   is never displayed.
+4. Creates limited app password `home-agent-readonly` without receiving the
+   login password.
+5. Keeps the token only in non-cached Ansible memory under `no_log` and writes
+   it directly as the service-owned `0400` host file.
+6. Starts `nextcloud-tools.service`, attaches only its read-only Unix socket to
+   `home-agent`, and verifies the private health endpoint.
+
+The token is not stored in SOPS, shell arguments, Docker environment, Git,
+chat, or documentation. The play refuses to silently create another managed
+token if a prior token exists but the host file is missing; use the guarded
+rotation/recovery play in section 6 for that state.
+
+The bootstrap does not alter shares, personal files, Traefik, Open WebUI,
+Nextcloud AIO configuration, or public routes.
+
+The underlying supported commands are documented in Nextcloud's official
+[user/token command reference](https://docs.nextcloud.com/server/stable/admin_manual/occ_users.html).
+
+## 3. Share the approved folder manually
+
+After the bootstrap succeeds, sign in to Nextcloud with the normal account that
+owns the intended data:
+
+1. Create or select a folder named `AI Workspace`.
+2. Share it only with user `home-agent`.
+3. Disable editing so the share is read-only.
+4. Keep downloading allowed because bounded text reads use WebDAV `GET`.
+5. Add only files that may be sent to the configured cloud model when asked.
+
+This is deliberately the only manual identity/data step. Creating the share
+through Ansible's supported OCS API would require a credential for the personal
+owner account. Do not provide that credential to Ansible. The API's read-only
+permission value is documented in the official [OCS Share API reference](https://docs.nextcloud.com/server/stable/developer_manual/client_apis/OCS/ocs-share-api.html).
+
+## 4. Keep persistent inventory disabled during validation
+
+Do not set `nextcloud_tools_enabled: true` yet. The guarded bootstrap explicitly
+enables the role for its own apply, while ordinary `site.yml` remains unable to
+reconcile it until the live chat tests succeed.
 
 ## 5. Validate without exposing private data
 
@@ -102,7 +112,27 @@ After successful validation, set `nextcloud_tools_enabled: true` in
 `ansible/inventory/group_vars/all/main.yml`, run a syntax check, and reapply the
 full site only with separate approval. Recheck Nextcloud and Open WebUI.
 
-## 6. Roll back
+## 6. Rotate or recover the managed token
+
+Token rotation requires a separate exact confirmation. It records existing
+token IDs without exposing their values, creates and validates a replacement
+against loopback WebDAV, installs it, restarts the service, and only then
+revokes the superseded tokens named `home-agent-readonly`:
+
+```bash
+cd /home/julian/projects/home-infra
+.venv/bin/ansible-playbook \
+  ansible/playbooks/rotate-nextcloud-tools-token.yml \
+  --ask-become-pass \
+  --extra-vars \
+  nextcloud_tools_rotation_confirmation=ROTATE_NEXTCLOUD_TOOLS_TOKEN
+```
+
+The same play recovers a partial bootstrap where the Nextcloud account/token
+exists but `/etc/nextcloud-tools/app-password` is missing. It does not need the
+old token value.
+
+## 7. Roll back
 
 To detach the agent socket first and then stop the credential-bearing service:
 

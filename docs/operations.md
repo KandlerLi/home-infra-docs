@@ -98,12 +98,27 @@ Home-agent only:
   --ask-become-pass
 ```
 
-Prepared read-only Nextcloud tools, only after the dedicated identity, scoped
-share, SOPS values, and explicit production approval exist:
+Prepared read-only Nextcloud tools account/token bootstrap and deployment,
+only after explicit production approval:
 
 ```bash
 .venv/bin/ansible-playbook ansible/playbooks/nextcloud-tools.yml \
-  --ask-become-pass
+  --ask-become-pass \
+  --extra-vars \
+  nextcloud_tools_bootstrap_confirmation=BOOTSTRAP_NEXTCLOUD_TOOLS
+```
+
+The user then creates/shares `AI Workspace` read-only from the owning account.
+Ansible deliberately does not receive that account's credential.
+
+Token rotation or partial-bootstrap recovery is separately guarded:
+
+```bash
+.venv/bin/ansible-playbook \
+  ansible/playbooks/rotate-nextcloud-tools-token.yml \
+  --ask-become-pass \
+  --extra-vars \
+  nextcloud_tools_rotation_confirmation=ROTATE_NEXTCLOUD_TOOLS_TOKEN
 ```
 
 Rollback detaches the agent socket before stopping the credential-bearing

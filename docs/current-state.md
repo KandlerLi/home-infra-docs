@@ -85,13 +85,14 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-ac134e5
-Add Nextcloud tool rollback
+313283c
+Automate Nextcloud agent bootstrap
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
-implementation and its rollback path. The implementation is not deployed and
-the live Open WebUI state remains unchanged.
+implementation plus guarded account/token bootstrap, rotation, and rollback.
+The implementation is not deployed and the live Open WebUI state remains
+unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -221,8 +222,8 @@ The currently configured repository is `KandlerLi/dyndns`.
 - Nextcloud document retrieval or indexing
 
 Committed infrastructure now contains a prepared, disabled-by-default
-`nextcloud_tools` role and dedicated deployment/rollback playbooks. It is not
-enabled in inventory, has no configured credential, and has not been applied.
+`nextcloud_tools` role and guarded bootstrap, rotation, and rollback playbooks.
+It is not enabled in inventory, has no account/token, and has not been applied.
 Its intended scope is one read-only shared folder with bounded filename search,
 metadata listing, and small UTF-8 text reads. It does not implement WebDAV
 writes, binary document extraction, image-content analysis, or bulk indexing.

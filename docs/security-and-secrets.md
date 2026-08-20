@@ -150,7 +150,7 @@ do not disclose document contents.
 
 ### Prepared read-only Nextcloud boundary
 
-Infrastructure revision `ac134e5` prepares but does not deploy that separate
+Infrastructure revision `313283c` prepares but does not deploy that separate
 boundary. `nextcloud-tools.service` is a dedicated non-login identity with no
 Docker group, no capabilities, a strict protected filesystem, and network
 access restricted to Unix sockets plus `127.0.0.1`. It authenticates to the AIO
@@ -162,11 +162,17 @@ app password, Nextcloud data mount, or general WebDAV network client. The
 service supports only bounded `PROPFIND` metadata and small approved text-file
 `GET` requests below one configured root. It contains no WebDAV write methods.
 
-The dedicated Nextcloud account and app password do not yet exist. When
-created, both `nextcloud_tools_username` and
-`nextcloud_tools_app_password` must be stored in SOPS. The account must be
-non-admin and see only a read-only `AI Workspace` share. Revoke its app password
-independently if compromise is suspected.
+The dedicated Nextcloud account and app password do not yet exist. The guarded
+bootstrap creates the non-admin account with an unrevealed generated login
+password and creates a limited app password without supplying that login
+password. The token exists in non-cached Ansible memory only during the apply;
+all relevant tasks use `no_log`, and the final value is written directly as the
+service-owned `0400` host file. It is not stored in SOPS or Docker.
+
+The human owner must share only `AI Workspace` read-only with the new account.
+The guarded rotation play validates a replacement over loopback WebDAV before
+installing it and revokes only previous tokens named `home-agent-readonly`.
+Revoke the token independently if compromise is suspected.
 
 Requested filenames, metadata, and text contents cross the cloud boundary when
 the agent calls these tools. There is no background indexing. Populate the

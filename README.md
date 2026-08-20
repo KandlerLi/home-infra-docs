@@ -58,10 +58,11 @@ reviewed milestone. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
 A disabled-by-default read-only Nextcloud tool boundary is **prepared but not
-deployed**. It uses a separate systemd service, dedicated credentials, one
-allowed folder, bounded WebDAV reads, and a Unix socket exposed to
-`home-agent`. No account, app password, inventory enable flag, or production
-service exists yet.
+deployed**. Its guarded Ansible bootstrap creates the dedicated non-admin
+account and limited token without revealing either password, then deploys a
+separate systemd service with bounded WebDAV reads. No account, token,
+inventory enable flag, or production service exists yet; the personal-folder
+share remains an explicit manual action.
 
 ## Documentation map
 

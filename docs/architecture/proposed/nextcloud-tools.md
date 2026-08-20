@@ -64,8 +64,9 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 - The service constructs every WebDAV path below a fixed root and rejects
   absolute paths, `..`, backslashes, oversized arguments, and unexpected keys.
 - No `PUT`, `DELETE`, `MOVE`, `COPY`, `MKCOL`, or other write method exists.
-- The service account and read-only folder share must be created manually
-  before deployment; Ansible does not alter Nextcloud users or shares.
+- The guarded bootstrap creates the non-admin service account and limited token.
+  The personal-data owner creates the read-only folder share manually; Ansible
+  receives no owner-account credential and does not alter shares.
 
 ## Deliberately deferred
 

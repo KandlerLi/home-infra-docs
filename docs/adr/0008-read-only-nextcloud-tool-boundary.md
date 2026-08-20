@@ -31,10 +31,17 @@ entries, depth four, and 50 results. Returned metadata is allowlisted. The
 service implements no WebDAV write method, and the agent receives neither the
 app password nor direct Nextcloud network access.
 
-Do not deploy until a dedicated account, read-only folder share, revocable app
-password, encrypted inventory values, and explicit production approval exist.
-Add writes only in a later ADR with per-operation confirmation, conflict
-protection, and safe auditing.
+Use a guarded one-time Ansible playbook to create the dedicated account with an
+unrevealed generated login password and create a limited noninteractive app
+password. Keep the token only in Ansible's non-cached in-memory result during
+the apply, then install it directly as the service-owned `0400` file with every
+secret-bearing task under `no_log`. Do not store it in SOPS or Docker.
+
+The human owner must still share `AI Workspace` read-only after account
+creation. Automating that share would require giving Ansible a credential for
+the account that owns the personal files. Do not deploy without explicit
+production approval. Add writes only in a later ADR with per-operation
+confirmation, conflict protection, and safe auditing.
 
 ## Consequences
 
@@ -48,3 +55,6 @@ protection, and safe auditing.
 - Deployment and rollback recreate `home-agent` to attach or detach only the
   Unix socket. Rollback stops the credential-bearing service without deleting
   its configuration.
+- A separately guarded rotation play validates a replacement token over
+  loopback WebDAV before installation and revokes only superseded tokens with
+  the managed name.
