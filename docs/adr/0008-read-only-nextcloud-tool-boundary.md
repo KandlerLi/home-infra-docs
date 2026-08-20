@@ -53,8 +53,10 @@ but the first bounded listing returned a generic 503. Privacy-safe diagnostics
 log only upstream HTTP status or exception class; they never log paths,
 filenames, content, or credentials. Their reapply revealed that shutdown-time
 socket cleanup could unlink a replacement listener during restart. Systemd
-already owns the runtime directory, so revision `60bfafb` removes that cleanup
-and adds regression coverage. Functional validation remains pending.
+runtime-directory replacement also leaves an existing container bind mount on
+a stale inode. Revision `cb6a3d2` preserves the runtime directory across
+restarts and forces `home-agent` recreation during dedicated deploy, rotation,
+and rollback plays. Functional validation remains pending.
 
 ## Consequences
 

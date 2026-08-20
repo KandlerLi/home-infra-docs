@@ -144,9 +144,10 @@ Repeat one bounded request, then inspect only the relevant
 the cause is corrected and list/search/read validation passes.
 
 If `ss` reports the listener while the socket pathname is absent, deploy at
-least revision `60bfafb`. It leaves stale-socket removal at startup but relies
-on systemd's `RuntimeDirectory` lifecycle for shutdown cleanup, preventing an
-exiting process from unlinking a replacement listener.
+least revision `cb6a3d2`. It preserves systemd's runtime directory across
+restarts so the container bind mount retains the same inode. Dedicated deploy,
+rotation, and rollback plays also force `home-agent` recreation to remount the
+current directory and apply socket attachment changes deterministically.
 
 ## 7. Roll back
 

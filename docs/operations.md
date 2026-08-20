@@ -134,11 +134,12 @@ service:
 Bootstrap and recovery have run; rollback and aggregate enable have not. The
 owner share is mounted, but the first direct list returned 503. The diagnostic
 reapply then exposed a shutdown unlink race that removed the live socket
-pathname while the service process kept listening. Revision `60bfafb` removes
-that cleanup race and must be reapplied with the bootstrap command; because the
-host credential file exists, the reapply creates no account or token. Do not
-persist the inventory flag until list/search/read validation passes. Follow the
-dedicated runbook; never put the app password in command arguments or logs.
+pathname while the service process kept listening. The root cause is
+runtime-directory inode replacement behind the container bind mount. Revision
+`cb6a3d2` preserves the directory across restarts and forces a container
+remount during dedicated applies. Reapply it with the bootstrap command; the
+existing host credential means no account or token is created. Do not persist
+the inventory flag until list/search/read validation passes.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

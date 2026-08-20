@@ -61,8 +61,10 @@ The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
 privately**, but functional validation is pending. The service/socket health
 checks initially passed and the share is mounted for `home-agent`. After the
 diagnostic reapply, the running service retained a listener but its filesystem
-socket entry was removed. Revision `60bfafb` removes the shutdown unlink race
-and awaits a safe reapply. No persistent inventory enable flag exists yet.
+socket entry was removed because the systemd runtime directory had been
+recreated behind the container's bind mount. Revision `cb6a3d2` preserves that
+directory across restarts and forces a remount during dedicated applies. It
+awaits reapply. No persistent inventory enable flag exists yet.
 
 ## Documentation map
 
