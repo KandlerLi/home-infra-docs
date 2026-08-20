@@ -57,11 +57,12 @@ credential or host access, and Nextcloud data access remains a later separately
 reviewed milestone. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
-The read-only Nextcloud tool boundary is **deployed privately and awaiting its
-folder share**. Guarded recovery installed a validated replacement token,
-started and enabled the dedicated service, attached its socket read-only to
-`home-agent`, and revoked the unusable bootstrap token. Runtime health checks
-pass. No personal-folder share or persistent inventory enable flag exists yet.
+The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
+privately**, but functional validation is pending. The service/socket health
+checks pass and the share is mounted for `home-agent`; the first bounded list
+returned a generic 503. Revision `c720e00` adds privacy-safe upstream status
+diagnostics and awaits a safe reapply. No persistent inventory enable flag
+exists yet.
 
 ## Documentation map
 

@@ -132,9 +132,12 @@ service:
 ```
 
 Bootstrap and recovery have run; rollback and aggregate enable have not. The
-service/socket are healthy, but the owner must still share `AI Workspace`
-read-only and validate the tools before persisting the inventory flag. Follow
-the dedicated runbook; never put the app password in command arguments or logs.
+service/socket are healthy and the owner share is mounted, but the first direct
+list returned 503. Revision `c720e00` adds privacy-safe upstream diagnostics and
+must be reapplied with the bootstrap command; because the host credential file
+exists, that reapply does not create an account or token. Do not persist the
+inventory flag until list/search/read validation passes. Follow the dedicated
+runbook; never put the app password in command arguments or logs.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

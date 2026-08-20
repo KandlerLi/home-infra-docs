@@ -1,8 +1,8 @@
 # Read-Only Nextcloud Tools — Deployed Private View
 
 Scope: C4 container/deployment view for the read-only Nextcloud retrieval
-milestone. The private service path is deployed; only the dashed data share and
-persistent desired-state flag remain pending.
+milestone. The private service and data share are deployed; functional
+validation and the persistent desired-state flag remain pending.
 
 ```mermaid
 flowchart LR
@@ -28,17 +28,16 @@ flowchart LR
     credential -->|"Read at service start"| tools
     tools -->|"PROPFIND and bounded GET only"| nextcloud
     account -->|"Exists in"| nextcloud
-    folder -.->|"Shared read-only"| account
+    folder -->|"Shared read-only"| account
     agent -->|"Only requested metadata/content"| model
 
     classDef person fill:#b7d7f0,color:#111,stroke:#286090
     classDef current fill:#d6eaf8,color:#111,stroke:#2874a6
     classDef proposed fill:#f7ecd0,color:#111,stroke:#9a7b24,stroke-dasharray: 5 5
-    classDef datastore fill:#d5ead8,color:#111,stroke:#3b7044,stroke-dasharray: 5 5
     classDef external fill:#e5e5e5,color:#111,stroke:#666
     class user person
     class webui,agent,nextcloud,account,socket,tools,credential current
-    class folder datastore
+    class folder current
     class model external
 ```
 
@@ -68,8 +67,9 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
   The personal-data owner creates the read-only folder share manually; Ansible
   receives no owner-account credential and does not alter shares.
 - Guarded recovery replaced and revoked the unusable bootstrap token, installed
-  the credential, and deployed the service/socket. The share remains manual and
-  absent until the owner grants it.
+  the credential, and deployed the service/socket. The owner has granted the
+  share and Nextcloud reports its mount. The first list request returned 503;
+  privacy-safe upstream diagnostics await deployment.
 
 ## Deliberately deferred
 
@@ -81,6 +81,5 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 
 ## Legend
 
-- Solid blue: currently deployed component or request path
-- Dashed beige/green: prepared but not deployed data share
+- Solid blue: currently deployed identity, component, data share, or request path
 - Grey: external cloud model provider

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-19
-- Deployment status: Private service deployed; data share/validation pending
+- Deployment status: Private service/share deployed; diagnostics pending
 
 ## Context
 
@@ -48,8 +48,10 @@ token, then stopped before secret installation because a backslash validation
 expression was incorrectly YAML-escaped. Revision `e2ef617` fixes the
 expression and adds compile coverage for every assertion. Guarded recovery
 subsequently validated and installed a replacement, deployed the private
-service/socket, and revoked the unusable token. The data share and functional
-validation remain pending.
+service/socket, and revoked the unusable token. The owner share is now mounted,
+but the first bounded listing returned a generic 503. Privacy-safe diagnostics
+log only upstream HTTP status or exception class; they never log paths,
+filenames, content, or credentials. Functional validation remains pending.
 
 ## Consequences
 

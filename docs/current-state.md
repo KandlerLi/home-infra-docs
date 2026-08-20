@@ -85,15 +85,17 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-e2ef617
-Fix Nextcloud tools path validation
+c720e00
+Add safe Nextcloud tool diagnostics
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
 implementation plus guarded account/token bootstrap, rotation, and rollback.
-Guarded recovery has installed a validated replacement credential, deployed
-and enabled the service, attached its socket read-only to `home-agent`, and
-revoked the unusable bootstrap token. Open WebUI itself remains unchanged.
+Guarded recovery installed a validated replacement credential, deployed and
+enabled the service, attached its socket read-only to `home-agent`, and revoked
+the unusable bootstrap token. The owner share exists and Nextcloud reports its
+mount, but a direct bounded list returns 503. Privacy-safe diagnostics are
+committed but not yet deployed. Open WebUI itself remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -218,7 +220,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 | `terraform-state` has no remote repository or hosting protections | Repository-governance gap | Publish and secure it deliberately after verifying the recovery/exclusion model |
 | Non-empty ignored Terraform state backup has mode `0664` | Local security gap | Do not read/delete; verify recovery need and tighten permissions with approval |
 
-## Nextcloud tool deployment pending data share
+## Nextcloud tool deployment pending functional validation
 
 - Nextcloud document retrieval or indexing
 
@@ -226,12 +228,13 @@ Committed infrastructure now contains a prepared, disabled-by-default
 `nextcloud_tools` role and guarded bootstrap, rotation, and rollback playbooks.
 The non-admin `home-agent` account, service-owned credential, enabled
 `nextcloud-tools` service, and read-only socket attachment to `home-agent` are
-deployed. The service and agent health endpoints pass. No `AI Workspace` share
-or persistent inventory enable flag exists yet, so functional data access is
-not ready. Its scope is one read-only shared folder with bounded filename
-search, metadata listing, and small UTF-8 text reads. It does not implement
-WebDAV writes, binary document extraction, image-content analysis, or bulk
-indexing.
+deployed. The service and agent health endpoints pass. The `AI Workspace` share
+exists and is mounted for the account, but the first
+bounded list returned 503; privacy-safe status diagnostics await deployment.
+No persistent inventory enable flag exists yet. The intended scope is bounded
+filename search, metadata listing, and small UTF-8 text reads. It does not
+implement WebDAV writes, binary document extraction, image-content analysis,
+or bulk indexing.
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI

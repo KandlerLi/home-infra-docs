@@ -132,6 +132,17 @@ The same play recovers a partial bootstrap where the Nextcloud account/token
 exists but `/etc/nextcloud-tools/app-password` is missing. It does not need the
 old token value.
 
+### Diagnose a generic tool 503
+
+Revision `c720e00` logs only an upstream HTTP status or transport exception
+class when a bounded tool request fails. It never logs the requested path,
+filenames, content, or credentials. Reapply the bootstrap play with its exact
+sentinel to install this service revision. When the host credential file
+already exists, the play reuses the account and file and creates no token.
+Repeat one bounded request, then inspect only the relevant
+`nextcloud-tools.service` warning. Keep the inventory enable flag false until
+the cause is corrected and list/search/read validation passes.
+
 ## 7. Roll back
 
 To detach the agent socket first and then stop the credential-bearing service:
