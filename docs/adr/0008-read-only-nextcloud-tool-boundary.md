@@ -62,7 +62,9 @@ generic invalid-response reason to a 503 socket response. Unstructured details
 map to the generic category. It reported HTTP 404 because this deployment's
 Nextcloud `share_folder` is `/Shared`; the environment-specific allowed root is
 therefore `Shared/AI Workspace`, while the owner-visible share remains named
-`AI Workspace`. Functional validation remains pending.
+`AI Workspace`. Local-only list, filename search, and harmless small-text-read
+validation now passes. Cloud-mediated Open WebUI acceptance and desired-state
+persistence remain pending.
 
 ## Consequences
 

@@ -51,7 +51,8 @@ flowchart LR
 
 The logical share is `AI Workspace`. Nextcloud mounts received shares below its
 configured `/Shared` folder on this deployment, so the service's bounded WebDAV
-root is `Shared/AI Workspace`.
+root is `Shared/AI Workspace`. Direct list, filename search, and small UTF-8
+text-read validation passes; Open WebUI acceptance remains pending.
 
 The returned fields are path, name, file/folder type, size, modification time,
 MIME type, ETag, file ID, permissions, and preview availability. Owner names,

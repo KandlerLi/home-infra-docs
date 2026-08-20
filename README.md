@@ -63,8 +63,10 @@ checks initially passed and the share is mounted for `home-agent`. After the
 runtime-directory fix, the container can reach the socket reliably. The bounded
 list reported an allowlisted upstream HTTP 404. Nextcloud mounts received shares
 under its configured `/Shared` folder, so revision `bffedd8` persists the actual
-bounded root `Shared/AI Workspace` and awaits reapply. No persistent inventory
-enable flag exists yet.
+bounded root `Shared/AI Workspace`. It is deployed: local-only bounded list,
+filename search, and harmless small-text read checks all return 200 without
+printing names or content. Open WebUI acceptance and the persistent inventory
+enable flag remain pending.
 
 ## Documentation map
 

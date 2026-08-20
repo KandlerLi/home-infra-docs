@@ -140,9 +140,9 @@ runtime-directory inode replacement behind the container bind mount. Revision
 remount during dedicated applies and is deployed. The bounded list still
 returns 503 with allowlisted reason `upstream_http_404`. Nextcloud mounts
 received shares below `/Shared`; revision `bffedd8` persists the bounded root as
-`Shared/AI Workspace`. Reapply it with the bootstrap command. The existing host
-credential means no account or token is created. Do not persist the inventory
-flag until list/search/read validation passes.
+`Shared/AI Workspace` and is deployed. Local-only list/search/small-text-read
+validation passes without exposing names or content. Complete one harmless
+Open WebUI acceptance prompt before persisting the inventory flag.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

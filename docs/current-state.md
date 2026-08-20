@@ -102,8 +102,8 @@ replacement behind the bind mount; the preservation/remount fix is deployed and
 the container now reaches the socket. The list still returns 503 and journald
 provides no warning; the protected response identified upstream HTTP 404.
 Nextcloud's configured received-share folder is `/Shared`, so the corrected
-bounded root is committed but not yet reapplied. Open WebUI itself remains
-unchanged.
+bounded root is deployed. Direct local-only list, filename search, and harmless
+small-text read checks return 200. Open WebUI acceptance remains pending.
 
 DNS infrastructure repository root and current revision:
 
@@ -243,7 +243,10 @@ container bind mount. Revision `cb6a3d2` is deployed and the container reaches
 the socket. A bounded list returned allowlisted reason `upstream_http_404`.
 Nextcloud reports the share one level below its configured `/Shared` mount, so
 revision `bffedd8` sets `nextcloud_tools_allowed_root: Shared/AI Workspace` and
-awaits reapply.
+is deployed. Direct checks listed one root entry, found one harmless validation
+match, and read its ten-character UTF-8 content without printing the name or
+content. No cloud-model call was made. The inventory enable flag remains
+pending until Open WebUI acceptance.
 No persistent inventory enable flag exists yet. The intended scope is bounded
 filename search, metadata listing, and small UTF-8 text reads. It does not
 implement WebDAV writes, binary document extraction, image-content analysis,
