@@ -38,7 +38,7 @@ permissions (`github_workflow_repository_permissions`).
 
 The two previously-manual settings were closed by importing the
 already-live GitHub state rather than recreating it: `sha_pinning_required`
-was added as an explicit per-repository value on the existing
+was first added as an explicit per-repository value on the existing
 `github_actions_repository_permissions` resource (`true` for `dyndns`,
 `false` for `testing`, matching their live values with zero diff), and the
 previously entirely untracked `github_workflow_repository_permissions`
@@ -47,6 +47,14 @@ the satisfied import blocks were deleted. `terraform plan` showed only the
 two imports (0 creates, 0 changes, 0 destroys) before applying, and a
 post-apply `gh api` spot-check confirmed the tracked and live values still
 match.
+
+`sha_pinning_required` was then simplified from a per-repository value to a
+hardcoded `true` for every repository the module manages, matching the
+baseline already applied manually to `dyndns` by
+`dyndns/scripts/protect-repository.sh`. `testing`'s prior `false` value was a
+scratch-repo artifact rather than a deliberate setting, so it was allowed to
+converge to `true` as well; `terraform plan` showed exactly that one
+in-place update before it was applied.
 
 `whoami` is a legacy personal repository the user may archive or delete; it
 is **intentionally excluded** from `github-infra` and left fully unmanaged

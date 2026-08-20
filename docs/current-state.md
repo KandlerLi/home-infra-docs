@@ -170,19 +170,23 @@ GitHub repository protection project:
 
 ```text
 /home/julian/projects/github-infra
-f32c1fd
-Import manually-set Actions SHA-pinning and workflow permissions
+3a0b547
+Hardcode sha_pinning_required to true for all managed repos
 ```
 
 This local Git repository (no GitHub remote of its own, local-only Terraform
 state) manages GitHub-side repository protection for `dyndns` and a scratch
 repository `testing` via a shared `./modules/repo` module. `sha_pinning_required`
 and the repository default workflow permissions had been set manually through
-the GitHub web UI before this root existed; both were imported and are now
-declared explicitly in `config.yml`/HCL, verified by a `terraform plan`
-showing only the two imports (0 changes, 0 destroys) and a post-apply
-`gh api` spot-check. `whoami` has similar pre-existing manual protection but
-is intentionally excluded pending a separate archive/delete decision. See
+the GitHub web UI before this root existed; both were imported, verified by a
+`terraform plan` showing only the two imports (0 changes, 0 destroys), and a
+post-apply `gh api` spot-check. `sha_pinning_required` is now hardcoded to
+`true` for every repository this root manages (matching the baseline already
+applied manually to `dyndns` by `dyndns/scripts/protect-repository.sh`)
+rather than a per-repository value; `testing`'s prior `false` state was a
+scratch-repo artifact and was allowed to converge to `true`. `whoami` has
+similar pre-existing manual protection but is intentionally excluded pending
+a separate archive/delete decision. See
 [ADR 0009](adr/0009-terraform-managed-github-repository-protection.md).
 
 The state handoff completed on 2026-08-19. DynDNS PR #8 merged as `d8d6541`;
