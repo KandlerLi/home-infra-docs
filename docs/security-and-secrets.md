@@ -48,6 +48,27 @@ to change its own trust or permissions. Migration uses configuration-driven
 removal with `destroy = false`, followed by local imports. The same no-destroy
 rule remains mandatory for any future ownership transfer.
 
+### GitHub repository protection
+
+`/home/julian/projects/github-infra` is a local-only Terraform root (no
+GitHub remote of its own) that manages GitHub-side repository protection for
+`dyndns` and a scratch repository `testing`: branch ruleset, Actions
+allowed-actions allowlist and `sha_pinning_required`, repository default
+workflow permissions, Actions variables, and the `production` environment.
+`sha_pinning_required` and the repository's default workflow token
+permissions had been set manually through the GitHub web UI before this root
+existed; both are now imported and declared explicitly (see
+[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md)).
+
+`whoami` has its own pre-existing manual protection (a disabled branch
+ruleset, non-default merge settings, unrestricted Actions permissions) that
+remains entirely outside Terraform and outside this documentation set,
+pending a separate archive/delete decision for that repository.
+
+`github-infra` currently uses Terraform's default local state backend rather
+than the shared encrypted S3 backend used by every other Terraform root in
+this workspace; this is a known, deliberately deferred gap.
+
 ## Trust boundaries
 
 ### Ansible controller to homeserver

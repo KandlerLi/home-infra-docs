@@ -166,6 +166,25 @@ for the account-wide GitHub Actions OIDC provider and the DynDNS plan/apply
 roles and policies. Its remote backend key is
 `aws-account-bootstrap/terraform.tfstate`.
 
+GitHub repository protection project:
+
+```text
+/home/julian/projects/github-infra
+f32c1fd
+Import manually-set Actions SHA-pinning and workflow permissions
+```
+
+This local Git repository (no GitHub remote of its own, local-only Terraform
+state) manages GitHub-side repository protection for `dyndns` and a scratch
+repository `testing` via a shared `./modules/repo` module. `sha_pinning_required`
+and the repository default workflow permissions had been set manually through
+the GitHub web UI before this root existed; both were imported and are now
+declared explicitly in `config.yml`/HCL, verified by a `terraform plan`
+showing only the two imports (0 changes, 0 destroys) and a post-apply
+`gh api` spot-check. `whoami` has similar pre-existing manual protection but
+is intentionally excluded pending a separate archive/delete decision. See
+[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md).
+
 The state handoff completed on 2026-08-19. DynDNS PR #8 merged as `d8d6541`;
 its validation, speculative plan, exact-commit approval, and protected apply
 succeeded. The five source bindings were removed with `destroy = false`, then

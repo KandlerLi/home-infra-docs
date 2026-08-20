@@ -11,6 +11,9 @@
   guarded route switch, validation, backup, and rollback
 - [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — dedicated
   account, scoped share, encrypted app password, validation, and rollback
+- [Manage GitHub repository protection](manage-github-repo-protection.md) —
+  Terraform-managed branch rulesets, Actions permissions, and environments,
+  including how to import a repository's pre-existing manual configuration
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
