@@ -150,6 +150,9 @@ Then open a new private tab on the affected phone, load
 429 or 500 response. Also confirm `/healthz` remains 401 without Basic Auth and
 Nextcloud remains healthy.
 
+This recovery was deployed and successfully validated on an iPhone on
+2026-08-20.
+
 ## 5. Roll back the route
 
 If the UI or chat path fails, restore the previous direct API route:
