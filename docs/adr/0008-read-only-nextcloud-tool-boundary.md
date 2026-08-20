@@ -56,7 +56,10 @@ socket cleanup could unlink a replacement listener during restart. Systemd
 runtime-directory replacement also leaves an existing container bind mount on
 a stale inode. Revision `cb6a3d2` preserves the runtime directory across
 restarts and forces `home-agent` recreation during dedicated deploy, rotation,
-and rollback plays. Functional validation remains pending.
+and rollback plays. Because journald returned no service records, revision
+`8ceb715` adds only an allowlisted `upstream_http_NNN`, transport-class, or
+generic invalid-response reason to a 503 socket response. Unstructured details
+map to the generic category. Functional validation remains pending.
 
 ## Consequences
 

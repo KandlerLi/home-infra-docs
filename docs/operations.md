@@ -137,7 +137,9 @@ reapply then exposed a shutdown unlink race that removed the live socket
 pathname while the service process kept listening. The root cause is
 runtime-directory inode replacement behind the container bind mount. Revision
 `cb6a3d2` preserves the directory across restarts and forces a container
-remount during dedicated applies. Reapply it with the bootstrap command; the
+remount during dedicated applies and is deployed. The bounded list still
+returns 503 and journald is empty. Revision `8ceb715` adds an allowlisted reason
+to the protected socket response; reapply it with the bootstrap command. The
 existing host credential means no account or token is created. Do not persist
 the inventory flag until list/search/read validation passes.
 

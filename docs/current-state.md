@@ -85,8 +85,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-cb6a3d2
-Preserve Nextcloud tools socket mount
+8ceb715
+Expose bounded Nextcloud failure reasons
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
@@ -98,8 +98,10 @@ mount, but a direct bounded list returns 503. Privacy-safe diagnostics are
 deployed. The diagnostic reapply exposed a socket lifecycle race: the service
 process retained a Unix listener after the pathname was removed, preventing
 the container from reaching it. The root cause is runtime-directory inode
-replacement behind the bind mount; the preservation/remount fix is committed
-but not yet reapplied. Open WebUI itself remains unchanged.
+replacement behind the bind mount; the preservation/remount fix is deployed and
+the container now reaches the socket. The list still returns 503 and journald
+provides no warning, so an allowlisted socket-response reason is committed but
+not yet reapplied. Open WebUI itself remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -235,9 +237,9 @@ The non-admin `home-agent` account, service-owned credential, enabled
 deployed. The `AI Workspace` share exists and is mounted for the account. The
 service process is running, but its filesystem socket pathname disappeared
 after restart because systemd replaced the runtime directory behind the
-container bind mount. Revision `cb6a3d2` preserves the directory across
-restarts and forces the container to remount it during dedicated applies. It
-awaits reapply; a bounded list cannot currently reach the service.
+container bind mount. Revision `cb6a3d2` is deployed and the container reaches
+the socket. A bounded list returns 503, and revision `8ceb715` awaits reapply to
+return only an allowlisted upstream HTTP/transport category for diagnosis.
 No persistent inventory enable flag exists yet. The intended scope is bounded
 filename search, metadata listing, and small UTF-8 text reads. It does not
 implement WebDAV writes, binary document extraction, image-content analysis,

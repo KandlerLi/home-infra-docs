@@ -149,6 +149,11 @@ restarts so the container bind mount retains the same inode. Dedicated deploy,
 rotation, and rollback plays also force `home-agent` recreation to remount the
 current directory and apply socket attachment changes deterministically.
 
+If journald has no service records, deploy at least revision `8ceb715`. Its 503
+JSON response contains only an allowlisted upstream HTTP status, transport
+exception class, or generic invalid-response category. It cannot return paths,
+filenames, content, credentials, or an unstructured exception message.
+
 ## 7. Roll back
 
 To detach the agent socket first and then stop the credential-bearing service:
