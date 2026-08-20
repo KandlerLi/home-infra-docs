@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-19
-- Deployment status: Prepared, not deployed
+- Deployment status: Partial bootstrap; recovery pending
 
 ## Context
 
@@ -42,6 +42,13 @@ creation. Automating that share would require giving Ansible a credential for
 the account that owns the personal files. Do not deploy without explicit
 production approval. Add writes only in a later ADR with per-operation
 confirmation, conflict protection, and safe auditing.
+
+The first production bootstrap created the dedicated account and a managed
+token, then stopped before secret installation because a backslash validation
+expression was incorrectly YAML-escaped. Revision `e2ef617` fixes the
+expression and adds compile coverage for every assertion. The token secret is
+unrecoverable; the guarded rotation/recovery play is the approved path to
+validate and install a replacement before revoking the orphan.
 
 ## Consequences
 

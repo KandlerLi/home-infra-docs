@@ -111,7 +111,9 @@ only after explicit production approval:
 The user then creates/shares `AI Workspace` read-only from the owning account.
 Ansible deliberately does not receive that account's credential.
 
-Token rotation or partial-bootstrap recovery is separately guarded:
+The first bootstrap created the account and a managed token, then stopped
+before secret installation. Do not rerun it: token rotation/partial-bootstrap
+recovery is the required, separately guarded continuation:
 
 ```bash
 .venv/bin/ansible-playbook \
@@ -129,9 +131,9 @@ service:
   --ask-become-pass
 ```
 
-These playbooks are prepared but have not been run. Follow the dedicated
-Nextcloud tools runbook; never put the app password in command arguments or
-logs.
+The bootstrap has run partially; the recovery, rollback, and aggregate enable
+paths have not run. Follow the dedicated Nextcloud tools runbook; never put the
+app password in command arguments or logs.
 
 Privately deployed Open WebUI frontend, without changing the public route:
 

@@ -1,7 +1,8 @@
-# Read-Only Nextcloud Tools — Prepared Deployment View
+# Read-Only Nextcloud Tools — Partial Bootstrap Deployment View
 
-Scope: C4 container/deployment view for the prepared, disabled Nextcloud
-retrieval milestone. **Nothing in the dashed boundary is deployed.**
+Scope: C4 container/deployment view for the disabled Nextcloud retrieval
+milestone. The identity and an unusable server-side token record exist; the
+dashed service boundary is not deployed.
 
 ```mermaid
 flowchart LR
@@ -13,11 +14,12 @@ flowchart LR
         socket["Protected Unix socket<br/>[Interface]"]
         tools["nextcloud-tools<br/>[Systemd service]<br/>Bounded read-only WebDAV client"]
         credential["App password file<br/>[Credential]<br/>0400, service-owned"]
-        account["Dedicated Nextcloud account<br/>[Identity]<br/>Non-admin"]
         folder["AI Workspace<br/>[Data store]<br/>Read-only share"]
     end
 
     nextcloud["Nextcloud AIO Apache<br/>[Container]<br/>127.0.0.1:11000"]
+    account["Dedicated Nextcloud account<br/>[Identity]<br/>Non-admin, created"]
+    orphan["Managed token record<br/>[Credential record]<br/>Secret unavailable; recovery pending"]
     model["OpenAI Responses API<br/>[External system]"]
 
     user -->|"Explicit file request"| webui
@@ -26,7 +28,8 @@ flowchart LR
     socket -.-> tools
     credential -.->|"Read at service start"| tools
     tools -.->|"PROPFIND and bounded GET only"| nextcloud
-    account -.->|"Authenticates"| nextcloud
+    account -->|"Exists in"| nextcloud
+    orphan -->|"Belongs to; cannot be used"| account
     folder -.->|"Shared read-only"| account
     agent -->|"Only requested metadata/content"| model
 
@@ -36,8 +39,8 @@ flowchart LR
     classDef datastore fill:#d5ead8,color:#111,stroke:#3b7044,stroke-dasharray: 5 5
     classDef external fill:#e5e5e5,color:#111,stroke:#666
     class user person
-    class webui,agent,nextcloud current
-    class socket,tools,credential,account proposed
+    class webui,agent,nextcloud,account,orphan current
+    class socket,tools,credential proposed
     class folder datastore
     class model external
 ```
@@ -67,6 +70,9 @@ shares, arbitrary properties, raw XML, and credentials are discarded.
 - The guarded bootstrap creates the non-admin service account and limited token.
   The personal-data owner creates the read-only folder share manually; Ansible
   receives no owner-account credential and does not alter shares.
+- The first bootstrap stopped before installing its generated token. The
+  guarded recovery path replaces it, validates and installs the replacement,
+  then revokes the unusable managed token record.
 
 ## Deliberately deferred
 

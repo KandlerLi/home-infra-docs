@@ -58,11 +58,12 @@ reviewed milestone. Authenticated public login/chat is user-confirmed and the
 deployed enable flags are persisted in inventory.
 
 A disabled-by-default read-only Nextcloud tool boundary is **prepared but not
-deployed**. Its guarded Ansible bootstrap creates the dedicated non-admin
-account and limited token without revealing either password, then deploys a
-separate systemd service with bounded WebDAV reads. No account, token,
-inventory enable flag, or production service exists yet; the personal-folder
-share remains an explicit manual action.
+deployed**. Its first guarded bootstrap created the dedicated non-admin account
+and one managed token, then stopped on an invalid path-validation expression
+before installing the secret or service. The expression is fixed at
+`home-infra` revision `e2ef617`; the guarded rotation/recovery play is now the
+required continuation. No credential file, inventory enable flag, production
+service, or personal-folder share exists yet.
 
 ## Documentation map
 

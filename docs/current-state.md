@@ -85,14 +85,15 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-313283c
-Automate Nextcloud agent bootstrap
+e2ef617
+Fix Nextcloud tools path validation
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
 implementation plus guarded account/token bootstrap, rotation, and rollback.
-The implementation is not deployed and the live Open WebUI state remains
-unchanged.
+The first bootstrap created the `home-agent` account and one managed token but
+stopped before installing the credential or service. Rotation/recovery is the
+required continuation. The live Open WebUI state remains unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -223,10 +224,14 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 Committed infrastructure now contains a prepared, disabled-by-default
 `nextcloud_tools` role and guarded bootstrap, rotation, and rollback playbooks.
-It is not enabled in inventory, has no account/token, and has not been applied.
-Its intended scope is one read-only shared folder with bounded filename search,
-metadata listing, and small UTF-8 text reads. It does not implement WebDAV
-writes, binary document extraction, image-content analysis, or bulk indexing.
+It is not enabled in inventory. A partial bootstrap created the non-admin
+`home-agent` account and a managed token whose secret was never installed; no
+host credential file, service, agent socket, or folder share exists. The
+guarded rotation/recovery play must replace and revoke that token before
+continuing. Its intended scope is one read-only shared folder with bounded
+filename search, metadata listing, and small UTF-8 text reads. It does not
+implement WebDAV writes, binary document extraction, image-content analysis,
+or bulk indexing.
 
 The private deployment added a non-masqueraded frontend bridge, an
 OpenAI-compatible endpoint on `home-agent`, and a loopback-only Open WebUI
