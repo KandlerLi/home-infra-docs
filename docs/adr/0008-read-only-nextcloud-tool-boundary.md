@@ -59,7 +59,10 @@ restarts and forces `home-agent` recreation during dedicated deploy, rotation,
 and rollback plays. Because journald returned no service records, revision
 `8ceb715` adds only an allowlisted `upstream_http_NNN`, transport-class, or
 generic invalid-response reason to a 503 socket response. Unstructured details
-map to the generic category. Functional validation remains pending.
+map to the generic category. It reported HTTP 404 because this deployment's
+Nextcloud `share_folder` is `/Shared`; the environment-specific allowed root is
+therefore `Shared/AI Workspace`, while the owner-visible share remains named
+`AI Workspace`. Functional validation remains pending.
 
 ## Consequences
 

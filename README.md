@@ -61,10 +61,10 @@ The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
 privately**, but functional validation is pending. The service/socket health
 checks initially passed and the share is mounted for `home-agent`. After the
 runtime-directory fix, the container can reach the socket reliably. The bounded
-list still returns 503, while this host's service journal yields no diagnostic
-records. Revision `8ceb715` returns only an allowlisted status/transport category
-through the protected socket and awaits reapply. No persistent inventory enable
-flag exists yet.
+list reported an allowlisted upstream HTTP 404. Nextcloud mounts received shares
+under its configured `/Shared` folder, so revision `bffedd8` persists the actual
+bounded root `Shared/AI Workspace` and awaits reapply. No persistent inventory
+enable flag exists yet.
 
 ## Documentation map
 

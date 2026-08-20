@@ -72,6 +72,13 @@ owns the intended data:
 4. Keep downloading allowed because bounded text reads use WebDAV `GET`.
 5. Add only files that may be sent to the configured cloud model when asked.
 
+This deployment configures Nextcloud's received-share folder as `/Shared`.
+Keep the owner-visible folder name `AI Workspace`, and set the service root to:
+
+```yaml
+nextcloud_tools_allowed_root: Shared/AI Workspace
+```
+
 This is deliberately the only manual identity/data step. Creating the share
 through Ansible's supported OCS API would require a credential for the personal
 owner account. Do not provide that credential to Ansible. The API's read-only

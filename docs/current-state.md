@@ -85,8 +85,8 @@ Infrastructure repository root:
 Current committed revision at snapshot time:
 
 ```text
-8ceb715
-Expose bounded Nextcloud failure reasons
+bffedd8
+Use Nextcloud shared-folder mount path
 ```
 
 This revision contains the disabled-by-default read-only Nextcloud tool
@@ -100,8 +100,10 @@ process retained a Unix listener after the pathname was removed, preventing
 the container from reaching it. The root cause is runtime-directory inode
 replacement behind the bind mount; the preservation/remount fix is deployed and
 the container now reaches the socket. The list still returns 503 and journald
-provides no warning, so an allowlisted socket-response reason is committed but
-not yet reapplied. Open WebUI itself remains unchanged.
+provides no warning; the protected response identified upstream HTTP 404.
+Nextcloud's configured received-share folder is `/Shared`, so the corrected
+bounded root is committed but not yet reapplied. Open WebUI itself remains
+unchanged.
 
 DNS infrastructure repository root and current revision:
 
@@ -238,8 +240,10 @@ deployed. The `AI Workspace` share exists and is mounted for the account. The
 service process is running, but its filesystem socket pathname disappeared
 after restart because systemd replaced the runtime directory behind the
 container bind mount. Revision `cb6a3d2` is deployed and the container reaches
-the socket. A bounded list returns 503, and revision `8ceb715` awaits reapply to
-return only an allowlisted upstream HTTP/transport category for diagnosis.
+the socket. A bounded list returned allowlisted reason `upstream_http_404`.
+Nextcloud reports the share one level below its configured `/Shared` mount, so
+revision `bffedd8` sets `nextcloud_tools_allowed_root: Shared/AI Workspace` and
+awaits reapply.
 No persistent inventory enable flag exists yet. The intended scope is bounded
 filename search, metadata listing, and small UTF-8 text reads. It does not
 implement WebDAV writes, binary document extraction, image-content analysis,

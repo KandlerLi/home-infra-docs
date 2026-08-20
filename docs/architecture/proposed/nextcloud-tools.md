@@ -49,6 +49,10 @@ flowchart LR
 | Search | Filename/path only; 500 scanned entries; depth four; 50 matches |
 | Read | Approved UTF-8 text extensions; maximum 256 KiB |
 
+The logical share is `AI Workspace`. Nextcloud mounts received shares below its
+configured `/Shared` folder on this deployment, so the service's bounded WebDAV
+root is `Shared/AI Workspace`.
+
 The returned fields are path, name, file/folder type, size, modification time,
 MIME type, ETag, file ID, permissions, and preview availability. Owner names,
 shares, arbitrary properties, raw XML, and credentials are discarded.
