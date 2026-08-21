@@ -50,16 +50,30 @@ can reach:
 3. Under **Speech-to-Text Engine**, you should see five real options —
    OpenAI, Web API, Deepgram, Azure AI Speech, MistralAI. Select
    **OpenAI**.
-4. The API base URL and key fields should already show the values the env
-   vars provided; you don't need to type anything into them, just confirm
-   the engine dropdown itself and save.
+4. **Found live: these are not pre-filled the way this runbook originally
+   assumed.** Selecting "OpenAI" auto-fills the API Base URL with the real
+   `https://api.openai.com/v1` — you must change it yourself to:
+
+   ```text
+   http://home-agent:8000/v1
+   ```
+
+   The API Key field is required by the form but never actually checked
+   (`home-agent` ignores it and uses its own real key server-side) — type
+   any non-empty placeholder, e.g. `home-agent-internal`. If the STT Model
+   field also complains, enter `whisper-1` — also cosmetic only. Save.
 
 ## 4. Verify live
 
 1. In a chat, click the microphone/voice-recording button and say a short
    test phrase.
 2. Confirm it transcribes correctly into text — no
-   `HF_HUB_OFFLINE`/"outgoing traffic has been disabled" error.
+   `HF_HUB_OFFLINE`/"outgoing traffic has been disabled" error, and no
+   `413, message='Content Too Large'` error (that was a second bug, found
+   live and fixed: Open WebUI streams the recording as a
+   `Transfer-Encoding: chunked` body with no `Content-Length` at all, which
+   an earlier version of the relay treated as zero-length and rejected —
+   make sure you're on a revision at or after that fix).
 3. Confirm a normal (non-voice) chat message still works, and that
    `ai.jkandler.de` overall is unaffected.
 4. Optional, read-only: `docker logs home-agent` should show no errors for

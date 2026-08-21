@@ -72,6 +72,19 @@ mirrors the existing rule in the chat path (`OpenAIResponsesProvider`
 always uses its own configured `HOME_AGENT_MODEL`, never a caller-supplied
 one) rather than introducing a new trust exception for audio.
 
+**Found live, after first deploy attempt**: every real recording failed
+with `413, message='Content Too Large'`. Root cause, confirmed against
+aiohttp's actual behavior rather than assumed: Open WebUI streams the
+recorded file field from an async generator (`form_data.add_field('file',
+audio_chunks(), filename=filename)`), so aiohttp cannot know the request
+body's total size upfront and sends `Transfer-Encoding: chunked` with no
+`Content-Length` header at all. The relay's original size check read
+`Content-Length` only, defaulting a missing header to `0`, which tripped
+the oversized-request rejection on every real request before any body was
+read. Fixed by adding chunked-body support to the handler, enforcing the
+same 25 MB cap incrementally as chunks arrive (the total isn't known
+upfront for a chunked body, unlike the `Content-Length` path).
+
 The upload is capped at 25 MB — OpenAI's own limit for this endpoint, so
 there's no reason to accept more — checked from the `Content-Length` header
 before the body is ever read, so an oversized claimed length is rejected
