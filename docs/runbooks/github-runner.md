@@ -11,6 +11,17 @@
 | Memory | 2048 MiB |
 | Disk | 40 GiB qcow2 |
 | Managed repository | `KandlerLi/dyndns` |
+| OS packages | `ca-certificates`, `curl`, `git`, `gzip`, `python3`, `tar`, `unzip` |
+
+Since 2026-08-21, `dyndns`'s CI actually runs here: `checks.yml`'s `Validate`
+and `Terraform plan` jobs and `apply.yml`'s `apply` job all use
+`runs-on: [self-hosted, home, debian]` instead of `ubuntu-latest`. `python3`
+and `unzip` were added to the package list for this — `python3` for the
+Lambda unit tests, `unzip` for `hashicorp/setup-terraform`'s binary
+extraction. This is safe against untrusted code because `dyndns`'s
+`pull_request_creation_policy: collaborators_only` plus a single
+collaborator (the owner) means only the owner can ever open a PR that
+triggers these jobs.
 
 ## Apply runner configuration
 
