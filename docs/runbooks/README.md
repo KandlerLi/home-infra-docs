@@ -15,6 +15,9 @@
 - [Manage repository infrastructure](manage-repo-infra.md) — Terraform-managed
   GitHub repository settings and per-repository AWS deploy identities,
   including how to import a repository's pre-existing manual configuration
+- [Deploy and publish Deluge](publish-deluge.md) — private bootstrap, Nextcloud
+  downloads integration, guarded route switch, and rollback (implemented, not
+  yet deployed)
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.

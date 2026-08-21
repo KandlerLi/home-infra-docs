@@ -9,6 +9,8 @@
 /dev/sda1 (ext4, about 916 GiB)
 └── /mnt/black-hdd
     ├── nextcloud/                 configured Nextcloud data directory
+    ├── downloads/                 Deluge downloads (owner: deluge:deluge)
+    ├── deluge-config/             Deluge state, separate from downloads
     └── github-runner/
         ├── github-runner.qcow2
         └── github-runner-cloud-init.iso
@@ -56,6 +58,22 @@ for a complete recovery.
 Do not reorganise `/mnt/black-hdd`, change the Nextcloud data directory, or
 delete AIO volumes as part of unrelated work.
 
+## Deluge downloads mounted into Nextcloud
+
+`deluge_downloads_dir` (`/mnt/black-hdd/downloads`) is optionally bind-mounted
+into the `nextcloud-aio-nextcloud` app container via AIO's `NEXTCLOUD_MOUNT`
+environment variable (set on the mastercontainer, not the app container
+directly — see `ansible/roles/nextcloud_aio/tasks/main.yml`), then registered
+as a Nextcloud "Local" external storage mount via `occ files_external:create`.
+This is deliberately **not wired up automatically** when Deluge is enabled —
+`nextcloud_aio_mount_dir` stays empty until explicitly set in
+`group_vars/all/main.yml`, once Deluge itself has been validated.
+
+**This mount is not covered by AIO's built-in backup.** Its contents (and
+`deluge-config/`) need their own backup coverage if you want downloaded files
+to survive a disaster recovery, separate from whatever backs up
+`nextcloud/`.
+
 ## GitHub runner data
 
 The runner role uses:
@@ -83,3 +101,6 @@ backup design must explicitly cover:
 - GitHub runner configuration only if preserving the runner is preferable to
   rebuilding it
 - this documentation repository and the infrastructure repository
+- Deluge downloads and config (`downloads/`, `deluge-config/`) if downloaded
+  files should survive a disaster recovery — not covered by AIO's backup
+  even though the folder is visible from within Nextcloud
