@@ -58,11 +58,15 @@ Before starting the container, the role pre-seeds `/config/web.conf`
 (`{{ deluge_config_dir }}/web.conf`) with `deluge_web_password`'s hash,
 computed with Deluge's own algorithm (`sha1(salt + password)`, verified
 against `auth.py`'s `_change_password()` and cross-checked locally against
-Python's `hashlib` before use) and validated as two independently-parseable
-JSON objects, matching what `deluge/config.py`'s loader expects. This only
-happens once — if `web.conf` already exists (e.g. from a previous partial
-run), the role leaves it alone rather than overwriting a config you may
-have since changed by hand.
+Python's `hashlib` before use), written at schema `"file": 2` with every
+key from Deluge's actual `CONFIG_DEFAULTS` (matching `DelugeWeb`'s
+`ConfigManager(file_version=2)` exactly, so no version-migration path runs
+— an earlier attempt at `"file": 1` triggered one that silently discarded
+the configured password back to Deluge's well-known default). The check
+for whether this still needs to happen is content-based: it looks for that
+known default `pwd_sha1` value and re-seeds if found, so it self-repairs
+rather than treating "a file is present" as already correct — which is
+exactly the state the schema-version bug above left live.
 
 Verify locally before continuing:
 
