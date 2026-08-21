@@ -1,8 +1,16 @@
 # ADR 0011: Give the home agent Nextcloud write access via a server-verified propose/confirm flow
 
-- Status: Accepted
+- Status: Accepted (confirmation step later removed — see
+  [ADR 0013](0013-remove-nextcloud-write-confirmation.md))
 - Date: 2026-08-21
 - Deployment status: Implemented, not yet deployed
+
+**2026-08-22 update**: after using this, the user found the propose/
+confirm round trip itself too much friction and asked for it removed.
+ADR 0013 replaces the two-phase flow described below with a single
+immediate `write_nextcloud_file` call. Everything else here — scope,
+conflict protection, the extension/size allowlist, the empty-folder-only
+delete guard, audit logging — is unchanged and still accurate.
 
 ## Context
 

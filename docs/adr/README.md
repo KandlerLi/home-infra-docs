@@ -22,3 +22,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0010](0010-consolidate-repo-and-identity-control-plane.md) | Accepted | Consolidate GitHub repository and AWS identity control planes |
 | [0011](0011-nextcloud-write-tools.md) | Accepted | Give the home agent Nextcloud write access via a server-verified propose/confirm flow |
 | [0012](0012-audio-transcription-relay.md) | Accepted | Relay speech-to-text through home-agent instead of local Whisper |
+| [0013](0013-remove-nextcloud-write-confirmation.md) | Accepted | Drop the Nextcloud write confirmation step (amends 0011) |
