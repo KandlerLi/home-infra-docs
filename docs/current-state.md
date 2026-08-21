@@ -77,7 +77,7 @@ verified on 2026-08-19. The authenticated agent route is enabled.
 | Public Nextcloud check | HTTP/2 200; maintenance disabled; valid Let's Encrypt certificate |
 | Runner network | `virbr10` active at `192.168.100.1/24` |
 | Runner guest evidence | `vnet9` present; `192.168.100.10` reachable in neighbour table |
-| AWS identity control plane | OIDC provider and DynDNS plan/apply roles owned by local-only `aws-account-bootstrap`; migration completed |
+| AWS identity control plane | OIDC provider and DynDNS plan/apply roles owned by local-only `repo-infra` (absorbed from the now-deleted `aws-account-bootstrap` on 2026-08-21) |
 | DynDNS automation after handoff | PR #8 checks and protected apply succeeded; final no-change plans and role tests user-confirmed |
 
 Disk values above are human-readable `df` values and may differ slightly from
@@ -153,47 +153,41 @@ non-empty backup and local backend metadata were observed with mode `0664`.
 Their contents were not inspected. Recovery verification, tighter local
 permissions, and remote repository protection remain follow-up work.
 
-AWS account bootstrap project:
+Repository infrastructure project:
 
 ```text
-/home/julian/projects/aws-account-bootstrap
-1a42299
-Remove completed import scaffolding
+/home/julian/projects/repo-infra
+5229f56
+Document the consolidated repo-infra scope and workflows
 ```
 
-This local Git repository contains the deployed local-only Terraform root
-for the account-wide GitHub Actions OIDC provider and the DynDNS plan/apply
-roles and policies. Its remote backend key is
-`aws-account-bootstrap/terraform.tfstate`.
+This local Git repository (renamed from `github-infra`; no GitHub remote of
+its own, state in the shared encrypted S3 backend) manages, per repository
+declared in `config.yml`: GitHub-side repository protection (`dyndns` and a
+scratch repository `testing`) and, optionally, that repository's AWS deploy
+identity — the account-wide GitHub Actions OIDC provider and per-repository
+IAM plan/apply roles, absorbed from the now-deleted `aws-account-bootstrap`
+root on 2026-08-21 (see
+[ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)).
 
-GitHub repository protection project:
+`sha_pinning_required` and the repository default workflow permissions had
+been set manually through the GitHub web UI before this root existed; both
+are now declared explicitly and hardcoded to a `true`/standard baseline for
+every managed repository (see
+[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md)).
+`whoami` has similar pre-existing manual protection but is intentionally
+excluded pending a separate archive/delete decision.
 
-```text
-/home/julian/projects/github-infra
-3a0b547
-Hardcode sha_pinning_required to true for all managed repos
-```
-
-This local Git repository (no GitHub remote of its own, local-only Terraform
-state) manages GitHub-side repository protection for `dyndns` and a scratch
-repository `testing` via a shared `./modules/repo` module. `sha_pinning_required`
-and the repository default workflow permissions had been set manually through
-the GitHub web UI before this root existed; both were imported, verified by a
-`terraform plan` showing only the two imports (0 changes, 0 destroys), and a
-post-apply `gh api` spot-check. `sha_pinning_required` is now hardcoded to
-`true` for every repository this root manages (matching the baseline already
-applied manually to `dyndns` by `dyndns/scripts/protect-repository.sh`)
-rather than a per-repository value; `testing`'s prior `false` state was a
-scratch-repo artifact and was allowed to converge to `true`. `whoami` has
-similar pre-existing manual protection but is intentionally excluded pending
-a separate archive/delete decision. See
-[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md).
-
-The state handoff completed on 2026-08-19. DynDNS PR #8 merged as `d8d6541`;
-its validation, speculative plan, exact-commit approval, and protected apply
-succeeded. The five source bindings were removed with `destroy = false`, then
-the existing resources were imported through the local bootstrap root. The
-user confirmed final no-change plans and successful plan/apply role tests.
+The original DynDNS-identity state handoff to the (now-retired)
+`aws-account-bootstrap` root completed on 2026-08-19 via DynDNS PR #8
+(`d8d6541`). On 2026-08-21, the same 5 AWS resources were migrated again —
+this time from `aws-account-bootstrap` into `repo-infra` — using the
+identical no-destroy pattern: `removed { destroy = false }` in the source,
+`import` blocks in the destination, and a `terraform plan` showing only the
+5 imports (plus two purely cosmetic IAM role description changes) before
+applying. A post-migration `gh api` cross-check confirmed `dyndns`'s live
+Actions variables still match the real role ARNs; no CI changes were
+required. `aws-account-bootstrap` was then deleted.
 
 The committed repository contains these roles:
 

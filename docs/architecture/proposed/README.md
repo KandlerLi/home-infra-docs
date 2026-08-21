@@ -1,8 +1,9 @@
 # Proposed and Retained Architecture Views
 
 The public home-agent routing view is **deployed and verified** as of
-2026-08-19 and remains here for link stability. The deployed AWS
-account-bootstrap view has moved to `../current/account-bootstrap.md`.
+2026-08-19 and remains here for link stability. The deployed repository
+infrastructure (GitHub settings and AWS identity) control-plane view has
+moved to `../current/repo-infra.md`.
 
 The private agent is deployed and verified on `127.0.0.1:8090`, and Open WebUI
 is deployed on `127.0.0.1:8091` and publicly routed. This section retains the

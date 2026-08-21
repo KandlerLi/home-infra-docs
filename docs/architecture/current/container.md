@@ -20,7 +20,7 @@ flowchart LR
     subgraph home["Home Infrastructure [Software System]"]
         automation["Infrastructure Automation<br/>[Container: Ansible/YAML]<br/>Defines and applies reproducible host state"]
         state_iac["State Bootstrap Automation<br/>[Container: Terraform]<br/>Defines the central Terraform state bucket"]
-        identity_iac["AWS Account Bootstrap<br/>[Container: local-only Terraform]<br/>Defines GitHub OIDC and repository plan/apply roles"]
+        identity_iac["Repository Infrastructure<br/>[Container: local-only Terraform]<br/>Defines GitHub repository settings, OIDC, and repository plan/apply roles"]
         tf_state["Terraform State Backend<br/>[Container: S3 data store]<br/>Stores versioned and encrypted state under isolated keys"]
         dns_iac["DNS Automation<br/>[Container: Terraform]<br/>Defines Route 53 records and AWS DynDNS resources"]
         dyndns["DynDNS Update Service<br/>[Container: API Gateway and Lambda]<br/>Authenticates FRITZ!Box IPv4 updates"]
@@ -44,7 +44,7 @@ flowchart LR
     state_iac -->|"Creates and configures the central bucket"| tf_state
     person -->|"Runs identity Terraform locally with short-lived bootstrap access"| identity_iac
     identity_iac -->|"Manages OIDC trust and least-privilege automation roles"| iam
-    identity_iac -->|"Reads, locks, and writes aws-account-bootstrap state"| tf_state
+    identity_iac -->|"Reads, locks, and writes repo-infra state"| tf_state
     person -->|"Reviews and merges Terraform changes"| dns_iac
     github -->|"Exchanges repository-bound OIDC tokens"| iam
     iam -->|"Issues short-lived plan/apply sessions"| dns_iac
@@ -89,7 +89,7 @@ flowchart LR
 | --- | --- | --- |
 | Infrastructure Automation | Ansible 14.3, YAML, community collections | Converges declared infrastructure state |
 | State Bootstrap Automation | Terraform, AWS provider | Defines the shared `jkandler-terraform-state` S3 bucket from a dedicated local Git repository |
-| AWS Account Bootstrap | Terraform, AWS provider, trusted local session | Defines account-wide GitHub OIDC and repository-bound plan/apply identities without CI self-management |
+| Repository Infrastructure | Terraform, GitHub provider, AWS provider, trusted local session | Defines GitHub repository settings plus account-wide OIDC and repository-bound plan/apply identities without CI self-management |
 | Terraform State Backend | Amazon S3 | Stores versioned, AES256-encrypted Terraform state with public access blocked and lock files enabled |
 | DNS Automation | Terraform, AWS provider, GitHub Actions OIDC | Defines CNAME records and the least-privilege DynDNS stack |
 | DynDNS Update Service | API Gateway HTTP API, Python Lambda | Authenticates FRITZ!Box requests and updates the apex IPv4 record |

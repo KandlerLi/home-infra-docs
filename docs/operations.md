@@ -26,17 +26,19 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
-The local-only AWS identity control-plane project is:
+The GitHub repository configuration and AWS identity control-plane project is:
 
 ```text
-/home/julian/projects/aws-account-bootstrap
+/home/julian/projects/repo-infra
 ```
 
-It must never run through GitHub Actions or through a role it manages. Its
-initial no-destroy state handoff completed on 2026-08-19 and is retained in the
-dedicated migration runbook. Future plans and applies require a trusted,
-short-lived local bootstrap identity. The one-time import configuration has
-been removed from the active Terraform root.
+It must never run through GitHub Actions or through a role it manages. The
+account-wide GitHub OIDC provider and per-repository AWS IAM deploy roles
+were absorbed from the retired `aws-account-bootstrap` root on 2026-08-21
+(see [ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)) via
+the same no-destroy handoff pattern documented in the dedicated migration
+runbook. Future plans and applies require a trusted, short-lived local
+bootstrap identity.
 
 It is a Git repository on `main`. Do not inspect or copy its ignored local
 state/backup contents during routine work. Enumerate every top-level directory

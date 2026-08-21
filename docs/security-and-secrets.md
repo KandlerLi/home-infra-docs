@@ -35,39 +35,42 @@ with mode `0664`, which permits local non-owner reads. Treat them as potentially
 sensitive: do not open, copy, commit, upload, delete, or change them without a
 recovery-aware, explicitly approved plan.
 
-`/home/julian/projects/aws-account-bootstrap` is the deployed local-only
-administrative Terraform control plane for the account-wide GitHub OIDC
-provider and repository-bound plan/apply roles. It uses the isolated backend
-key `aws-account-bootstrap/terraform.tfstate` and has no GitHub Actions
-workflow. Its Terraform state handoff from `dyndns` completed on 2026-08-19
-without recreating or destroying the live IAM/OIDC resources.
+### Repository infrastructure: GitHub settings and AWS identity control plane
+
+`/home/julian/projects/repo-infra` (renamed from `github-infra`; absorbed the
+formerly separate `aws-account-bootstrap` root on 2026-08-21, see
+[ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)) is a
+local-only Terraform root (no GitHub remote of its own) that manages, per
+repository declared in `config.yml`: GitHub-side settings (branch ruleset,
+Actions allowed-actions allowlist and `sha_pinning_required`, repository
+default workflow permissions, Actions variables, the `production`
+environment — see
+[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md)) and,
+optionally, AWS deploy credentials (the account-wide GitHub OIDC provider,
+per-repository IAM plan/apply roles, and the Actions variables that wire
+those roles' real ARNs into the repository).
+
+The account-wide OIDC provider and `dyndns`'s IAM roles/policies were
+absorbed from `aws-account-bootstrap` via the same no-destroy handoff pattern
+established by ADR 0006: `removed { destroy = false }` blocks in the source
+root, `import` blocks in the destination, a `terraform plan` showing only
+imports (plus two purely cosmetic IAM role description changes — trust
+policies were byte-identical) before applying. A post-migration `gh api`
+cross-check confirmed `dyndns`'s live Actions variables still match the real
+role ARNs; its CI required no changes. `aws-account-bootstrap` is now
+deleted.
 
 The control plane must run only with a human-selected, short-lived local
-bootstrap identity. A plan/apply role managed by that root must never be able
-to change its own trust or permissions. Migration uses configuration-driven
-removal with `destroy = false`, followed by local imports. The same no-destroy
-rule remains mandatory for any future ownership transfer.
+bootstrap identity, never through GitHub Actions or a role it manages. A
+plan/apply role must never be able to change its own trust or permissions.
+The same no-destroy rule remains mandatory for any future ownership transfer.
+State lives in the shared encrypted S3 backend
+(`repo-infra/terraform.tfstate`).
 
-### GitHub repository protection
-
-`/home/julian/projects/github-infra` is a local-only Terraform root (no
-GitHub remote of its own) that manages GitHub-side repository protection for
-`dyndns` and a scratch repository `testing`: branch ruleset, Actions
-allowed-actions allowlist and `sha_pinning_required`, repository default
-workflow permissions, Actions variables, and the `production` environment.
-`sha_pinning_required` and the repository's default workflow token
-permissions had been set manually through the GitHub web UI before this root
-existed; both are now imported and declared explicitly (see
-[ADR 0009](adr/0009-terraform-managed-github-repository-protection.md)).
-
-`whoami` has its own pre-existing manual protection (a disabled branch
+`whoami` has its own pre-existing manual GitHub protection (a disabled branch
 ruleset, non-default merge settings, unrestricted Actions permissions) that
 remains entirely outside Terraform and outside this documentation set,
 pending a separate archive/delete decision for that repository.
-
-`github-infra` currently uses Terraform's default local state backend rather
-than the shared encrypted S3 backend used by every other Terraform root in
-this workspace; this is a known, deliberately deferred gap.
 
 ## Trust boundaries
 

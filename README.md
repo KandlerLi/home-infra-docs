@@ -22,10 +22,11 @@ The central Terraform state-bucket bootstrap project is:
 /home/julian/projects/terraform-state
 ```
 
-The local-only AWS identity and GitHub OIDC control plane is:
+GitHub repository configuration and the account-wide AWS identity/GitHub
+OIDC control plane are both managed from:
 
 ```text
-/home/julian/projects/aws-account-bootstrap
+/home/julian/projects/repo-infra
 ```
 
 Both bootstrap projects are local Git repositories whose tracked sources

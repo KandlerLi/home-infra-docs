@@ -4,6 +4,12 @@
 - Date: 2026-08-20
 - Deployment status: Applied
 
+**2026-08-21 update**: `github-infra` was renamed to
+`/home/julian/projects/repo-infra` and absorbed the AWS identity control
+plane described in ADR 0006. The decisions and consequences below remain
+accurate; only the repository name/path changed. See
+[ADR 0010](0010-consolidate-repo-and-identity-control-plane.md).
+
 ## Context
 
 `KandlerLi/dyndns` was hardened by hand and by a repository-specific script

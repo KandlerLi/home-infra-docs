@@ -1,8 +1,16 @@
 # ADR 0006: Manage AWS Deployment Identities from a Local-Only Control Plane
 
-- Status: Accepted and deployed
+- Status: Superseded by [ADR 0010](0010-consolidate-repo-and-identity-control-plane.md)
 - Date: 2026-08-19
 - Deployment date: 2026-08-19
+
+**2026-08-21 update**: the resources this ADR describes were migrated from
+the dedicated `aws-account-bootstrap` root (now deleted) into
+`/home/julian/projects/repo-infra`, alongside GitHub repository settings
+management. The consequences below remain substantively accurate — the AWS
+identity control plane is still a distinct Terraform state from `dyndns`'s
+workload state — but the repository name/location is no longer current. See
+ADR 0010 for the full rationale.
 
 ## Context
 

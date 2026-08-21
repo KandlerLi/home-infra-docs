@@ -1,6 +1,13 @@
 # Runbook: Migrate AWS Account Bootstrap Ownership
 
 Status: completed on 2026-08-19; retained as migration and recovery evidence.
+The destination root this runbook describes, `aws-account-bootstrap`, was
+itself retired and deleted on 2026-08-21 after its resources were migrated a
+second time into `/home/julian/projects/repo-infra` (see
+[ADR 0010](../adr/0010-consolidate-repo-and-identity-control-plane.md) and
+[Manage repository infrastructure](manage-repo-infra.md) for
+the current procedure). This runbook remains as historical evidence of the
+first handoff pattern, which the second handoff reused unchanged.
 
 ## Scope
 

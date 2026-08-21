@@ -19,8 +19,8 @@ hierarchical views rather than one all-purpose diagram.
    an infrastructure apply
 7. [Agent health-check flow](current/dynamic-home-agent.md) — runtime sequence
    for a read-only health request
-8. [AWS account-bootstrap control plane](current/account-bootstrap.md) —
-   local-only identity ownership and GitHub OIDC trust path
+8. [Repository infrastructure control plane](current/repo-infra.md) —
+   local-only GitHub repository settings and AWS OIDC/IAM identity ownership
 9. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — retained deployed
    view of the validated bounded data path
 
