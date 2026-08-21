@@ -1,15 +1,19 @@
 # Runbook: Deploy and Publish Deluge
 
-Status: **Deployed privately and verified; publication is the only step
-left.** Three deploy attempts each surfaced a real, distinct bug (see step
-2's history below — Deluge has no "disable login" mode, a config-schema
-version mismatch, and finally a stop/rewrite race with the outgoing
-container), each found only by independently verifying live state with
-`docker exec`/`docker logs` rather than trusting a clean Ansible run. The
-third fix is confirmed live: the default password is rejected by a direct
-JSON-API check. Nextcloud wiring (step 3) is also done and verified — the
-`occ files_external` JSON shape assumption held. Every remaining
-`ansible-playbook` run below needs a human-entered become password.
+Status: **Fully deployed and published, all independently verified live.**
+`torrent.jkandler.de` is public behind Traefik Basic Auth. Three deploy
+attempts each surfaced a real, distinct bug (see step 2's history below —
+Deluge has no "disable login" mode, a config-schema version mismatch, and
+finally a stop/rewrite race with the outgoing container), each found only
+by independently verifying live state with `docker exec`/`docker logs`
+rather than trusting a clean Ansible run. The third fix, Nextcloud wiring,
+and the public route are all confirmed live: the default password is
+rejected by a direct JSON-API check, `occ files_external:list` shows the
+downloads mount registered and scoped to the right account, and
+`torrent.jkandler.de` correctly gates on the real Basic Auth credential
+while rejecting wrong/missing ones. `deluge_enabled` and
+`shared_ingress_deluge_enabled` are both `true`. Only the FRITZ!Box
+port-forward (step 5, manual/out-of-band) remains.
 
 This adds a BitTorrent client with a Traefik-fronted, Basic-Auth-gated web UI
 at `torrent.jkandler.de`, with completed downloads visible from Nextcloud.
@@ -142,18 +146,21 @@ Only after steps 2 and 3 are both independently confirmed:
   --extra-vars deluge_publish_confirmation=PUBLISH_DELUGE
 ```
 
-Verify:
+**Verified live** (`curl`, not just a clean Ansible run):
 
-1. `https://torrent.jkandler.de/` prompts for Basic Auth before showing
-   anything.
-2. The correct credential (from step 1) grants access to the Deluge UI.
-3. An incorrect or missing credential is rejected.
-4. Existing routes (`ai.jkandler.de`, `nextcloud.jkandler.de`) are unaffected.
+1. ✅ `https://torrent.jkandler.de/` returns `401` with a
+   `WWW-Authenticate: Basic realm="Home Infrastructure"` header when
+   unauthenticated.
+2. ✅ The correct credential (from step 1) returns `200` and serves the
+   Deluge UI.
+3. ✅ A wrong credential returns `401`.
+4. ✅ Existing routes are unaffected: `ai.jkandler.de` returns `200`,
+   `nextcloud.jkandler.de` returns its normal `302` redirect.
 
-Once verified, persist the deployed state:
+The deployed state is persisted in
+`ansible/inventory/group_vars/all/main.yml`:
 
 ```yaml
-# ansible/inventory/group_vars/all/main.yml
 deluge_enabled: true
 shared_ingress_deluge_enabled: true
 ```
