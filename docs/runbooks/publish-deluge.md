@@ -157,6 +157,19 @@ Only after steps 2 and 3 are both independently confirmed:
 4. ✅ Existing routes are unaffected: `ai.jkandler.de` returns `200`,
    `nextcloud.jkandler.de` returns its normal `302` redirect.
 
+**Post-publish issue found and fixed**: the route initially returned
+`429 Too Many Requests` when actually logging in. Root cause: the Deluge
+route inherited `shared_ingress_agent_rate_average`/`_burst`'s low
+values (`10/min`, burst `5`), sized for the lightweight agent JSON API —
+but Deluge's own web UI is a heavy ExtJS SPA that fires 14+ static asset
+requests on a cold load and then continuously polls `/json` roughly every
+2 seconds for live torrent/status updates while open, easily exceeding
+both limits. Fixed by raising `shared_ingress_deluge_rate_average`/
+`_burst` to `120`/`240` (matching Open WebUI's already-validated values).
+Verified live: 20 rapid sequential requests all returned `401`/`200` as
+expected, no `429`s, and the live Traefik config confirms `average: 120`
+is actually deployed.
+
 The deployed state is persisted in
 `ansible/inventory/group_vars/all/main.yml`:
 
