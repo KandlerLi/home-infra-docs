@@ -13,23 +13,17 @@ guarded, human-confirmed actions — not a single step.
 
 ## 1. Preflight
 
-1. Add `"torrent"` to `dyndns`'s `subdomains` set (PR, review the plan,
-   merge, confirm `torrent.jkandler.de` resolves) — done in
-   [dyndns#12](https://github.com/KandlerLi/dyndns/pull/12) as of this
-   writing; confirm it merged before continuing.
-2. Generate a Basic Auth credential for Deluge, independent of the legacy
-   API's credential:
-
-   ```bash
-   htpasswd -nbB julian '<a-strong-generated-password>'
-   ```
-
-   Store the password in your password manager. Add the resulting hash to
-   `ansible/inventory/group_vars/all/secrets.sops.yml` as
-   `shared_ingress_deluge_auth_password_hash` (SOPS-encrypted, matching
-   `shared_ingress_agent_auth_password_hash`'s existing entry) — this repo's
-   IaC-only rule doesn't cover secret values, but the file itself must stay
-   SOPS-encrypted like every other secret here.
+1. ✅ **Done.** Add `"torrent"` to `dyndns`'s `subdomains` set — merged in
+   [dyndns#12](https://github.com/KandlerLi/dyndns/pull/12),
+   `torrent.jkandler.de` resolves.
+2. ✅ **Done.** Basic Auth credential for Deluge, independent of the legacy
+   API's credential: a random 32-byte password and its bcrypt hash
+   (`$2b$`, 12 rounds) were generated and added via `sops set` as
+   `shared_ingress_deluge_auth_password`/`_password_hash` in
+   `ansible/inventory/group_vars/all/secrets.sops.yml` — no plaintext value
+   was written to this repository or ever printed to a terminal/chat.
+   **The password itself was shown to the user once, out of band, to save
+   in their password manager; it is not repeated here or anywhere else.**
 3. Run unit tests and syntax checks:
 
    ```bash
