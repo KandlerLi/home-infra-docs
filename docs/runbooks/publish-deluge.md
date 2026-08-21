@@ -1,10 +1,13 @@
 # Runbook: Deploy and Publish Deluge
 
-Status: **Implemented (`deluge` role, shared_ingress route, nextcloud_aio
-integration), not yet deployed.** Every `ansible-playbook` run below needs a
-human-entered become password and has not been run against the homeserver.
-Several implementation details (marked below) were not verified against a
-live container and may need a follow-up fix on the first real run.
+Status: **Implemented, not yet successfully deployed.** The first real
+`deluge.yml` run got as far as a running container with a working web UI,
+then failed on a wrong assumption about how Deluge's login could be
+disabled (see step 2 — fixed by reading Deluge's own source directly, not
+re-run yet). Every remaining `ansible-playbook` run below needs a
+human-entered become password. One implementation detail (step 3, the
+`occ files_external` JSON shape) is still unverified against a live
+instance.
 
 This adds a BitTorrent client with a Traefik-fronted, Basic-Auth-gated web UI
 at `torrent.jkandler.de`, with completed downloads visible from Nextcloud.
@@ -16,14 +19,22 @@ guarded, human-confirmed actions — not a single step.
 1. ✅ **Done.** Add `"torrent"` to `dyndns`'s `subdomains` set — merged in
    [dyndns#12](https://github.com/KandlerLi/dyndns/pull/12),
    `torrent.jkandler.de` resolves.
-2. ✅ **Done.** Basic Auth credential for Deluge, independent of the legacy
-   API's credential: a random 32-byte password and its bcrypt hash
-   (`$2b$`, 12 rounds) were generated and added via `sops set` as
-   `shared_ingress_deluge_auth_password`/`_password_hash` in
-   `ansible/inventory/group_vars/all/secrets.sops.yml` — no plaintext value
-   was written to this repository or ever printed to a terminal/chat.
-   **The password itself was shown to the user once, out of band, to save
-   in their password manager; it is not repeated here or anywhere else.**
+2. ✅ **Done.** Two independent credentials, both generated and written via
+   `sops set` — no plaintext value was written to this repository or ever
+   printed to a terminal/chat, and each was shown to the user once, out of
+   band, to save in their password manager:
+   - Traefik Basic Auth (the primary public gate): a random 32-byte
+     password and its bcrypt hash (`$2b$`, 12 rounds) as
+     `shared_ingress_deluge_auth_password`/`_password_hash`.
+   - Deluge's own web UI login: **this cannot be disabled** — confirmed by
+     reading `deluge/ui/web/auth.py` directly, a missing `pwd_sha1` makes
+     `check_password()` return `False` for every password (permanently
+     locking out login, not bypassing it), so Deluge has no "no auth" mode
+     at all. It gets its own independent random password,
+     `deluge_web_password`, pre-seeded into `web.conf` before the
+     container's first start (Deluge doesn't write a default config to
+     disk on its own). You will see **two separate login prompts** —
+     Traefik's, then Deluge's — not one.
 3. Run unit tests and syntax checks:
 
    ```bash
@@ -43,17 +54,15 @@ This creates the dedicated `deluge` service account, `/mnt/black-hdd/downloads`
 and `/mnt/black-hdd/deluge-config`, pulls the pinned image, and starts the
 container with the web UI bound to `127.0.0.1:8112` only.
 
-**Known unverified step**: the role waits for Deluge to generate its default
-`web.conf` on first boot, then strips the `pwd_sha1` line to disable Deluge's
-own login prompt (Traefik Basic Auth is the sole intended gate). The exact
-config path
-(`{{ deluge_config_dir }}/.config/deluge/web.conf`) was not confirmed against
-a live container. **If the "Wait for Deluge's web.conf" task fails**, find
-the real path with `docker exec deluge find /config -name web.conf`, fix the
-path in `ansible/roles/deluge/tasks/main.yml`, and re-run. Until this step
-succeeds, Deluge's own login is still active with its **default weak
-`admin`/`deluge` credential** — low risk while the web UI is loopback-only,
-but fix it before publishing publicly.
+Before starting the container, the role pre-seeds `/config/web.conf`
+(`{{ deluge_config_dir }}/web.conf`) with `deluge_web_password`'s hash,
+computed with Deluge's own algorithm (`sha1(salt + password)`, verified
+against `auth.py`'s `_change_password()` and cross-checked locally against
+Python's `hashlib` before use) and validated as two independently-parseable
+JSON objects, matching what `deluge/config.py`'s loader expects. This only
+happens once — if `web.conf` already exists (e.g. from a previous partial
+run), the role leaves it alone rather than overwriting a config you may
+have since changed by hand.
 
 Verify locally before continuing:
 
@@ -61,11 +70,9 @@ Verify locally before continuing:
 ssh -L 8112:127.0.0.1:8112 julian@192.168.178.100
 ```
 
-Open `http://127.0.0.1:8112` and confirm the web UI loads without a login
-prompt (or, if the pwd_sha1 step didn't run yet, log in once with the
-default credential and change it from Preferences → Interface → Password as
-a stopgap). Add a test torrent (e.g. a Linux ISO) and confirm it downloads
-into `/mnt/black-hdd/downloads`.
+Open `http://127.0.0.1:8112`, log in with the `deluge_web_password` value
+(check your password manager), and confirm the UI loads. Add a test torrent
+(e.g. a Linux ISO) and confirm it downloads into `/mnt/black-hdd/downloads`.
 
 ## 3. Wire downloads into Nextcloud
 
