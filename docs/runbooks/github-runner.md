@@ -49,11 +49,23 @@ privileged session when exact domain state is required.
 
 ## Adding a repository
 
+The repository entry in `github_runner_github_repositories` is generated,
+not hand-edited, since 2026-08-21 — see
+`/home/julian/projects/bootstrap/repo-infra/README.md`'s "Adding a
+repository with a self-hosted GitHub Actions runner" section for the full
+workflow. In short:
+
 1. Grant the fine-grained GitHub token access to the repository.
-2. Add a unique repository entry to group variables.
-3. Review the runner name and Unix account generated from the ID.
-4. Apply the runner playbook.
-5. Confirm the new runner is online in the repository settings.
+2. Add `runner: true` to the repository's entry in
+   `/home/julian/projects/bootstrap/repo-infra/config.yml`.
+3. In `home-infra`, run
+   `.venv/bin/python scripts/sync_github_runner_repositories.py`, review the
+   diff to `ansible/inventory/group_vars/all/github_runner_repositories.yml`,
+   and commit it.
+4. Review the runner name and Unix account generated from the ID.
+5. Apply the runner playbook.
+6. Confirm the new runner is online in the repository settings.
 
 Removing configuration does not automatically unregister or delete a runner.
-Decommission it explicitly first.
+Decommission it explicitly first, then remove `runner: true` from
+`config.yml` and re-run the sync script.
