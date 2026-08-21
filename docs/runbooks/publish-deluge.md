@@ -1,15 +1,15 @@
 # Runbook: Deploy and Publish Deluge
 
-Status: **Implemented, not yet successfully deployed.** Three deploy
-attempts each surfaced a real, distinct bug (see step 2's history below —
-Deluge has no "disable login" mode, a config-schema version mismatch, and
-finally a stop/rewrite race with the outgoing container), each found only
-by independently verifying live state with `docker exec`/`docker logs`
-rather than trusting a clean Ansible run. Not re-run yet with the third
-fix. Every remaining `ansible-playbook` run below needs a human-entered
-become password. One implementation detail (step 3, the
-`occ files_external` JSON shape) is still unverified against a live
-instance.
+Status: **Deployed privately and verified; publication is the only step
+left.** Three deploy attempts each surfaced a real, distinct bug (see step
+2's history below — Deluge has no "disable login" mode, a config-schema
+version mismatch, and finally a stop/rewrite race with the outgoing
+container), each found only by independently verifying live state with
+`docker exec`/`docker logs` rather than trusting a clean Ansible run. The
+third fix is confirmed live: the default password is rejected by a direct
+JSON-API check. Nextcloud wiring (step 3) is also done and verified — the
+`occ files_external` JSON shape assumption held. Every remaining
+`ansible-playbook` run below needs a human-entered become password.
 
 This adds a BitTorrent client with a Traefik-fronted, Basic-Auth-gated web UI
 at `torrent.jkandler.de`, with completed downloads visible from Nextcloud.
@@ -118,17 +118,16 @@ Only after step 2 is confirmed working:
    it** — expect brief AIO unavailability) and registers the folder as
    Nextcloud "Local" external storage via `occ files_external:create`.
 
-**Known unverified step**: the exact JSON shape of
-`occ files_external:list --output=json` (specifically whether each entry's
-ID field is named `mount_id`) was not confirmed against a live Nextcloud
-version. **If "Record the downloads mount id" fails**, run
-`docker exec nextcloud-aio-nextcloud php occ files_external:list --output=json`
-by hand, find the real field name, and fix
-`ansible/roles/nextcloud_aio/tasks/main.yml`.
+**Verified live**: `occ files_external:list --output=json`'s ID field is
+indeed named `mount_id` — the assumption the "Record the downloads mount
+id" task was built on held. Confirmed against the deployed state: mount id
+`2`, mount point `/Downloads`, `datadir` pointed at
+`/mnt/black-hdd/downloads`, `applicable_users: ["admin"]`.
 
 4. Confirm the "Downloads" folder appears in Nextcloud's file list for the
    configured account, and that the test torrent from step 2 is visible and
-   readable.
+   readable. (Backend registration is verified via `occ`; the actual
+   Nextcloud web UI file list still needs a human to look at it.)
 
 **This mount is not covered by AIO's built-in backup** — see
 `docs/storage.md`.
