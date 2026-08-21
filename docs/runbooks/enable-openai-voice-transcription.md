@@ -37,11 +37,22 @@ this bug exists), the new `AUDIO_STT_ENGINE=openai` env var will **not**
 retroactively override the already-persisted local-Whisper setting on its
 own.
 
-After deploying, sign in to Open WebUI as an admin and go to
-**Admin Panel → Settings → Audio → Speech-to-Text**. Confirm (or manually
-select) engine **OpenAI**. The API base URL and key fields should already
-show the values the env vars provided; you don't need to type anything
-into them, just confirm the engine dropdown itself and save.
+**This is not the same page as the per-chat Settings gear icon** — that
+one only offers "Default" and "Web API" by design (it lets a regular user
+defer to the server config or force their own browser's engine, nothing
+more; "Default" there is already correct and needs no change). The real
+engine picker is in the separate Admin Panel, which only an admin account
+can reach:
+
+1. Click your profile/username in the bottom-left of the sidebar →
+   **Admin Panel**.
+2. Inside the Admin Panel: **Settings** → **Audio**.
+3. Under **Speech-to-Text Engine**, you should see five real options —
+   OpenAI, Web API, Deepgram, Azure AI Speech, MistralAI. Select
+   **OpenAI**.
+4. The API base URL and key fields should already show the values the env
+   vars provided; you don't need to type anything into them, just confirm
+   the engine dropdown itself and save.
 
 ## 4. Verify live
 
