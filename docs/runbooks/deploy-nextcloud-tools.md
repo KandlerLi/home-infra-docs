@@ -1,12 +1,15 @@
 # Runbook: Deploy Read-Only Nextcloud Tools
 
-Status: **Implementation prepared and validated locally; no account,
-credential, inventory enable flag, or production service has been created.**
+Status: **Deployed.** `nextcloud_tools_enabled` and `home_agent_enabled` are
+`true`; list/search/read validation passed locally and through Open WebUI.
 
-This milestone lets `home-agent` list/search files and read small text files
-below one approved folder. It does not grant Open WebUI a credential, mount
-Nextcloud storage, analyse image contents, extract PDF/Office documents, index
-files, or perform writes.
+Since 2026-08-21, ADR 0011 adds write capability (create/update/delete/move,
+gated behind explicit confirmation) on top of the same service this runbook
+deploys — see
+[Enable Nextcloud write tools](enable-nextcloud-writes.md) for that
+follow-on step. This runbook's own scope remains list/search/read only; it
+does not grant Open WebUI a credential, mount Nextcloud storage, analyse
+image contents, extract PDF/Office documents, or index files.
 
 ## 1. Review the boundary
 
@@ -68,7 +71,9 @@ owns the intended data:
 
 1. Create or select a folder named `AI Workspace`.
 2. Share it only with user `home-agent`.
-3. Disable editing so the share is read-only.
+3. Disable editing so the share is read-only (this milestone only reads;
+   [Enable Nextcloud write tools](enable-nextcloud-writes.md) documents
+   the separate, later step of turning editing back on for ADR 0011).
 4. Keep downloading allowed because bounded text reads use WebDAV `GET`.
 5. Add only files that may be sent to the configured cloud model when asked.
 
@@ -86,9 +91,12 @@ permission value is documented in the official [OCS Share API reference](https:/
 
 ## 4. Keep persistent inventory disabled during validation
 
-Do not set `nextcloud_tools_enabled: true` yet. The guarded bootstrap explicitly
-enables the role for its own apply, while ordinary `site.yml` remains unable to
-reconcile it until the live chat tests succeed.
+Do not set `nextcloud_tools_enabled: true` until the live chat tests below
+succeed. The guarded bootstrap explicitly enables the role for its own
+apply; ordinary `site.yml` should not reconcile it before that. (This
+milestone is now deployed and `nextcloud_tools_enabled: true` is
+persisted — this section is kept for the next time this service is
+bootstrapped from scratch, e.g. account recovery.)
 
 ## 5. Validate without exposing private data
 
@@ -105,9 +113,12 @@ curl --fail-with-body --unix-socket \
   | jq '{root, entry_count: (.entries | length)}'
 ```
 
-Confirm a traversal request is rejected with HTTP 400 and that the service has
-no route for write methods. Do not paste filenames, metadata, document content,
-or logs into documentation.
+Confirm a traversal request is rejected with HTTP 400. (As of ADR 0011 the
+service does implement write routes, but only reachable through the gated
+propose/confirm flow — see
+[Enable Nextcloud write tools](enable-nextcloud-writes.md) for how those
+are verified.) Do not paste filenames, metadata, document content, or logs
+into documentation.
 
 In Open WebUI, explicitly ask `home-agent` to list the approved root, search a
 known filename fragment, and read one harmless small text file. This sends only

@@ -12,12 +12,14 @@
   guarded route switch, validation, backup, and rollback
 - [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — dedicated
   account, scoped share, encrypted app password, validation, and rollback
+- [Enable Nextcloud write tools](enable-nextcloud-writes.md) — create/update/
+  delete/move gated behind a server-verified human confirmation code
+  (implemented, not yet deployed)
 - [Manage repository infrastructure](manage-repo-infra.md) — Terraform-managed
   GitHub repository settings and per-repository AWS deploy identities,
   including how to import a repository's pre-existing manual configuration
 - [Deploy and publish Deluge](publish-deluge.md) — private bootstrap, Nextcloud
-  downloads integration, guarded route switch, and rollback (implemented, not
-  yet deployed)
+  downloads integration, guarded route switch, and rollback
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
