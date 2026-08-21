@@ -85,6 +85,17 @@ read. Fixed by adding chunked-body support to the handler, enforcing the
 same 25 MB cap incrementally as chunks arrive (the total isn't known
 upfront for a chunked body, unlike the `Content-Length` path).
 
+**Found live, after transcription started working**: German speech was
+sometimes transcribed as English. Root cause: `_extract_parts` (then
+`_extract_audio_part`) only ever pulled the `file` field out of the
+incoming request, silently dropping the `language` field Open WebUI also
+sends (populated from the user's own per-chat Settings → Audio → Language
+preference) — so Whisper always had to auto-detect, which is unreliable on
+short clips. Fixed by also extracting and relaying `language` unchanged.
+Unlike `model`, this isn't pinned server-side: it's an accuracy hint under
+the user's own control, not a cost- or security-sensitive choice, so
+there's no reason to override or drop whatever the user configured.
+
 The upload is capped at 25 MB — OpenAI's own limit for this endpoint, so
 there's no reason to accept more — checked from the `Content-Length` header
 before the body is ever read, so an oversized claimed length is rejected

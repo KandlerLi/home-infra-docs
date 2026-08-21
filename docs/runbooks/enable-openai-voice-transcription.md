@@ -63,6 +63,14 @@ can reach:
    any non-empty placeholder, e.g. `home-agent-internal`. If the STT Model
    field also complains, enter `whisper-1` — also cosmetic only. Save.
 
+5. **If you speak a non-English language**: set it explicitly rather than
+   relying on auto-detection, which is unreliable on short clips (found
+   live: German speech sometimes came back transcribed as English). This
+   is a *personal* setting, not an Admin one — open the per-chat Settings
+   gear icon → **Audio** (the same page that only showed Default/Web API
+   earlier) and set **Language** to your language code (e.g. `de`). The
+   relay forwards whatever you set here unchanged.
+
 ## 4. Verify live
 
 1. In a chat, click the microphone/voice-recording button and say a short
