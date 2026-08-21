@@ -1,11 +1,13 @@
 # Runbook: Deploy and Publish Deluge
 
-Status: **Implemented, not yet successfully deployed.** The first real
-`deluge.yml` run got as far as a running container with a working web UI,
-then failed on a wrong assumption about how Deluge's login could be
-disabled (see step 2 — fixed by reading Deluge's own source directly, not
-re-run yet). Every remaining `ansible-playbook` run below needs a
-human-entered become password. One implementation detail (step 3, the
+Status: **Implemented, not yet successfully deployed.** Three deploy
+attempts each surfaced a real, distinct bug (see step 2's history below —
+Deluge has no "disable login" mode, a config-schema version mismatch, and
+finally a stop/rewrite race with the outgoing container), each found only
+by independently verifying live state with `docker exec`/`docker logs`
+rather than trusting a clean Ansible run. Not re-run yet with the third
+fix. Every remaining `ansible-playbook` run below needs a human-entered
+become password. One implementation detail (step 3, the
 `occ files_external` JSON shape) is still unverified against a live
 instance.
 
@@ -61,12 +63,27 @@ against `auth.py`'s `_change_password()` and cross-checked locally against
 Python's `hashlib` before use), written at schema `"file": 2` with every
 key from Deluge's actual `CONFIG_DEFAULTS` (matching `DelugeWeb`'s
 `ConfigManager(file_version=2)` exactly, so no version-migration path runs
-— an earlier attempt at `"file": 1` triggered one that silently discarded
-the configured password back to Deluge's well-known default). The check
-for whether this still needs to happen is content-based: it looks for that
-known default `pwd_sha1` value and re-seeds if found, so it self-repairs
-rather than treating "a file is present" as already correct — which is
-exactly the state the schema-version bug above left live.
+— an earlier attempt at `"file": 1` triggered one, though that migration
+function turned out only to touch the `language` key, not the password).
+The check for whether this still needs to happen is content-based: it
+looks for the known default `pwd_sha1` value and re-seeds if found, so it
+self-repairs rather than treating "a file is present" as already correct.
+
+**The real root cause of the password reverting to Deluge's default,
+found after the schema fix above still didn't hold**: a still-running
+`deluge-web` process holds its own in-memory copy of `web.conf` and
+periodically autosaves it. If the outgoing container's process is still
+alive (e.g. mid-way through Docker's stop grace period) when the template
+task writes a freshly seeded `web.conf`, that process's next autosave
+silently overwrites the fix with its own stale, default-holding in-memory
+state — before the recreated container ever starts. This was confirmed
+live by comparing `web.conf.bak` (which Deluge's own `Config.save()`
+creates before every resave) against `web.conf`: the backup held the
+correct, freshly generated password, timestamped seconds before the
+default-holding file that replaced it, and *both* writes predated the
+recreated container's own start time — proving the previous container's
+process, not the new one, clobbered the fix. The role now stops the old
+container first, before writing `web.conf`, closing that race.
 
 Verify locally before continuing:
 
