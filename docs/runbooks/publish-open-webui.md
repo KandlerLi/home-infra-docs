@@ -23,7 +23,7 @@ confirmed action.
 Run only after explicitly approving a production apply:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/open-webui.yml \
   --ask-become-pass
 ```
@@ -140,7 +140,7 @@ existing publication playbook; because the route is already published, the
 initial-publication confirmation is not required:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/publish-open-webui.yml \
   --ask-become-pass
 ```

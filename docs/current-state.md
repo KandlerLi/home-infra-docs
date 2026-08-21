@@ -88,7 +88,7 @@ byte-level filesystem statistics.
 Infrastructure repository root:
 
 ```text
-/home/julian/projects/home-infra
+/home/julian/projects/infra/home-infra
 ```
 
 Current committed revision at snapshot time:
@@ -118,7 +118,7 @@ state is persisted.
 DNS infrastructure repository root and current revision:
 
 ```text
-/home/julian/projects/dyndns
+/home/julian/projects/infra/dyndns
 b44f17a
 Remove completed state handoff scaffolding (#9)
 ```
@@ -129,7 +129,7 @@ introduced the `ai` CNAME declaration.
 AI handover repository root and orientation revision before this update:
 
 ```text
-/home/julian/projects/home-infra-ai-context
+/home/julian/projects/docs/home-infra-ai-context
 fa16655
 Close Open WebUI public validation
 ```
@@ -140,7 +140,7 @@ tasks. It points back to the implementation and C4 sources of truth.
 Terraform state-bucket bootstrap project:
 
 ```text
-/home/julian/projects/terraform-state
+/home/julian/projects/bootstrap/terraform-state
 ```
 
 This is a Git repository on `main`, initialized at revision `fbac0af`. It manages
@@ -156,7 +156,7 @@ permissions, and remote repository protection remain follow-up work.
 Repository infrastructure project:
 
 ```text
-/home/julian/projects/repo-infra
+/home/julian/projects/bootstrap/repo-infra
 5229f56
 Document the consolidated repo-infra scope and workflows
 ```

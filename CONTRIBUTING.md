@@ -2,14 +2,16 @@
 
 ## Update workflow
 
-1. Enumerate every top-level directory under `/home/julian/projects`, then
-   check Git status in each relevant Git repository and explicitly note any
-   affected project without version control.
+1. Enumerate every project directory nested one level under
+   `/home/julian/projects/docs`, `/home/julian/projects/bootstrap`, and
+   `/home/julian/projects/infra`, then check Git status in each relevant Git
+   repository and explicitly note any affected project without version
+   control.
 2. Distinguish committed configuration, uncommitted work, and deployed state.
 3. Gather live state with read-only commands only.
 4. Update the relevant inventory or runbook page.
 5. Update affected C4 diagrams and architecture decision records.
-6. Review and update `/home/julian/projects/home-infra-ai-context` so another
+6. Review and update `/home/julian/projects/docs/home-infra-ai-context` so another
    model/chat receives the same current state, decisions, safety rules, and
    continuation point.
 7. Add or amend a dated AI handover for material work; if no AI-context content
@@ -20,7 +22,7 @@
 The reciprocal synchronization contract is:
 
 ```text
-/home/julian/projects/home-infra-ai-context/context/synchronization.md
+/home/julian/projects/docs/home-infra-ai-context/context/synchronization.md
 ```
 
 It applies to relevant implementation, DNS/cloud, workflow, security,

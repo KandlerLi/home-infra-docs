@@ -11,25 +11,25 @@ All repositories live below:
 The infrastructure repository is:
 
 ```text
-/home/julian/projects/home-infra
+/home/julian/projects/infra/home-infra
 ```
 
 The Terraform DNS repository is:
 
 ```text
-/home/julian/projects/dyndns
+/home/julian/projects/infra/dyndns
 ```
 
 The central Terraform state-bucket bootstrap project is:
 
 ```text
-/home/julian/projects/terraform-state
+/home/julian/projects/bootstrap/terraform-state
 ```
 
 The GitHub repository configuration and AWS identity control-plane project is:
 
 ```text
-/home/julian/projects/repo-infra
+/home/julian/projects/bootstrap/repo-infra
 ```
 
 It must never run through GitHub Actions or through a role it manages. The
@@ -41,9 +41,10 @@ runbook. Future plans and applies require a trusted, short-lived local
 bootstrap identity.
 
 It is a Git repository on `main`. Do not inspect or copy its ignored local
-state/backup contents during routine work. Enumerate every top-level directory
-under `/home/julian/projects` before workspace-wide tasks so future non-Git
-projects are not omitted.
+state/backup contents during routine work. Enumerate every project directory
+nested one level under `/home/julian/projects/docs`,
+`/home/julian/projects/bootstrap`, and `/home/julian/projects/infra` before
+workspace-wide tasks so future non-Git projects are not omitted.
 
 Do not use the obsolete `/home/julian/home-infra` path.
 
@@ -51,7 +52,7 @@ The local virtual environment was moved with the repository and contains old
 absolute shebangs. Recreate it before normal use:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 python3 -m venv --clear .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/ansible-galaxy collection install -r requirements.yml
@@ -63,7 +64,7 @@ infrastructure or data directory.
 ## Pre-change checklist
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 git status --short --branch
 .venv/bin/ansible home_servers -m ansible.builtin.ping
 .venv/bin/ansible-playbook ansible/playbooks/site.yml --syntax-check
@@ -223,7 +224,7 @@ it can expose container environment variables and secrets.
 ## Edit encrypted secrets
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 sops ansible/inventory/group_vars/all/secrets.sops.yml
 ```
 

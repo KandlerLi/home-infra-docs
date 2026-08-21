@@ -62,7 +62,7 @@ poweroff. It does not create a backup.
 From the controller:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 
 scp scripts/shutdown-homeserver-for-maintenance.sh \
   julian@192.168.178.100:/tmp/

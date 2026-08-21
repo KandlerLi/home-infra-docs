@@ -26,7 +26,7 @@ Update this repository whenever a change affects:
    legend.
 8. Search for likely secret material before committing.
 9. Validate relative Markdown links and Mermaid code blocks.
-10. Update `/home/julian/projects/home-infra-ai-context` using its
+10. Update `/home/julian/projects/docs/home-infra-ai-context` using its
     `context/synchronization.md` contract and add a dated handover for material
     work.
 11. Confirm the AI context and human documentation agree on current/proposed

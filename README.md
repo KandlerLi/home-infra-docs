@@ -7,31 +7,35 @@ This repository is the documentation source of truth. Infrastructure code is
 kept separately in:
 
 ```text
-/home/julian/projects/home-infra
+/home/julian/projects/infra/home-infra
 ```
 
 Secret-free cross-chat and cross-model handover context is kept separately in:
 
 ```text
-/home/julian/projects/home-infra-ai-context
+/home/julian/projects/docs/home-infra-ai-context
 ```
 
 The central Terraform state-bucket bootstrap project is:
 
 ```text
-/home/julian/projects/terraform-state
+/home/julian/projects/bootstrap/terraform-state
 ```
 
 GitHub repository configuration and the account-wide AWS identity/GitHub
 OIDC control plane are both managed from:
 
 ```text
-/home/julian/projects/repo-infra
+/home/julian/projects/bootstrap/repo-infra
 ```
 
 Both bootstrap projects are local Git repositories whose tracked sources
-exclude all Terraform state artifacts. The complete inventory boundary is
-every top-level directory under `/home/julian/projects`, not only Git roots.
+exclude all Terraform state artifacts. Since 2026-08-21 every project listed
+above lives one level under a parent folder that groups it by purpose:
+`/home/julian/projects/docs/`, `/home/julian/projects/bootstrap/`, or
+`/home/julian/projects/infra/`. The complete inventory boundary is every
+project directory nested one level under one of those three folders, not
+only Git roots.
 
 ## Snapshot status
 

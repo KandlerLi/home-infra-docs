@@ -15,7 +15,7 @@
 ## Apply runner configuration
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/github-runner.yml \
   --ask-become-pass
 ```

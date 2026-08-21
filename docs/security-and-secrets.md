@@ -23,7 +23,7 @@ Docker image layers, Compose files, command output, or architecture diagrams.
 
 ### Terraform state
 
-`/home/julian/projects/terraform-state` is a dedicated Git repository that owns
+`/home/julian/projects/bootstrap/terraform-state` is a dedicated Git repository that owns
 the central S3 state-bucket configuration. The bucket is configured with
 versioning, AES-256 server-side encryption, and full public-access blocking.
 Its ignore rules exclude state, backup, plan, variable-value, crash, override,
@@ -37,7 +37,7 @@ recovery-aware, explicitly approved plan.
 
 ### Repository infrastructure: GitHub settings and AWS identity control plane
 
-`/home/julian/projects/repo-infra` (renamed from `github-infra`; absorbed the
+`/home/julian/projects/bootstrap/repo-infra` (renamed from `github-infra`; absorbed the
 formerly separate `aws-account-bootstrap` root on 2026-08-21, see
 [ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)) is a
 local-only Terraform root (no GitHub remote of its own) that manages, per

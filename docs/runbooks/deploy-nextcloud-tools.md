@@ -30,7 +30,7 @@ Only after explicitly approving creation of the Nextcloud account/token and
 deployment of the host service, run:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/nextcloud-tools.yml \
   --ask-become-pass \
   --extra-vars \
@@ -127,7 +127,7 @@ against loopback WebDAV, installs it, restarts the service, and only then
 revokes the superseded tokens named `home-agent-readonly`:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook \
   ansible/playbooks/rotate-nextcloud-tools-token.yml \
   --ask-become-pass \
@@ -166,7 +166,7 @@ filenames, content, credentials, or an unstructured exception message.
 To detach the agent socket first and then stop the credential-bearing service:
 
 ```bash
-cd /home/julian/projects/home-infra
+cd /home/julian/projects/infra/home-infra
 .venv/bin/ansible-playbook ansible/playbooks/disable-nextcloud-tools.yml \
   --ask-become-pass
 ```

@@ -7,7 +7,7 @@
 ```mermaid
 flowchart TB
     browser["Browser / WebDAV Client<br/>[Client Device]"]
-    controller["Ansible Controller<br/>[Deployment Node]<br/>/home/julian/projects/home-infra"]
+    controller["Ansible Controller<br/>[Deployment Node]<br/>/home/julian/projects/infra/home-infra"]
     github["GitHub<br/>[External Software System]"]
     openai["OpenAI Responses API<br/>[External Software System]"]
     letsencrypt["Let's Encrypt ACME<br/>[External Software System]"]

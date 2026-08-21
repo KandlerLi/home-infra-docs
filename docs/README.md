@@ -34,6 +34,6 @@
 Conflicting information should be resolved in this order:
 
 1. Live, read-only observation of the homeserver
-2. Committed files in `/home/julian/projects/home-infra`
+2. Committed files in `/home/julian/projects/infra/home-infra`
 3. Uncommitted changes in that repository, marked as proposed
 4. Historical handover notes, marked as historical or unverified

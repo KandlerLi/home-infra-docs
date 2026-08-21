@@ -1,7 +1,7 @@
 # Runbook: Manage Repository Infrastructure
 
 Status: current. Owning repository:
-`/home/julian/projects/repo-infra` (local Git `main`, no GitHub remote,
+`/home/julian/projects/bootstrap/repo-infra` (local Git `main`, no GitHub remote,
 shared encrypted S3 backend, key `repo-infra/terraform.tfstate`).
 
 ## Scope
@@ -32,7 +32,7 @@ add it without that decision being made first.
 ## Standard validation
 
 ```bash
-cd /home/julian/projects/repo-infra
+cd /home/julian/projects/bootstrap/repo-infra
 terraform fmt -check -recursive
 terraform validate
 terraform plan
