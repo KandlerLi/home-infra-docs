@@ -15,6 +15,10 @@
 - [Enable Nextcloud write tools](enable-nextcloud-writes.md) — create/update/
   delete/move gated behind a server-verified human confirmation code
   (implemented, not yet deployed)
+- [Enable OpenAI voice transcription](enable-openai-voice-transcription.md) —
+  routes Open WebUI's speech-to-text through home-agent instead of the
+  local Whisper engine this deployment's network can't reach (implemented,
+  not yet deployed)
 - [Manage repository infrastructure](manage-repo-infra.md) — Terraform-managed
   GitHub repository settings and per-repository AWS deploy identities,
   including how to import a repository's pre-existing manual configuration
