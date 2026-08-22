@@ -27,6 +27,10 @@
   including how to import a repository's pre-existing manual configuration
 - [Deploy and publish Deluge](publish-deluge.md) — private bootstrap, Nextcloud
   downloads integration, guarded route switch, and rollback
+- [Enable the Finanzfluss Sankey exporter](enable-sankey-export.md) —
+  dedicated Nextcloud account, WebDAV-only access, a cheap 1-minute ETag
+  poll that only runs Playwright when the workbook actually changed
+  (implemented, not yet deployed)
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
