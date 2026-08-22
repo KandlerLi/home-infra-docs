@@ -23,3 +23,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0011](0011-nextcloud-write-tools.md) | Accepted | Give the home agent Nextcloud write access via a server-verified propose/confirm flow |
 | [0012](0012-audio-transcription-relay.md) | Accepted | Relay speech-to-text through home-agent instead of local Whisper |
 | [0013](0013-remove-nextcloud-write-confirmation.md) | Accepted | Drop the Nextcloud write confirmation step (amends 0011) |
+| [0014](0014-nextcloud-shopping-list-tools.md) | Accepted | Give the home agent Nextcloud Shopping List item tools |

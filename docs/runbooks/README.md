@@ -13,12 +13,15 @@
 - [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — dedicated
   account, scoped share, encrypted app password, validation, and rollback
 - [Enable Nextcloud write tools](enable-nextcloud-writes.md) — create/update/
-  delete/move gated behind a server-verified human confirmation code
-  (implemented, not yet deployed)
+  delete/move, executed immediately (ADR 0013; implemented, not yet
+  deployed)
+- [Enable the Nextcloud Shopping List tools](enable-nextcloud-shopping-list.md) —
+  add/check/uncheck/remove items on a shared Shopping List app list,
+  executed immediately (ADR 0014; implemented, not yet deployed)
 - [Enable OpenAI voice transcription](enable-openai-voice-transcription.md) —
   routes Open WebUI's speech-to-text through home-agent instead of the
-  local Whisper engine this deployment's network can't reach (implemented,
-  not yet deployed)
+  local Whisper engine this deployment's network can't reach (deployed and
+  confirmed working)
 - [Manage repository infrastructure](manage-repo-infra.md) — Terraform-managed
   GitHub repository settings and per-repository AWS deploy identities,
   including how to import a repository's pre-existing manual configuration
