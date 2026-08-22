@@ -10,28 +10,29 @@ it stays owned by `dyndns`'s DynDNS record.
 Every step below needs a human-selected, short-lived AWS and/or GitHub
 identity. None of it can be run by an agent session.
 
-## 1. Push the repository to GitHub
+## 1. Apply `repo-infra`
 
-```bash
-cd /home/julian/projects/infra/website
-gh repo create KandlerLi/website --public --source=. --remote=origin
-git push -u origin main
-```
-
-If you'd rather let `repo-infra`'s apply create the GitHub repository
-first (step 2), just add the remote and push afterward instead.
-
-## 2. Apply `repo-infra`
-
-Creates the `website` GitHub repository's settings/branch protection and
-the AWS OIDC plan/apply roles scoped to exactly what this deployment
-needs (S3 bucket, CloudFront, ACM, and the existing `jkandler.de` Route53
-zone — see `aws_policies.tf`'s `website` entry).
+Creates the `website` GitHub repository itself (via the `github_repository`
+Terraform resource — do not create it imperatively with `gh repo create`
+or the GitHub UI), its settings/branch protection, and the AWS OIDC
+plan/apply roles scoped to exactly what this deployment needs (S3 bucket,
+CloudFront, ACM, and the existing `jkandler.de` Route53 zone — see
+`aws_policies.tf`'s `website` entry).
 
 ```bash
 cd /home/julian/projects/bootstrap/repo-infra
 terraform plan
 terraform apply
+```
+
+## 2. Push the repository content
+
+The repo now exists on GitHub but is empty. Push the local commit:
+
+```bash
+cd /home/julian/projects/infra/website
+git remote add origin git@github.com:KandlerLi/website.git
+git push -u origin main
 ```
 
 ## 3. Set the GitHub repository variables
