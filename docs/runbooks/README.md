@@ -31,6 +31,9 @@
   dedicated Nextcloud account, WebDAV-only access, a cheap 1-minute ETag
   poll that only runs Playwright when the workbook actually changed
   (implemented, not yet deployed)
+- [Deploy the personal website](deploy-personal-website.md) — static site
+  at `www.jkandler.de` via S3 + CloudFront + ACM, GitHub-hosted CI, leaves
+  the `jkandler.de` apex untouched (implemented, not yet applied or pushed)
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.

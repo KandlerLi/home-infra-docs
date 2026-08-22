@@ -25,3 +25,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0013](0013-remove-nextcloud-write-confirmation.md) | Accepted | Drop the Nextcloud write confirmation step (amends 0011) |
 | [0014](0014-nextcloud-shopping-list-tools.md) | Accepted | Give the home agent Nextcloud Shopping List item tools |
 | [0015](0015-sankey-export-automation.md) | Accepted | Bring the Finanzfluss Sankey exporter into Ansible and automate it |
+| [0016](0016-personal-website.md) | Accepted | Host a personal website at `www.jkandler.de` on S3 + CloudFront |
