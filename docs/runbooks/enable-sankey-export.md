@@ -17,6 +17,27 @@ the PNG). This is a manual step, same reasoning as every other Nextcloud
 integration in this repo (ADR 0008): automating a share grant would need
 `admin`'s own credential.
 
+**A share does not preserve the sharer's own path for the recipient.**
+`sankey_export_remote_dir` must be set to wherever the folder actually
+lands from the *dedicated account's own* point of view, not
+`admin`'s — confirm it rather than assuming:
+
+```bash
+docker exec nextcloud-aio-nextcloud php occ share:list \
+  --recipient=sankey-export --output=json
+```
+
+Look at `target-path`, not `source-path` — in this deployment it landed
+at `Shared/Finanzen` (Nextcloud's default is to surface incoming shares
+under a `Shared/` folder in the recipient's own root), so
+`ansible/inventory/group_vars/all/main.yml` sets
+`sankey_export_remote_dir: Shared/Finanzen`, matching the same `Shared/`
+prefix `nextcloud_tools_allowed_root` already needed. If your `occ
+share:list` output differs, update the override to match before deploying,
+not after — this was found live, as an actual failure (the service ran
+every minute, failed every time with "workbook not found", low enough
+memory use to confirm it never even got to launching Playwright).
+
 ## 2. Run tests and syntax checks
 
 ```bash
