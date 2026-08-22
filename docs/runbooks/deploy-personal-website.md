@@ -14,10 +14,16 @@ identity. None of it can be run by an agent session.
 
 Creates the `website` GitHub repository itself (via the `github_repository`
 Terraform resource — do not create it imperatively with `gh repo create`
-or the GitHub UI), its settings/branch protection, and the AWS OIDC
-plan/apply roles scoped to exactly what this deployment needs (S3 bucket,
-CloudFront, ACM, and the existing `jkandler.de` Route53 zone — see
-`aws_policies.tf`'s `website` entry).
+or the GitHub UI), its settings/branch protection, the AWS OIDC plan/apply
+roles scoped to exactly what this deployment needs (S3 bucket, CloudFront,
+ACM, and the existing `jkandler.de` Route53 zone — see `aws_policies.tf`'s
+`website` entry), **and** the `AWS_ROLE_ARN`/`AWS_PLAN_ROLE_ARN`/
+`AWS_ACCOUNT_ID`/`ROUTE53_ZONE_ID` GitHub Actions repository variables —
+`modules/repo` wires the first three straight to the real role ARNs it
+just created, and `ROUTE53_ZONE_ID` comes from `website`'s
+`action_variables` entry in `config.yml`. No manual variable-setting step
+is needed; if you ever find yourself pasting a value into the GitHub UI
+here, something has gone wrong with the Terraform instead.
 
 ```bash
 cd /home/julian/projects/bootstrap/repo-infra
@@ -35,19 +41,7 @@ git remote add origin git@github.com:KandlerLi/website.git
 git push -u origin main
 ```
 
-## 3. Set the GitHub repository variables
-
-Under **Settings → Secrets and variables → Actions → Variables** on
-`KandlerLi/website`:
-
-| Repository variable | Value |
-|---|---|
-| `AWS_ROLE_ARN` | The `website-github-actions` role ARN from the `repo-infra` apply output |
-| `AWS_PLAN_ROLE_ARN` | The `website-github-plan` role ARN from the same output |
-| `AWS_ACCOUNT_ID` | The AWS account ID |
-| `ROUTE53_ZONE_ID` | The same hosted-zone ID used by `dyndns`, e.g. `Z07879811I86VC8PAL8HX` |
-
-## 4. Trigger the first apply
+## 3. Trigger the first apply
 
 Push to `main` (or re-run the `Apply` workflow via `workflow_dispatch`).
 This runs `terraform apply` — creating the S3 bucket, CloudFront
@@ -59,7 +53,7 @@ ACM DNS validation can take a few minutes; `aws_acm_certificate_validation`
 blocks the apply until the certificate is actually issued, so a longer
 first-run duration than usual is expected.
 
-## 5. Verify live
+## 4. Verify live
 
 1. `https://www.jkandler.de/` resolves, serves the placeholder page, and
    has a valid certificate (check the padlock/certificate chain, not just
@@ -72,7 +66,7 @@ first-run duration than usual is expected.
    at `https://www.jkandler.de/` within a minute or two (CloudFront
    invalidation propagation).
 
-## 6. Roll back
+## 5. Roll back
 
 `terraform destroy` in `infra/website` removes the S3 bucket, CloudFront
 distribution, ACM certificate, and DNS records. CloudFront distribution
