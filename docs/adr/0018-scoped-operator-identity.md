@@ -3,7 +3,8 @@
 - Status: Accepted
 - Date: 2026-08-23
 - Deployment status: Built and locally validated in
-  `bootstrap/operator-identity`, not yet applied
+  `bootstrap/terraform-state/operator.tf` (see the 2026-08-23 Update
+  below), not yet applied
 
 ## Context
 
@@ -46,18 +47,20 @@ surfaced a missing `sns:GetSubscriptionAttributes` grant), but it means
 list, and a future compromise of this identity is bounded by exactly what
 it can be seen to do, not by what `PowerUserAccess` happens to allow.
 
-**Kept as its own root (`bootstrap/operator-identity`), not folded into
-`repo-infra`.** `julian`'s policy deliberately grants no IAM permissions
-over IAM users, groups, or itself — the entire point is that this
-identity can never widen its own access. That guarantee only holds if the
-resources managing `julian`'s own user/policy live somewhere `julian`
-has zero access to. If they lived inside `repo-infra`, every plan there
-— even for something unrelated, like adding a new repository to
-`config.yml` — would try to refresh the identity resources too and fail
-under `julian`'s own restricted credentials, since `julian` can't read
-its own user/policy resources by design. A separate root with its own
-state file (which `julian`'s policy also doesn't grant access to) avoids
-that: `operator-identity` can only ever be planned or applied as root.
+**Kept out of `repo-infra`, in a root of its own — originally a new
+standalone `bootstrap/operator-identity`, later merged into
+`terraform-state`; see the 2026-08-23 Update below.** `julian`'s policy
+deliberately grants no IAM permissions over IAM users, groups, or itself
+— the entire point is that this identity can never widen its own access.
+That guarantee only holds if the resources managing `julian`'s own
+user/policy live somewhere `julian` has zero access to. If they lived
+inside `repo-infra`, every plan there — even for something unrelated,
+like adding a new repository to `config.yml` — would try to refresh the
+identity resources too and fail under `julian`'s own restricted
+credentials, since `julian` can't read its own user/policy resources by
+design. A separate root with its own state file (which `julian`'s policy
+also doesn't grant access to) avoids that: this identity can only ever be
+planned or applied as root.
 
 **`AdministratorAccess` removal is a deliberate second apply, not a
 one-shot switch.** Terraform can only stop managing a resource already in
@@ -85,7 +88,27 @@ committed or not.
 - Every future repository's own AWS permissions (its `aws_policies.tf`
   entry) continue to apply only to *that repository's* GitHub Actions
   roles, entirely independent of this identity — adding a new repo never
-  requires touching `operator-identity`.
+  requires touching this identity's own management.
 - Root remains necessary for exactly one thing going forward: applying
-  `bootstrap/operator-identity` itself, whenever `julian`'s own access
-  needs to change.
+  the root that manages `julian`'s own identity, whenever `julian`'s own
+  access needs to change (see the Update below for where that now lives).
+
+## Update (2026-08-23): merged into `terraform-state`, not a standalone root
+
+Built initially as its own root, `bootstrap/operator-identity`. Before
+being applied, the user pointed out that it and `terraform-state` share
+the same operational profile: both are foundational, applied only by
+root, and touched essentially once at bootstrap — unlike `repo-infra`,
+which `julian` applies routinely. A third such root, on top of
+`terraform-state` and `repo-infra`, was unnecessary overhead for
+something at the same trust level and cadence as one that already exists.
+
+`operator.tf`'s resources moved into `bootstrap/terraform-state`
+unchanged in substance, with one tightening: `julian`'s policy no longer
+grants access to `terraform-state/*` state or to bucket management,
+since `julian` never applies `terraform-state` itself — only `repo-infra`.
+The core guarantee this ADR's Decision section describes — that `julian`
+has zero access to the resources managing its own identity — holds
+exactly the same way, just inside `terraform-state` instead of a
+dedicated root. The short-lived `operator-identity` GitHub repository
+and local directory were both removed the same day.
