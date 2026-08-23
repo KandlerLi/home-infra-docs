@@ -1,6 +1,6 @@
 # Runbook: Deploy the personal website
 
-Status: **Implemented, not yet applied or pushed.** See
+Status: **Deployed, confirmed live at `https://www.jkandler.de/`.** See
 [ADR 0016](../adr/0016-personal-website.md) for the design. This deploys a
 static site (`infra/website`) to `https://www.jkandler.de/` via S3 +
 CloudFront + ACM, following the same Terraform + GitHub Actions OIDC

@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-22
-- Deployment status: Implemented, not yet deployed
+- Deployment status: Deployed, confirmed live at `https://www.jkandler.de/`
 
 ## Context
 

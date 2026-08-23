@@ -33,7 +33,7 @@
   (implemented, not yet deployed)
 - [Deploy the personal website](deploy-personal-website.md) — static site
   at `www.jkandler.de` via S3 + CloudFront + ACM, GitHub-hosted CI, leaves
-  the `jkandler.de` apex untouched (implemented, not yet applied or pushed)
+  the `jkandler.de` apex untouched (deployed, confirmed live)
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
