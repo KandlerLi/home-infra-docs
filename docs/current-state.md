@@ -246,7 +246,7 @@ The currently configured repository is `KandlerLi/dyndns`.
 
 | Observation | Classification | Follow-up |
 | --- | --- | --- |
-| No monitoring role or monitoring containers | Current gap | Design lightweight monitoring separately |
+| No monitoring role or monitoring containers | Current gap, in progress (ADR 0017) | Homeserver-hosted Prometheus/Grafana stack still to design; the one AWS-side piece (`infra/homeserver-health-check`, Route53 + CloudWatch + SNS) is built and locally validated, not yet applied |
 | `iperf3`-typical port `5201` is listening | Unknown | Identify owner and decide whether to manage or remove it |
 | Loopback port `43117` is listening | Unknown | Identify owning process with privileged diagnostics if needed |
 | Legacy `owncloud-docker-server_*` Docker volumes exist | Unknown/legacy | Do not delete until contents and recovery need are confirmed |
