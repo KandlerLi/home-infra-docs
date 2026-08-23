@@ -27,3 +27,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0015](0015-sankey-export-automation.md) | Accepted | Bring the Finanzfluss Sankey exporter into Ansible and automate it |
 | [0016](0016-personal-website.md) | Accepted | Host a personal website at `www.jkandler.de` on S3 + CloudFront |
 | [0017](0017-monitoring-split-by-cost.md) | Accepted | Split monitoring by cost: homeserver-hosted, one AWS-side reachability check |
+| [0018](0018-scoped-operator-identity.md) | Accepted | A scoped IAM identity replaces root for local Terraform applies |
