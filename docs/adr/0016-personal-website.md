@@ -59,15 +59,17 @@ assets like a CV PDF or a photo) through Terraform state hashes, which
 buys little for what is fundamentally "publish the current contents of
 `site/`".
 
-**GitHub-hosted runners, not the self-hosted home runner.** `dyndns` runs
-its CI on `[self-hosted, home, debian]`. The `website` repo deliberately
-does not: the entire point of putting the CV on AWS was to stop depending
-on the home network/server for it to be *reachable*. Tying its *deploy
-pipeline* back to the home runner would partially undo that — a content
-fix couldn't ship while the homeserver was down. The job only needs
-Terraform and AWS OIDC, neither of which needs home-network access, so
-`runs-on: ubuntu-latest` is strictly better here. This also means no
-changes to `home-infra`'s `github_runner` role were needed for this repo.
+**GitHub-hosted runners, not the self-hosted home runner — superseded, see
+the 2026-08-23 Update below.** `dyndns` runs its CI on `[self-hosted, home,
+debian]`. The `website` repo originally deliberately did not: the entire
+point of putting the CV on AWS was to stop depending on the home
+network/server for it to be *reachable*. Tying its *deploy pipeline* back
+to the home runner would partially undo that — a content fix couldn't
+ship while the homeserver was down. The job only needs Terraform and AWS
+OIDC, neither of which needs home-network access, so `runs-on:
+ubuntu-latest` was strictly better here. This also meant no changes to
+`home-infra`'s `github_runner` role were needed for this repo — until the
+user explicitly asked to switch anyway, discussed below.
 
 ## Consequences
 
@@ -103,3 +105,28 @@ change at all** — the apex A record stays exactly as `dyndns`'s Lambda
 manages it; Traefik simply now answers for that hostname instead of
 falling through to its default 404, the same way it already answers for
 `nextcloud.jkandler.de`/`ai.jkandler.de`/`torrent.jkandler.de`.
+
+## Update (2026-08-23): switched to the self-hosted runner after all
+
+While setting up self-hosted-runner CI/CD for a new `aws-budget` repo, the
+user hit friction from the fine-grained GitHub PAT (`github_runner_github_token`)
+being scoped only to `dyndns` — the only repo that had ever needed runner
+registration. Working through that surfaced a question worth asking
+directly: did `website` actually need to stay off the self-hosted runner?
+
+The user was shown the tradeoff explicitly — a homeserver outage would
+newly block shipping a site fix, something that wasn't true before, even
+though the *deployed* site itself stays reachable regardless (CloudFront/S3
+don't care where the CI ran) — and chose to accept it, asking for
+consistency across all repos. `website`'s `checks.yml`/`apply.yml` moved to
+`[self-hosted, home, debian]`, `repo-infra`'s `config.yml` gained
+`runner: true` for it, and `home-infra`'s own checks (which have no
+availability tradeoff either way, since they never touch the homeserver
+regardless of where they run) moved to the self-hosted runner too, for the
+same consistency reason.
+
+This is recorded as an explicit, informed reversal, not a silent drift:
+the original reasoning above was sound and is still accurate as a
+description of the tradeoff — the user simply weighed it differently once
+asked directly, preferring one consistent CI setup over the marginal
+resilience benefit for this particular low-traffic personal site.
