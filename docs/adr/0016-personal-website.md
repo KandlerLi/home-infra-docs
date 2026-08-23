@@ -71,13 +71,35 @@ changes to `home-infra`'s `github_runner` role were needed for this repo.
 
 ## Consequences
 
-- `https://jkandler.de/` (bare) is unaffected by this change and continues
-  to serve home-network traffic exactly as before.
-- Only `https://www.jkandler.de/` will show the site. If a bare-apex
-  redirect to `www` is wanted later, it needs a deliberate follow-up
-  decision about what happens to the DynDNS-owned apex record — not
-  something to retrofit casually.
+- `https://jkandler.de/` (bare) is unaffected by this decision at the DNS
+  level and continues to resolve to the home network exactly as before —
+  see the Update below for what Traefik now does with that traffic.
 - The `website` repository's own README documents the one thing nobody
   can automate: setting `AWS_ROLE_ARN`/`AWS_PLAN_ROLE_ARN`/
   `AWS_ACCOUNT_ID`/`ROUTE53_ZONE_ID` as GitHub repository variables after
-  the first `repo-infra` apply creates the real role ARNs.
+  the first `repo-infra` apply creates the real role ARNs. (Superseded in
+  practice: `repo-infra`'s `modules/repo` already sets these automatically
+  — no manual step was actually needed once `repo-infra` was applied.)
+
+## Update (2026-08-23): apex redirect via Traefik, not DNS
+
+Deploying the site surfaced a second, unrelated finding: a completely
+untracked static site stack (S3 + CloudFront + wildcard ACM cert) already
+existed for the bare `jkandler.de` apex, dating to 2024-02-12 — see
+`handovers/2026-08-23-decommission-legacy-whoami-site.md` in
+`home-infra-ai-context`. It was decommissioned; unrelated to the decision
+below.
+
+Once `www.jkandler.de` was live, the bare apex still 404'd for any visitor
+who left off `www` (confirmed live: `curl -k https://jkandler.de/` returned
+Traefik's own `404 page not found`, i.e. no router matched — not a bug,
+exactly the consequence of the original decision above). Rather than leave
+that as dead weight or reopen the apex-migration option this ADR explicitly
+avoided, `home-infra`'s `shared_ingress` role gained an opt-in
+`shared_ingress_apex_redirect_enabled` flag: a Traefik router + its own
+Let's Encrypt certificate for `jkandler.de`, redirecting (301, via
+`redirectRegex`) to `https://www.jkandler.de/`. This needed **no DNS or AWS
+change at all** — the apex A record stays exactly as `dyndns`'s Lambda
+manages it; Traefik simply now answers for that hostname instead of
+falling through to its default 404, the same way it already answers for
+`nextcloud.jkandler.de`/`ai.jkandler.de`/`torrent.jkandler.de`.
