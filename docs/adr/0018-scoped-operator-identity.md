@@ -79,12 +79,11 @@ committed or not.
 
 - Once applied, day-to-day `terraform-state`/`repo-infra` work uses
   `julian` (via `aws login`'s IAM-user sign-in) instead of root.
-- `julian` deliberately **cannot** do the kind of ad-hoc, cross-service
-  read-only AWS CLI verification (budgets, Route 53 health checks,
-  CloudWatch alarms, SNS, IAM audits) that root has been used for
-  throughout this workspace's history to confirm live deployments worked.
-  That still needs root, or a separate widening of this policy, done
-  deliberately — not a fallback to root out of convenience.
+- Originally, `julian` deliberately couldn't do the kind of ad-hoc,
+  cross-service read-only AWS CLI verification (Route 53 health checks,
+  CloudWatch alarms, IAM audits) root had been used for throughout this
+  workspace's history to confirm live deployments worked — see the
+  2026-08-24 Update below for why and how that changed.
 - Every future repository's own AWS permissions (its `aws_policies.tf`
   entry) continue to apply only to *that repository's* GitHub Actions
   roles, entirely independent of this identity — adding a new repo never
@@ -112,3 +111,41 @@ has zero access to the resources managing its own identity — holds
 exactly the same way, just inside `terraform-state` instead of a
 dedicated root. The short-lived `operator-identity` GitHub repository
 and local directory were both removed the same day.
+
+## Update (2026-08-24): two gaps found running this for real
+
+**Missing sign-in permission.** The moment `AdministratorAccess` was
+actually detached, `aws login` as `julian` started failing at token
+exchange with a 400. Root bypasses IAM policy checks entirely, so this
+was invisible until the narrow policy was the *only* thing left. Root
+cause: `aws login`'s browser-based OAuth flow needs two specific IAM
+actions for a non-root identity — `signin:AuthorizeOAuth2Access` and
+`signin:CreateOAuth2Token`, scoped to
+`arn:aws:signin:*:*:oauth2/public-client/*` (normally granted via AWS's
+own `SignInLocalDevelopmentAccess` managed policy) — which this policy
+had never granted, since "what running `repo-infra` needs" had
+overlooked that being able to log in as `julian` at all is itself a
+prerequisite. Fixed by adding those two actions to the existing inline
+policy. Verified for real afterward: a completely clean `repo-infra`
+`terraform plan` (`No changes`) running under `julian`'s scoped policy
+alone, with `AdministratorAccess` fully detached and confirmed gone via
+`aws iam list-attached-user-policies`.
+
+**No read-only verification.** As predicted in this ADR's original
+Consequences, `julian`'s write-scoped policy alone couldn't do the kind
+of ad-hoc cross-service checks (did a deploy actually work, what does
+this alarm/role look like) that this workspace has relied on root for
+throughout its history. Asked for directly, so fixed directly: `julian`
+now also has AWS's managed `ViewOnlyAccess` policy attached — broad
+`List`/`Describe`/`Get` visibility across virtually every service, but
+deliberately not the broader `ReadOnlyAccess`, since `ViewOnlyAccess`
+excludes any action that returns actual data (`s3:GetObject`,
+`secretsmanager:GetSecretValue`, `dynamodb:GetItem`, `kms:Decrypt`,
+etc.) — confirmed by reading the policy's actual JSON document, not
+assumed. Being read-only, this doesn't weaken the self-escalation
+guarantee at all: read access can reveal what permissions exist, never
+grant new ones. Two known gaps remain even under `ViewOnlyAccess` (AWS
+Budgets isn't covered by it at all, and a handful of services only
+expose `Get*` without a matching `List*`, such as
+`sns:GetSubscriptionAttributes`) — still root-only unless a real,
+recurring need justifies adding them explicitly.
