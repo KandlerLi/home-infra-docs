@@ -242,11 +242,33 @@ Committed automation defines a Debian 13 VM with:
 
 The currently configured repository is `KandlerLi/dyndns`.
 
+### Monitoring
+
+Deployed via `ansible/roles/monitoring` (ADR 0019), six containers on
+`network_mode: host`:
+
+- `prometheus` — scrapes itself, node_exporter, cAdvisor, and
+  blackbox_exporter (two probe jobs: one plain-2xx for public
+  unauthenticated services, one 401-tolerant for the two services behind
+  Traefik Basic Auth); 30-day/2GB-capped retention on the root disk
+- `grafana` — dashboards for host/container/service-reachability health;
+  published externally at `grafana.jkandler.de` via `shared_ingress`
+  (its own Traefik Basic Auth credential in front of its own admin
+  login)
+- `alertmanager` — routes every firing alert to both ntfy (push) and SES
+  email (`infra/ses-relay`, applied and live)
+- `node_exporter`, `cadvisor`, `blackbox_exporter` — the three metrics
+  sources
+
+The AWS-side reachability check (`infra/homeserver-health-check`,
+Route53 + CloudWatch + SNS) remains separate and continues to cover the
+one thing homeserver-hosted monitoring structurally can't: the home
+network itself being unreachable.
+
 ## Known gaps and drift candidates
 
 | Observation | Classification | Follow-up |
 | --- | --- | --- |
-| No monitoring role or monitoring containers | In progress (ADR 0017, ADR 0019) | Homeserver-hosted stack (`ansible/roles/monitoring`: Prometheus, Grafana, node_exporter, cAdvisor, blackbox_exporter, Alertmanager) and its SES email relay (`infra/ses-relay`) are both built and locally validated, not yet applied. The AWS-side piece (`infra/homeserver-health-check`, Route53 + CloudWatch + SNS) is applied and live. |
 | `iperf3`-typical port `5201` is listening | Unknown | Identify owner and decide whether to manage or remove it |
 | Loopback port `43117` is listening | Unknown | Identify owning process with privileged diagnostics if needed |
 | Legacy `owncloud-docker-server_*` Docker volumes exist | Unknown/legacy | Do not delete until contents and recovery need are confirmed |

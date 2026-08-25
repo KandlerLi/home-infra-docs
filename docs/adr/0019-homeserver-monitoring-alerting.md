@@ -2,8 +2,9 @@
 
 - Status: Accepted
 - Date: 2026-08-24
-- Deployment status: `ansible/roles/monitoring` and `infra/ses-relay` built
-  and locally validated, not yet applied
+- Deployment status: applied and live -- `infra/ses-relay` deployed,
+  `ansible/roles/monitoring` deployed via `site.yml`, Grafana additionally
+  published through `shared_ingress` (see Update below)
 
 ## Context
 
@@ -107,3 +108,74 @@ either constraint than either extreme.
   other service already uses can be added later if remote dashboard
   access turns out to be wanted — not built now, since it wasn't asked
   for.
+
+## Update (2026-08-25): applied, live bugs fixed, Grafana published
+
+Deploying surfaced several real bugs, none design-level but all worth
+recording since the next person touching this code will hit the same
+wall otherwise:
+
+- **AWS SES v1 doesn't support resource-level IAM permissions for its
+  identity-lifecycle actions.** `ses:VerifyDomainIdentity`,
+  `ses:VerifyEmailIdentity`, `ses:VerifyDomainDkim`,
+  `ses:GetIdentityVerificationAttributes`, `ses:GetIdentityDkimAttributes`,
+  and `ses:DeleteIdentity` were all originally scoped to the two specific
+  identity ARNs in `bootstrap/repo-infra`'s IAM policy for `ses-relay` —
+  each one denied live, one at a time, across three separate applies,
+  regardless of the ARN being correct. All six now use `Resource: "*"`;
+  SES simply has no finer-grained option for this action group.
+- **`for_each` can't iterate a value only known after apply.**
+  `aws_route53_record.dkim`'s `for_each` originally iterated
+  `aws_ses_domain_dkim.this.dkim_tokens` directly — valid once the
+  identity exists, but unusable on the very first plan, since Terraform
+  can't determine instance keys from an apply-time value. Fixed by
+  iterating static indices (`"0"`, `"1"`, `"2"` — SES always returns
+  exactly three DKIM tokens) and indexing into the token list per record.
+- **`community.docker.docker_container`'s PID-namespace parameter is
+  `pid_mode`, not `pid`** (node_exporter's `pid: host`).
+- **A bare `"{{ var }}"` Jinja template preserves the variable's native
+  Python type in Ansible, regardless of YAML quoting.**
+  `monitoring_grafana_port` is an `int` default; `docker_container`
+  rejected it as a non-string env value until `| string` was added.
+- **Alertmanager's config file was unreadable to its own container.**
+  Installed as `owner: root, mode: 0600`, but the container runs as its
+  own dedicated non-root user — fixed to match the Grafana secret file's
+  pattern (owned by the container's own user, `0400`).
+- **cAdvisor's image-baked healthcheck probes `localhost`, which is
+  ambiguous under `network_mode: host`.** The container's `/etc/hosts` is
+  the host's own, resolving `localhost` to both `127.0.0.1` and `::1`;
+  BusyBox `wget` tried `::1` first, got refused (cAdvisor only binds
+  IPv4), and never fell back to IPv4 — reporting unhealthy despite the
+  service being fine. Overrode the healthcheck to probe the bind address
+  directly, matching Grafana's own healthcheck.
+- **blackbox_exporter has no credential to send for Basic-Auth-gated
+  targets.** `torrent.jkandler.de` and `ai.jkandler.de` sit behind
+  Traefik Basic Auth, and only the bcrypt *hash* is stored anywhere in
+  this repo (`shared_ingress_deluge_auth_password_hash` /
+  `shared_ingress_agent_auth_password_hash`) — no plaintext credential
+  exists for a probe to authenticate with. Probing them with the plain
+  `http_2xx` module meant every probe got 401 and `ServiceUnreachable`
+  fired permanently. Split into a second probe group
+  (`monitoring_probe_targets_authenticated`) using a new
+  `http_2xx_or_401` blackbox module: 401 still proves DNS/TLS/Traefik/
+  the upstream are all up and correctly gating access, so real outages
+  (timeouts, 5xx, connection refused) still alert — it just can't
+  confirm the app behind auth is itself healthy.
+
+**Grafana is now published through `shared_ingress`** at
+`grafana.jkandler.de`, reversing the "stays internal-only" call above —
+the user asked for it directly once the stack was live and useful enough
+to want checking from outside an SSH tunnel. Same defense-in-depth shape
+as Deluge: its own subdomain, its own Traefik-level Basic Auth credential
+(independent of every other route's), matching rate limits/security
+headers, and the same one-time `PUBLISH_GRAFANA` confirmation gate plus
+health check the other routes use — Grafana's own admin login stays in
+place underneath, layered behind the Traefik gate rather than replaced
+by it. `dyndns` gained a `grafana` CNAME to support it.
+
+**The ntfy raw-JSON limitation (see Consequences above) was confirmed
+live and deliberately left as-is.** Asked directly whether to build a
+relay to reformat it: the user chose to park it — email already carries
+the full readable detail, so ntfy stays the "something's wrong, check
+your email" buzz, and building a translator for a purely cosmetic gap
+wasn't judged worth the new container/maintenance surface.
