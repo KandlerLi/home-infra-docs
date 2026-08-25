@@ -179,3 +179,39 @@ relay to reformat it: the user chose to park it — email already carries
 the full readable detail, so ntfy stays the "something's wrong, check
 your email" buzz, and building a translator for a purely cosmetic gap
 wasn't judged worth the new container/maintenance surface.
+
+## Update (2026-08-25): SES email delivery — two more real bugs, now confirmed live
+
+The dual-channel test alert in the previous Update section confirmed
+ntfy delivery but not email — nobody had actually checked the inbox yet.
+Following up surfaced two further, genuine bugs, both now fixed and both
+confirmed live:
+
+- **A truncated SMTP username.** `monitoring_ses_smtp_username` in SOPS
+  held `AKIA4NU5Y52WI2R4RTE` — 19 characters, missing the trailing `4`
+  from the real 20-character access key ID (`...RTE4`). A copy/paste
+  slip, invisible until Alertmanager's logs showed
+  `535 "Authentication Credentials Invalid"` on every send attempt. A
+  first attempted fix didn't actually take (the templated
+  `alertmanager.yml` came back `ok`, not `changed`, on the next
+  `site.yml` run — a tell that the underlying value hadn't changed);
+  `sops set` (rather than an interactive editor) was used the second
+  time and confirmed via the task showing `changed`.
+- **SES send authorization scoped to the wrong identity.** With the
+  credentials fixed, sending then failed with
+  `554 "Access denied: ... not authorized to perform 'ses:SendRawEmail'
+  on resource 'arn:aws:ses:...:identity/julian.kandler@outlook.com'"` —
+  the *recipient's* identity ARN, not the sender's. `ses-relay`'s IAM
+  policy for the SMTP user had only ever scoped `ses:SendRawEmail`/
+  `ses:SendEmail` to the sending domain identity
+  (`aws_ses_domain_identity.this.arn`). SES authorizes a send against
+  every identity involved, not just the source, when the recipient is
+  also a verified identity in the same account (a sandbox requirement
+  here, since the account never requested production access) — the
+  policy needed `aws_ses_email_identity.recipient.arn` added to its
+  `Resource` list too (`ses-relay` PR #2).
+
+With both fixed, a further test alert produced no error at all in
+Alertmanager's logs, and the user confirmed the email actually arrived.
+Both alerting channels are now independently verified end to end, not
+just "Alertmanager attempted delivery."
