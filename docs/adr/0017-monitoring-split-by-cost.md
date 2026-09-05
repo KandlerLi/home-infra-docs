@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-23
-- Deployment status: `infra/homeserver-health-check` built and locally
+- Deployment status: `aws/homeserver-health-check` built and locally
   validated, not yet applied. The homeserver-hosted half is a separate,
   larger follow-up, not yet started.
 
@@ -21,7 +21,7 @@ alerting is the thing that would be down.
 
 **Split by where the check has to run, not by what it checks.** AWS hosts
 exactly one thing: an external reachability check for the home network,
-implemented as `infra/homeserver-health-check` — a Route53 health check
+implemented as `aws/homeserver-health-check` — a Route53 health check
 against the bare `jkandler.de` apex (not `www.jkandler.de`, which is
 CloudFront/S3 and would only prove AWS itself is reachable) every 30
 seconds, a CloudWatch alarm on that health check's status, and an SNS
@@ -53,6 +53,6 @@ environment's reviewer approval before any real `terraform apply`.
   AWS side, since redundancy wasn't the goal — cost was.
 - Every other future monitoring capability (dashboards, per-service
   alerts, cert expiry, etc.) is scoped to the homeserver-side follow-up,
-  not to this repo — `infra/homeserver-health-check` is deliberately kept
+  not to this repo — `aws/homeserver-health-check` is deliberately kept
   this small and is not expected to grow into a general-purpose AWS
   monitoring stack.

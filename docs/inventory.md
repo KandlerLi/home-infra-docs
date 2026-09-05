@@ -60,7 +60,7 @@ DNS intentionally has no AAAA record for the documented external names.
 | KVM/QEMU and libvirt | Ansible `libvirt_host` role | Virtual machine runtime |
 | GitHub runner VM | Ansible `github_runner` role | Isolated self-hosted CI runner |
 | SOPS/GPG | Ansible controller | Encrypted infrastructure secrets |
-| Terraform DynDNS stack | `/home/julian/projects/infra/dyndns` | Route 53 CNAMEs plus API Gateway/Lambda IPv4 updater |
+| Terraform DynDNS stack | `/home/julian/projects/aws/dyndns` | Route 53 CNAMEs plus API Gateway/Lambda IPv4 updater |
 | Terraform state bootstrap | `/home/julian/projects/bootstrap/terraform-state` (Git `main`) | Versioned, encrypted, public-blocked central S3 state bucket |
 | Repository infrastructure | `/home/julian/projects/bootstrap/repo-infra` (local Git `main`, no remote) | Terraform management of GitHub repository/branch protection, Actions permissions, and environments, plus the account-wide GitHub OIDC provider and per-repository AWS IAM deploy roles, for `dyndns` and `testing` |
 | `home-tools` | Ansible `home_agent` role | Fixed, read-only host observations over a Unix socket |

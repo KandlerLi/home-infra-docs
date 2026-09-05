@@ -118,7 +118,7 @@ state is persisted.
 DNS infrastructure repository root and current revision:
 
 ```text
-/home/julian/projects/infra/dyndns
+/home/julian/projects/aws/dyndns
 b44f17a
 Remove completed state handoff scaffolding (#9)
 ```
@@ -256,11 +256,11 @@ Deployed via `ansible/roles/monitoring` (ADR 0019), six containers on
   (its own Traefik Basic Auth credential in front of its own admin
   login)
 - `alertmanager` — routes every firing alert to both ntfy (push) and SES
-  email (`infra/ses-relay`, applied and live)
+  email (`aws/ses-relay`, applied and live)
 - `node_exporter`, `cadvisor`, `blackbox_exporter` — the three metrics
   sources
 
-The AWS-side reachability check (`infra/homeserver-health-check`,
+The AWS-side reachability check (`aws/homeserver-health-check`,
 Route53 + CloudWatch + SNS) remains separate and continues to cover the
 one thing homeserver-hosted monitoring structurally can't: the home
 network itself being unreachable.

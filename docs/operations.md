@@ -17,7 +17,7 @@ The infrastructure repository is:
 The Terraform DNS repository is:
 
 ```text
-/home/julian/projects/infra/dyndns
+/home/julian/projects/aws/dyndns
 ```
 
 The central Terraform state-bucket bootstrap project is:
