@@ -62,13 +62,13 @@ privileged session when exact domain state is required.
 
 The repository entry in `github_runner_github_repositories` is generated,
 not hand-edited, since 2026-08-21 — see
-`/home/julian/projects/bootstrap/repo-infra/README.md`'s "Adding a
+`/home/julian/projects/github/repo-infra/README.md`'s "Adding a
 repository with a self-hosted GitHub Actions runner" section for the full
 workflow. In short:
 
 1. Grant the fine-grained GitHub token access to the repository.
 2. Add `runner: true` to the repository's entry in
-   `/home/julian/projects/bootstrap/repo-infra/config.yml`.
+   `/home/julian/projects/github/repo-infra/config.yml`.
 3. In `home-infra`, run
    `.venv/bin/python scripts/sync_github_runner_repositories.py`, review the
    diff to `ansible/inventory/group_vars/all/github_runner_repositories.yml`,

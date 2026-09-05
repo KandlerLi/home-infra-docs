@@ -120,7 +120,7 @@ wall otherwise:
   `ses:VerifyEmailIdentity`, `ses:VerifyDomainDkim`,
   `ses:GetIdentityVerificationAttributes`, `ses:GetIdentityDkimAttributes`,
   and `ses:DeleteIdentity` were all originally scoped to the two specific
-  identity ARNs in `bootstrap/repo-infra`'s IAM policy for `ses-relay` —
+  identity ARNs in `github/repo-infra`'s IAM policy for `ses-relay` —
   each one denied live, one at a time, across three separate applies,
   regardless of the ARN being correct. All six now use `Resource: "*"`;
   SES simply has no finer-grained option for this action group.

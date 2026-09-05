@@ -33,7 +33,7 @@ homeserver itself, for free, as a separate follow-up.
 
 This follows the same repo/Terraform/CI shape every other AWS-deploying
 repo in this workspace uses: its own `infra/` Terraform root, GitHub
-repository and OIDC roles provisioned by `bootstrap/repo-infra`, IAM
+repository and OIDC roles provisioned by `github/repo-infra`, IAM
 policies scoped tightly to the three resource types actually touched
 (Route53 health checks, one named CloudWatch alarm, one named SNS topic),
 and a self-hosted-runner CI/CD pipeline gated behind the `production`

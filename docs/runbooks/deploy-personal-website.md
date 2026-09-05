@@ -26,7 +26,7 @@ is needed; if you ever find yourself pasting a value into the GitHub UI
 here, something has gone wrong with the Terraform instead.
 
 ```bash
-cd /home/julian/projects/bootstrap/repo-infra
+cd /home/julian/projects/github/repo-infra
 terraform plan
 terraform apply
 ```

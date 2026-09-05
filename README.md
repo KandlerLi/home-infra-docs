@@ -26,7 +26,7 @@ GitHub repository configuration and the account-wide AWS identity/GitHub
 OIDC control plane are both managed from:
 
 ```text
-/home/julian/projects/bootstrap/repo-infra
+/home/julian/projects/github/repo-infra
 ```
 
 Both bootstrap projects are local Git repositories whose tracked sources

@@ -156,7 +156,7 @@ permissions, and remote repository protection remain follow-up work.
 Repository infrastructure project:
 
 ```text
-/home/julian/projects/bootstrap/repo-infra
+/home/julian/projects/github/repo-infra
 5229f56
 Document the consolidated repo-infra scope and workflows
 ```

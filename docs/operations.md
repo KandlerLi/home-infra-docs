@@ -29,7 +29,7 @@ The central Terraform state-bucket bootstrap project is:
 The GitHub repository configuration and AWS identity control-plane project is:
 
 ```text
-/home/julian/projects/bootstrap/repo-infra
+/home/julian/projects/github/repo-infra
 ```
 
 It must never run through GitHub Actions or through a role it manages. The

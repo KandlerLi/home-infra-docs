@@ -38,7 +38,7 @@ recovery-aware, explicitly approved plan.
 
 ### Repository infrastructure: GitHub settings and AWS identity control plane
 
-`/home/julian/projects/bootstrap/repo-infra` (renamed from `github-infra`; absorbed the
+`/home/julian/projects/github/repo-infra` (renamed from `github-infra`; absorbed the
 formerly separate `aws-account-bootstrap` root on 2026-08-21, see
 [ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)) is a
 local-only Terraform root (no GitHub remote of its own) that manages, per
