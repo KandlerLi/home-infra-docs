@@ -36,8 +36,11 @@ repo in this workspace uses: its own `infra/` Terraform root, GitHub
 repository and OIDC roles provisioned by `github/repo-infra`, IAM
 policies scoped tightly to the three resource types actually touched
 (Route53 health checks, one named CloudWatch alarm, one named SNS topic),
-and a self-hosted-runner CI/CD pipeline gated behind the `production`
-environment's reviewer approval before any real `terraform apply`.
+and a self-hosted-runner CI/CD pipeline applying on merge to `main`
+(originally also gated behind the `production` environment's reviewer
+approval; that reviewer requirement was removed workspace-wide
+2026-09-07 as redundant with PR review — see home-infra-ai-context's
+own `decisions.md`).
 
 ## Consequences
 
