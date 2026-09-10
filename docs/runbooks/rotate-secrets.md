@@ -188,10 +188,11 @@ playbook were retired when `home_agent`/`open_webui` moved to k3s-native,
 `home-infra/home-agent`, `terraform apply` in `infra/k3s-apps`.
 
 Either way, revoke the superseded token only after confirming the new
-one works (`occ user:auth-tokens:list --user <account>`, then
-`occ user:auth-tokens:delete` on the old one by ID) -- both tokens are
-valid simultaneously until you revoke one, so there's no blackout
-window if you check first.
+one works: `occ user:auth-tokens:list <account>` to get the ids, then
+`occ user:auth-tokens:delete <account> <id>` (note the arg order --
+`:list`/`:delete` take the account positionally *first*, `:add` takes it
+*last*). Both tokens are valid simultaneously until you revoke one, so
+there's no blackout window if you check first.
 
 ## Category F: `github_runner_github_token`
 
