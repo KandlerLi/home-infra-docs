@@ -173,7 +173,7 @@ mint is scriptable.
 ```bash
 # on the homeserver -- the one manual step
 docker exec nextcloud-aio-nextcloud php occ user:auth-tokens:add \
-  --user <nextcloud_tools|sankey-export> --name "rotate-$(date +%F)"
+  --name "rotate-$(date +%F)" -- <nextcloud_tools|sankey-export>
 ```
 
 For **`sankey_export_app_password`**, feed that token to
