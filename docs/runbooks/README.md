@@ -34,6 +34,9 @@
 - [Deploy the personal website](deploy-personal-website.md) — static site
   at `www.jkandler.de` via S3 + CloudFront + ACM, GitHub-hosted CI, leaves
   the `jkandler.de` apex untouched (deployed, confirmed live)
+- [Rotate and manage AWS Secrets Manager secrets](rotate-secrets.md) —
+  per-secret rotation procedures, automated-rotation feasibility, and
+  which secrets do/don't belong in Secrets Manager at all
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
