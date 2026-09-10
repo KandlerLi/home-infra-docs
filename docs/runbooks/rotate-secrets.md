@@ -227,21 +227,20 @@ both the publisher (wherever alerts get sent from) and subscriber
 (the ntfy app/client) to the new topic name -- there's no cryptographic
 material to regenerate.
 
-## Category I: functionally dead -- `monitoring_grafana_admin_password`
+## Category I: removed -- `monitoring_grafana_admin_password` (2026-09-10)
 
 Grafana's native login form *and* HTTP Basic Auth are both disabled at
-the protocol level (`infra/k3s-apps/modules/grafana/main.tf`'s own
-comment: "the `GF_SECURITY_ADMIN_*` account above still technically
-exists, it just can no longer log in by any means -- Authelia is now
-the only way in"). This value cannot be rotated into a *working*
-credential -- there's no login path left that accepts it. Rotating it
-is optional busywork (defense-in-depth against those protocol-level
-locks ever being rolled back), not a real security boundary. Simplest
-real fix, not yet done: refactor `modules/grafana` to a fixed,
-non-secret placeholder string instead of reading this from Secrets
-Manager at all, and drop the key from `home-infra/grafana` and from
-`sync_secrets_to_pass.py`'s `pass` copy -- there's no real value left
-worth protecting or looking up.
+the protocol level (`GF_AUTH_DISABLE_LOGIN_FORM` +
+`GF_AUTH_BASIC_ENABLED=false` in `infra/k3s-apps/modules/grafana`) --
+Authelia OIDC is the only way in -- so this value could not be rotated
+into a *working* credential; there was no login path left that accepts
+it. It was **removed** from the `home-infra/grafana` group's JSON:
+`modules/grafana` now fills `GF_SECURITY_ADMIN_PASSWORD__FILE` from a
+module-local `random_password` (random, not a fixed placeholder, so an
+accidental rollback of those two `GF_AUTH_*` switches doesn't hand out a
+known-value admin login), and the `grafana/user`/`grafana/password`
+`pass` entries + the `monitoring_grafana_admin_user` Ansible default
+went with it. Nothing to rotate here.
 
 ## Automated rotation -- reality check before building it
 
@@ -282,11 +281,10 @@ own `jsondecode()` (`infra/k3s-apps/secrets.tf`,
 (`infra/home-infra/ansible/playbooks/site.yml`) reads it at every
 `site.yml` run -- moving any of those out to `pass`-only storage would
 reintroduce exactly the manual-export step the SOPS-to-Secrets-Manager
-cutover was built to remove. The two real exceptions found so far:
+cutover was built to remove. The real exceptions found so far:
 
-- **`monitoring_grafana_admin_password`** -- candidate for removing
-  from Secrets Manager entirely, not moving to local storage. See
-  Category I above.
+- **`monitoring_grafana_admin_password`** -- **removed** 2026-09-10
+  (Category I above). Not moved to local storage: deleted outright.
 - **`shared_ingress_auth_password`/`_hash`** -- stays in Secrets
   Manager for now (Terraform actively keeps the Kubernetes Secret
   populated so the rollback stays a one-chain-edit swap, no rebuild),
