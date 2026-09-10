@@ -4,10 +4,10 @@ Status: current. Covers all 10 secret groups / 26 keys created by the
 SOPS-to-Secrets-Manager cutover (`PARKED.md`/`decisions.md`'s own
 writeups). The `aws_secretsmanager_secret` container resources are being
 migrated out of `bootstrap/terraform-state/secrets_manager.tf` into
-`bootstrap/secrets-manager/` one group at a time — see that repo's own
-README for the migration-status table; the per-group docs it references
-(`bootstrap/secrets-manager/secrets/*.md`) name where each block currently
-lives. `infra/home-infra`'s own README.md ("First apply" section)
+`bootstrap/secrets-manager/` one group at a time (a self-contained
+module dir per secret, `secrets/<repo>/<service>/`) — see that repo's
+own README for the migration-status table; each secret's own
+`README.md` there names where its resource currently lives. `infra/home-infra`'s own README.md ("First apply" section)
 covers a plain *edit* -- this covers what rotating each kind of value
 actually involves, and whether a given secret still belongs in Secrets
 Manager at all. (`security-and-secrets.md` is not a reliable companion
