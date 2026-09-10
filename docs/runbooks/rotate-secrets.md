@@ -1,9 +1,13 @@
 # Runbook: Rotate and Manage AWS Secrets Manager Secrets
 
-Status: current. Covers all 10 secret groups / 26 keys created by
-`bootstrap/terraform-state`'s `secrets_manager.tf` (the
-SOPS-to-Secrets-Manager cutover, `PARKED.md`/`decisions.md`'s own
-writeups). `infra/home-infra`'s own README.md ("First apply" section)
+Status: current. Covers all 10 secret groups / 26 keys created by the
+SOPS-to-Secrets-Manager cutover (`PARKED.md`/`decisions.md`'s own
+writeups). The `aws_secretsmanager_secret` container resources are being
+migrated out of `bootstrap/terraform-state/secrets_manager.tf` into
+`bootstrap/secrets-manager/` one group at a time — see that repo's own
+README for the migration-status table; the per-group docs it references
+(`bootstrap/secrets-manager/secrets/*.md`) name where each block currently
+lives. `infra/home-infra`'s own README.md ("First apply" section)
 covers a plain *edit* -- this covers what rotating each kind of value
 actually involves, and whether a given secret still belongs in Secrets
 Manager at all. (`security-and-secrets.md` is not a reliable companion
@@ -30,7 +34,7 @@ After writing, the consuming Terraform root needs a real
 `plan`/`apply` (`jsondecode()` reads the live value, so nothing
 rebuilds automatically) and/or the Ansible playbook needs a real run,
 depending on which side actually consumes the key -- see each group's
-own entry in `secrets_manager.tf` for who that is, or
+own file under `bootstrap/secrets-manager/secrets/` for who that is, or
 `repositories.md`'s repo-by-repo breakdown.
 
 ## Category A: plain credentials -- rotate anytime, no coordination needed
@@ -157,21 +161,34 @@ a real, if temporary, outage for that service.
 ## Category E: Nextcloud app passwords (dedicated bot accounts)
 
 `nextcloud_tools_app_password` (`home-infra/home-agent`),
-`sankey_export_app_password` (`k3s-apps/sankey-export`). Neither has a
-dedicated rotation playbook currently -- `infra/home-infra`'s own
-`nextcloud_tools` role and its rotation playbook were retired entirely
-when `home_agent`/`open_webui` moved to k3s-native (`018c5ff`); if you
-rebuild one, this is the manual flow it should automate:
+`sankey_export_app_password` (`k3s-apps/sankey-export`).
+
+**Hard wall on automation:** a Nextcloud app password cannot mint
+another one, so minting the replacement always needs `occ` on the
+homeserver (or the account's login password, which is generated and
+discarded at bootstrap per ADR 0008). Nothing reachable from the
+in-cluster runner or an AWS Lambda can do it. Everything *after* the
+mint is scriptable.
 
 ```bash
+# on the homeserver -- the one manual step
 docker exec nextcloud-aio-nextcloud php occ user:auth-tokens:add \
-  --user <nextcloud_tools|sankey-export> \
-  --name "<new token name>"
+  --user <nextcloud_tools|sankey-export> --name "rotate-$(date +%F)"
 ```
 
-capture the printed token, `put-secret-value` it into the right group,
-`terraform apply`. Revoke the superseded token only after confirming
-the new one works (`occ user:auth-tokens:list --user <account>`, then
+For **`sankey_export_app_password`**, feed that token to
+`infra/k3s-apps/scripts/rotate-sankey-export-app-password.sh` -- it does
+the `put-secret-value`, the `terraform apply`, waits for the next
+CronJob run to prove the token, and prints the revoke command.
+
+For **`nextcloud_tools_app_password`** there is no helper script yet
+(`infra/home-infra`'s own `nextcloud_tools` role and its rotation
+playbook were retired when `home_agent`/`open_webui` moved to k3s-native,
+`018c5ff`): capture the token, `put-secret-value` it into
+`home-infra/home-agent`, `terraform apply` in `infra/k3s-apps`.
+
+Either way, revoke the superseded token only after confirming the new
+one works (`occ user:auth-tokens:list --user <account>`, then
 `occ user:auth-tokens:delete` on the old one by ID) -- both tokens are
 valid simultaneously until you revoke one, so there's no blackout
 window if you check first.
