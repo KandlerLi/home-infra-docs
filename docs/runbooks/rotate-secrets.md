@@ -127,18 +127,19 @@ not just "change both":
    ```
    This prints both the random plaintext it generated and its pbkdf2
    hash -- keep both, you need them for two different secrets.
-2. **Grafana or Open WebUI**: feed both values to
+2. Feed both values to
    `infra/k3s-apps/scripts/rotate-oidc-client-secret.sh grafana` (or
-   `openwebui`) -- it prompts silently for the plaintext and the hash,
-   rejects an obviously-swapped pair (a pbkdf2 hash always starts with
-   `$`, the random plaintext never does), writes both secrets, and runs
-   `terraform apply` (rolls Authelia and the client Deployment together,
-   in sync). **Nextcloud** has no helper script yet: `put-secret-value`
-   the hash into `home-infra/authelia`, the plaintext into
-   `authelia_oidc_nextcloud_client_secret` in `home-infra/nextcloud`,
-   `terraform apply` in `infra/k3s-apps` for Authelia, then re-run
-   `infra/home-infra`'s `site.yml` so the new plaintext reaches
-   `nextcloud_aio`'s own OIDC config.
+   `openwebui`, or `nextcloud`) -- it prompts silently for the
+   plaintext and the hash, rejects an obviously-swapped pair (a pbkdf2
+   hash always starts with `$`, the random plaintext never does),
+   writes both secrets, and runs `terraform apply` (rolls Authelia's
+   own side, plus the client's Deployment for Grafana/Open WebUI --
+   Nextcloud has none, it runs on the homeserver). **Nextcloud** (script
+   support added 2026-09-11) additionally re-runs `infra/home-infra`'s
+   `site.yml` itself (`--ask-become-pass`, run this one yourself) so
+   the new plaintext reaches Nextcloud's own `occ user_oidc:provider`
+   config -- confirmed live this step is a real upsert, not a
+   formality.
 
 Getting the order wrong (only updating one side, or applying the two
 repos' changes far apart in time) locks that one client's SSO out
@@ -155,16 +156,15 @@ a real, if temporary, outage for that service.
   Update your own password manager entry *before* applying, not after
   -- there's no way to look the plaintext back up once only the hash
   exists.
-- **`shared_ingress_auth_password`** + **`shared_ingress_auth_password_hash`**
-  (`home-infra/ingress`) -- Traefik's dormant Basic Auth fallback (see
-  `BACKLOG.md`'s Authelia SQLite item for why it's kept). Generate a
-  new password, hash it the same way as `authelia_admin_password_hash`
-  above (any bcrypt tool works here, not just Authelia's -- Traefik's
-  `basicAuth` middleware just wants a standard htpasswd-format hash),
-  `put-secret-value` both keys, `terraform apply`, and update
-  `infra/home-infra/scripts/sync_secrets_to_pass.py`'s target
-  (`ingress/password` in `pass`) by re-running that script so your own
-  `pass` copy doesn't go stale.
+- ~~`shared_ingress_auth_password` + `shared_ingress_auth_password_hash`~~
+  -- **retired 2026-09-11**, not just this entry gone stale. This was
+  Traefik's dormant Basic Auth fallback; once `authelia-forward-auth`
+  held stable across several more days with no recurrence of
+  `BACKLOG.md`'s Authelia SQLite issue, the whole rollback path (the
+  `shared-auth` middleware, its Kubernetes Secret, this key pair, and
+  `sync_secrets_to_pass.py` itself, whose only remaining mapping this
+  was) was removed rather than rotated. See
+  `home-infra/ingress/README.md`'s own "Removed" section.
 
 ## Category E: Nextcloud app passwords (dedicated bot accounts)
 
