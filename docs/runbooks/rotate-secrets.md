@@ -121,14 +121,16 @@ not just "change both":
    ```
    This prints both the random plaintext it generated and its pbkdf2
    hash -- keep both, you need them for two different secrets.
-2. `put-secret-value` the **hash** into `home-infra/authelia`.
-3. `put-secret-value` the **plaintext** into the client's own group
-   (`home-infra/grafana`/`home-infra/open-webui`), or update
-   `authelia_oidc_nextcloud_client_secret` in `home-infra/nextcloud`
-   for Nextcloud.
-4. `terraform apply` in `infra/k3s-apps` (rolls Authelia *and* the
-   Grafana/Open WebUI Deployment together in one apply, so the hash
-   and plaintext land in sync) -- for Nextcloud, also re-run
+2. **Grafana or Open WebUI**: feed both values to
+   `infra/k3s-apps/scripts/rotate-oidc-client-secret.sh grafana` (or
+   `openwebui`) -- it prompts silently for the plaintext and the hash,
+   rejects an obviously-swapped pair (a pbkdf2 hash always starts with
+   `$`, the random plaintext never does), writes both secrets, and runs
+   `terraform apply` (rolls Authelia and the client Deployment together,
+   in sync). **Nextcloud** has no helper script yet: `put-secret-value`
+   the hash into `home-infra/authelia`, the plaintext into
+   `authelia_oidc_nextcloud_client_secret` in `home-infra/nextcloud`,
+   `terraform apply` in `infra/k3s-apps` for Authelia, then re-run
    `infra/home-infra`'s `site.yml` so the new plaintext reaches
    `nextcloud_aio`'s own OIDC config.
 
