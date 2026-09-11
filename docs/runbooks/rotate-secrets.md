@@ -40,15 +40,21 @@ own file under `bootstrap/secrets-manager/secrets/` for who that is, or
 ## Category A: plain credentials -- rotate anytime, no coordination needed
 
 `home_agent_openai_api_key`, `home_agent_ghcr_token`
-(`home-infra/home-agent`), `k3s_ingress_acme_dns01_access_key_id` /
-`_secret_access_key` (`home-infra/ingress`). Generate the new
-credential at its own source (OpenAI dashboard, a new GHCR token,
-`aws iam create-access-key` on `dyndns`'s own `traefik-acme-dns01` IAM
-user), `put-secret-value`, then `terraform apply` in `infra/k3s-apps`
-to roll the consuming Deployment/Secret. For the ACME DNS-01 pair,
-delete the old access key from IAM only after confirming the new one
-issued a real certificate -- Let's Encrypt renewal runs continuously,
-so there's no safe window to be credential-less.
+(`home-infra/home-agent`). Generate the new credential at its own
+source (OpenAI dashboard, a new GHCR token), `put-secret-value`, then
+`terraform apply` in `infra/k3s-apps` to roll the consuming
+Deployment/Secret.
+
+`k3s_ingress_acme_dns01_access_key_id` / `_secret_access_key`
+(`home-infra/ingress`) is the same shape but its own credential is
+itself Terraform-managed (`aws_iam_access_key.acme_dns01` in
+`aws/dyndns`, `lifecycle { create_before_destroy = true }`) -- rotate
+it with `terraform apply -replace=aws_iam_access_key.acme_dns01` there
+instead of a raw `aws iam create-access-key` (which would create a
+real IAM key Terraform's own state doesn't know about). See
+`bootstrap/secrets-manager/secrets/home-infra/ingress/README.md` for
+the full proven procedure (rotated live 2026-09-11) and why the old
+key needs no separate manual deletion step any more.
 
 `blocky_postgres_password` is almost this category, but the database
 itself also needs the change -- Postgres won't accept the new value
