@@ -217,13 +217,22 @@ runner re-registered successfully post-apply.
 
 Not a password you invent -- it's derived from a real SES secret
 access key via `aws/ses-relay/scripts/derive_smtp_password.py`, AWS's
-own published SigV4-based algorithm. "Rotating" this really means
-rotating the underlying IAM access key first (`aws/ses-relay`'s own
-Terraform-managed SES user), running the derive script against the
-new key, then `put-secret-value` on `home-infra/monitoring` and
-`terraform apply` in `infra/k3s-apps` (Alertmanager) --
-`infra/home-infra`'s own `site.yml` pre_tasks also need a re-run since
-Ansible reads this same group directly.
+own published SigV4-based algorithm. The underlying IAM access key is
+itself Terraform-managed (`aws_iam_access_key.smtp` in `aws/ses-relay`,
+`lifecycle { create_before_destroy = true }`, same pattern as
+`home-infra/ingress`'s ACME key) -- rotate it with `terraform apply
+-replace=aws_iam_access_key.smtp` there, not a raw `aws iam
+create-access-key`. Rotated live 2026-09-11: derive script against the
+new key, `put-secret-value` on `home-infra/monitoring`, `terraform
+apply` in `infra/k3s-apps` -- rolls *both* Alertmanager and Authelia
+automatically (`checksum/config` on each Deployment). No `site.yml`
+re-run needed -- confirmed live that Ansible's own `pre_tasks` only
+`assert` these values are non-empty, never template them into a file
+(Alertmanager itself moved to k3s outright). Verified for real with a
+genuine SMTP AUTH + send against SES using the new credentials, not
+just a clean apply. See
+`bootstrap/secrets-manager/secrets/home-infra/monitoring/README.md`
+for the full procedure.
 
 ## Category H: `monitoring_ntfy_topic` -- an identifier, not a credential
 
