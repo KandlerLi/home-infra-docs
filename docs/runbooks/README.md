@@ -37,6 +37,9 @@
 - [Rotate and manage AWS Secrets Manager secrets](rotate-secrets.md) —
   per-secret rotation procedures, automated-rotation feasibility, and
   which secrets do/don't belong in Secrets Manager at all
+- [Close Open WebUI's native-login MFA-bypass gap](harden-open-webui-login.md) —
+  a stale PersistentConfig row, not the Terraform env vars, was the actual
+  cause; the fix and how to redo it (deployed and confirmed live)
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
