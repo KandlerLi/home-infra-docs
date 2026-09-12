@@ -2,12 +2,13 @@
 
 Status: current. Covers all 10 secret groups / 26 keys created by the
 SOPS-to-Secrets-Manager cutover (`PARKED.md`/`decisions.md`'s own
-writeups). The `aws_secretsmanager_secret` container resources are being
-migrated out of `bootstrap/terraform-state/secrets_manager.tf` into
-`bootstrap/secrets-manager/` one group at a time (a self-contained
-module dir per secret, `secrets/<repo>/<service>/`) — see that repo's
-own README for the migration-status table; each secret's own
-`README.md` there names where its resource currently lives. `infra/home-infra`'s own README.md ("First apply" section)
+writeups). Every `aws_secretsmanager_secret` container resource has
+since migrated out of `bootstrap/terraform-state` (that root's own
+`secrets_manager.tf` is deleted, the campaign closed out 2026-09-12)
+into `bootstrap/secrets-manager/` (a self-contained module dir per
+secret, `secrets/<repo>/<service>/`) — see that repo's own README for
+the migration-status table; each secret's own `README.md` there
+documents its keys, consumers, and rotation procedure. `infra/home-infra`'s own README.md ("First apply" section)
 covers a plain *edit* -- this covers what rotating each kind of value
 actually involves, and whether a given secret still belongs in Secrets
 Manager at all. (`security-and-secrets.md` is not a reliable companion
@@ -39,11 +40,12 @@ own file under `bootstrap/secrets-manager/secrets/` for who that is, or
 
 ## Category A: plain credentials -- rotate anytime, no coordination needed
 
-`home_agent_openai_api_key`, `home_agent_ghcr_token`
-(`home-infra/home-agent`). Generate the new credential at its own
-source (OpenAI dashboard, a new GHCR token), `put-secret-value`, then
-`terraform apply` in `infra/k3s-apps` to roll the consuming
-Deployment/Secret.
+`home_agent_openai_api_key` (`home-infra/home-agent`) and `token`
+(`k3s-apps/ghcr-pull-token` — split out of `home-infra/home-agent`
+2026-09-12, shared by `modules/home_agent` and `modules/sankey_export`).
+Generate the new credential at its own source (OpenAI dashboard, a new
+GHCR PAT), `put-secret-value`, then `terraform apply` in
+`infra/k3s-apps` to roll the consuming Deployment/Secret.
 
 `k3s_ingress_acme_dns01_access_key_id` / `_secret_access_key`
 (`home-infra/ingress`) is the same shape but its own credential is
