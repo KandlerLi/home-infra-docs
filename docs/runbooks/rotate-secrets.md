@@ -5,7 +5,7 @@ SOPS-to-Secrets-Manager cutover (`PARKED.md`/`decisions.md`'s own
 writeups). Every `aws_secretsmanager_secret` container resource has
 since migrated out of `bootstrap/terraform-state` (that root's own
 `secrets_manager.tf` is deleted, the campaign closed out 2026-09-12)
-into `bootstrap/secrets-manager/` (a self-contained module dir per
+into `aws/secrets-manager/` (a self-contained module dir per
 secret, `secrets/<repo>/<service>/`) — see that repo's own README for
 the migration-status table; each secret's own `README.md` there
 documents its keys, consumers, and rotation procedure. `infra/home-infra`'s own README.md ("First apply" section)
@@ -35,7 +35,7 @@ After writing, the consuming Terraform root needs a real
 `plan`/`apply` (`jsondecode()` reads the live value, so nothing
 rebuilds automatically) and/or the Ansible playbook needs a real run,
 depending on which side actually consumes the key -- see each group's
-own file under `bootstrap/secrets-manager/secrets/` for who that is, or
+own file under `aws/secrets-manager/secrets/` for who that is, or
 `repositories.md`'s repo-by-repo breakdown.
 
 ## Category A: plain credentials -- rotate anytime, no coordination needed
@@ -54,7 +54,7 @@ itself Terraform-managed (`aws_iam_access_key.acme_dns01` in
 it with `terraform apply -replace=aws_iam_access_key.acme_dns01` there
 instead of a raw `aws iam create-access-key` (which would create a
 real IAM key Terraform's own state doesn't know about). See
-`bootstrap/secrets-manager/secrets/home-infra/ingress/README.md` for
+`aws/secrets-manager/secrets/home-infra/ingress/README.md` for
 the full proven procedure (rotated live 2026-09-11) and why the old
 key needs no separate manual deletion step any more.
 
@@ -233,7 +233,7 @@ re-run needed -- confirmed live that Ansible's own `pre_tasks` only
 (Alertmanager itself moved to k3s outright). Verified for real with a
 genuine SMTP AUTH + send against SES using the new credentials, not
 just a clean apply. See
-`bootstrap/secrets-manager/secrets/home-infra/monitoring/README.md`
+`aws/secrets-manager/secrets/home-infra/monitoring/README.md`
 for the full procedure.
 
 ## Category H: `monitoring_ntfy_topic` -- an identifier, not a credential
