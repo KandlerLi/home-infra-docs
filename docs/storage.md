@@ -16,21 +16,21 @@
         └── github-runner-cloud-init.iso
 
 /dev/sdc1 (ext4)
-└── /mnt/backup-hdd                Nextcloud AIO's Borg backup target
+└── /mnt/red-hdd               Nextcloud AIO's Borg backup target
 ```
 
 The tree shows managed paths, not a complete listing of private data.
 
 ## Current capacity
 
-Snapshot date: 2026-08-18 (`/`, `/mnt/black-hdd`); `/mnt/backup-hdd` added
+Snapshot date: 2026-08-18 (`/`, `/mnt/black-hdd`); `/mnt/red-hdd` added
 2026-09-15, not yet snapshotted here.
 
 | Mount | Total | Used | Available | Used percentage |
 | --- | ---: | ---: | ---: | ---: |
 | `/` | 51 GiB | 26 GiB | 23 GiB | 54% |
 | `/mnt/black-hdd` | 916 GiB | 138 GiB | 732 GiB | 16% |
-| `/mnt/backup-hdd` | — | — | — | — |
+| `/mnt/red-hdd` | — | — | — | — |
 
 ## Mount management
 
@@ -43,14 +43,14 @@ owner: www-data
 group: www-data
 mode: 02770
 
-mount: /mnt/backup-hdd
+mount: /mnt/red-hdd
 filesystem: ext4
 owner: root
 group: root
 mode: 0755
 ```
 
-`/mnt/backup-hdd` is `root:root` rather than `black_hdd`'s `www-data:www-data`
+`/mnt/red-hdd` is `root:root` rather than `black_hdd`'s `www-data:www-data`
 -- it's written to only by Nextcloud AIO's own backup container (root-
 equivalent inside Docker), not the Nextcloud app container directly. `sdc1`
 contained a leftover Windows OEM recovery partition
@@ -111,7 +111,7 @@ Safety behaviour in the role:
 
 ## Backup scope
 
-`/mnt/backup-hdd` exists now (2026-09-15) as a target, but AIO's own Borg
+`/mnt/red-hdd` exists now (2026-09-15) as a target, but AIO's own Borg
 backup still needs pointing at it through the AIO interface -- see
 `docs/runbooks/nextcloud-aio.md`'s "Enable the Borg backup" section. Once
 that's live and daily backups are enabled, it covers Nextcloud user data and
