@@ -1,5 +1,34 @@
 # Runbook: Operate Nextcloud AIO
 
+## Enable the Borg backup
+
+`/mnt/backup-hdd` (`storage` role, `backup_hdd_*` vars) is a dedicated second
+HDD for exactly this. AIO's backup path is configured entirely through its
+own web interface -- there is no `NEXTCLOUD_DATADIR`-style environment
+variable for it, so this step can't be automated in Ansible; confirmed
+against AIO's own upstream docs before writing this rather than guessed.
+
+1. Confirm the mount first: `ssh julian@192.168.178.100 'findmnt /mnt/backup-hdd'`.
+2. Open the AIO interface: `https://192.168.178.100:8080`.
+3. Under the **Backup** section, set the backup directory to `/mnt/backup-hdd`.
+4. Click **Create Backup**.
+5. **Save the shown encryption password somewhere durable and separate from
+   this server** (e.g. `pass`) -- without it, the backup is unrestorable.
+   AIO only shows it once.
+6. If the first backup fails with a permission error, `/mnt/backup-hdd` is
+   `root:root`/`0755` by default (`storage` role) -- adjust
+   `backup_hdd_mode`/`backup_hdd_owner` and re-apply rather than
+   `chmod`-ing the live host directly.
+7. Once the first backup succeeds, enable **Daily backups** from the same
+   section. Default retention is AIO's own
+   `--keep-within=7d --keep-weekly=4 --keep-monthly=6` -- fine as a
+   starting point, adjustable later via `BORG_RETENTION_POLICY` on the
+   mastercontainer if needed.
+
+This covers Nextcloud user data and AIO's own configuration/database state.
+See `docs/storage.md`'s "Backup scope" section for what it does **not**
+cover.
+
 ## Current model
 
 Ansible manages the AIO master container. The master container manages the

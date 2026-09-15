@@ -14,22 +14,27 @@
     └── github-runner/
         ├── github-runner.qcow2
         └── github-runner-cloud-init.iso
+
+/dev/sdc1 (ext4)
+└── /mnt/backup-hdd                Nextcloud AIO's Borg backup target
 ```
 
 The tree shows managed paths, not a complete listing of private data.
 
 ## Current capacity
 
-Snapshot date: 2026-08-18.
+Snapshot date: 2026-08-18 (`/`, `/mnt/black-hdd`); `/mnt/backup-hdd` added
+2026-09-15, not yet snapshotted here.
 
 | Mount | Total | Used | Available | Used percentage |
 | --- | ---: | ---: | ---: | ---: |
 | `/` | 51 GiB | 26 GiB | 23 GiB | 54% |
 | `/mnt/black-hdd` | 916 GiB | 138 GiB | 732 GiB | 16% |
+| `/mnt/backup-hdd` | — | — | — | — |
 
 ## Mount management
 
-The `storage` Ansible role mounts the HDD by filesystem UUID and configures:
+The `storage` Ansible role mounts both HDDs by filesystem UUID and configures:
 
 ```text
 mount: /mnt/black-hdd
@@ -37,11 +42,25 @@ filesystem: ext4
 owner: www-data
 group: www-data
 mode: 02770
+
+mount: /mnt/backup-hdd
+filesystem: ext4
+owner: root
+group: root
+mode: 0755
 ```
 
-The role creates or adjusts only the mount-point directory. Infrastructure
-automation must never recursively change ownership or permissions below the
-mount.
+`/mnt/backup-hdd` is `root:root` rather than `black_hdd`'s `www-data:www-data`
+-- it's written to only by Nextcloud AIO's own backup container (root-
+equivalent inside Docker), not the Nextcloud app container directly. `sdc1`
+contained a leftover Windows OEM recovery partition
+(`$RECYCLE.BIN`/`Recovery`/`System Volume Information`, no `Windows`/`Users`/
+`Program Files`) before being reformatted -- confirmed via a read-only mount
+before wiping, not assumed.
+
+The role creates or adjusts only each mount point directory itself.
+Infrastructure automation must never recursively change ownership or
+permissions below either mount.
 
 ## Nextcloud data
 
@@ -92,11 +111,13 @@ Safety behaviour in the role:
 
 ## Backup scope
 
-The documentation does not currently prove a complete backup policy. A future
-backup design must explicitly cover:
+`/mnt/backup-hdd` exists now (2026-09-15) as a target, but AIO's own Borg
+backup still needs pointing at it through the AIO interface -- see
+`docs/runbooks/nextcloud-aio.md`'s "Enable the Borg backup" section. Once
+that's live and daily backups are enabled, it covers Nextcloud user data and
+AIO's own configuration/database state (see AIO's own docs for the exact
+scope) -- everything else below is still **not** covered by anything:
 
-- Nextcloud user data
-- AIO configuration and database state
 - SOPS-encrypted infrastructure secrets and access to the GPG private key
 - GitHub runner configuration only if preserving the runner is preferable to
   rebuilding it
@@ -104,3 +125,6 @@ backup design must explicitly cover:
 - Deluge downloads and config (`downloads/`, `deluge-config/`) if downloaded
   files should survive a disaster recovery — not covered by AIO's backup
   even though the folder is visible from within Nextcloud
+
+The documentation does not currently prove a complete backup policy even
+once AIO's own backup is enabled.
