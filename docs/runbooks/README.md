@@ -10,14 +10,16 @@
   and proposed public-ingress checklist
 - [Deploy and publish Open WebUI](publish-open-webui.md) — private bootstrap,
   guarded route switch, validation, backup, and rollback
-- [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — dedicated
-  account, scoped share, encrypted app password, validation, and rollback
-- [Enable Nextcloud write tools](enable-nextcloud-writes.md) — create/update/
-  delete/move, executed immediately (ADR 0013; implemented, not yet
-  deployed)
+- [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — **retired**
+  2026-08-30, the Ansible/Docker deployment it described no longer exists;
+  see the file itself for where the service actually lives now
+  (`infra/k3s-apps`)
+- [Enable Nextcloud write tools](enable-nextcloud-writes.md) — **retired**
+  2026-08-30, same reason; the feature itself (ADR 0013) is still
+  implemented, not yet deployed, just via a different mechanism now
 - [Enable the Nextcloud Shopping List tools](enable-nextcloud-shopping-list.md) —
-  add/check/uncheck/remove items on a shared Shopping List app list,
-  executed immediately (ADR 0014; implemented, not yet deployed)
+  **retired** 2026-08-30, same reason; the feature itself (ADR 0014) is
+  still implemented, not yet deployed, just via a different mechanism now
 - [Enable OpenAI voice transcription](enable-openai-voice-transcription.md) —
   routes Open WebUI's speech-to-text through home-agent instead of the
   local Whisper engine this deployment's network can't reach (deployed and
