@@ -1,6 +1,9 @@
 # Runbooks
 
 - [Rebuild the homeserver](rebuild-homeserver.md)
+- [Known issue: homeserver total, silent freeze](homeserver-silent-freeze.md) —
+  root cause unidentified, a hardware watchdog backstop is applied and
+  confirmed live; not an open task, kept as a known issue in case it recurs
 - [Operate Nextcloud AIO](nextcloud-aio.md)
 - [Operate the GitHub runner VM](github-runner.md) — **retired** 2026-08-31,
   the runner moved from a dedicated VM to a k3s Deployment per repository;
