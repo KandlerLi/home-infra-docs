@@ -2,25 +2,34 @@
 
 ## Secret management
 
-The infrastructure repository uses SOPS with a GPG recipient. Ansible loads
-encrypted variables through the `community.sops.sops` vars plugin.
+**Rewritten 2026-09-16: this section previously described SOPS, which
+was fully retired 2026-09-09.** Every secret in this workspace now
+lives in AWS Secrets Manager, managed by a dedicated repository
+(`aws/secrets-manager`) whose own Terraform creates only the secret
+*containers* — never a value. Each container is a self-contained
+module directory (`secrets/<repo>/<service>/`, its own `main.tf` plus
+a `README.md` documenting exactly which keys it holds, who consumes
+them, and how to rotate each). Real values are always set out-of-band
+via `aws secretsmanager put-secret-value`, never through Terraform
+(there is deliberately no `aws_secretsmanager_secret_version` resource
+anywhere in this workspace — putting a real secret value in Terraform
+state is treated as equivalent to committing it in plaintext).
 
-Tracked encrypted file:
+Every repository that needs a secret reads it directly from AWS
+Secrets Manager at plan/apply time — Ansible's `site.yml` does this in
+its own `pre_tasks` via the `amazon.aws.secretsmanager_secret` lookup
+plugin; each Terraform repository's own `secrets.tf` does it via a
+`data "aws_secretsmanager_secret_version"` + `jsondecode()`, one data
+source per secret group. There is no tracked encrypted file anywhere
+in this repository any more, and no local decryption step — reading a
+secret requires only the caller's own AWS credentials (an `aws login`
+session for a human, an IAM role for CI), the same authentication
+every other AWS API call in this workspace already needs.
 
-```text
-ansible/inventory/group_vars/all/secrets.sops.yml
-```
-
-Current encrypted variable names:
-
-- `github_runner_github_token`
-- `home_agent_openai_api_key`
-- `shared_ingress_agent_auth_password`
-- `shared_ingress_agent_auth_password_hash`
-- `shared_ingress_deluge_auth_password_hash`
-
-Secret values must never be copied into this repository, defaults files,
-Docker image layers, Compose files, command output, or architecture diagrams.
+Secret values must never be copied into any repository, defaults
+files, Docker image layers, Compose/Kubernetes manifests, command
+output, or architecture diagrams — this rule didn't change with the
+mechanism.
 
 ### Terraform state
 
@@ -80,7 +89,9 @@ pending a separate archive/delete decision for that repository.
 - SSH authenticates the controller to `julian@192.168.178.100`.
 - Ansible uses `/usr/bin/python3` remotely.
 - Privileged roles use `become`.
-- SOPS decryption occurs on the controller.
+- Secrets are read from AWS Secrets Manager at apply time (see "Secret
+  management" above) — there is no local decryption step, unlike the
+  retired SOPS mechanism this section used to describe.
 
 ### Nextcloud AIO to Docker
 
@@ -89,71 +100,137 @@ containers. This makes it a highly trusted component. A read-only bind mount
 of a Unix socket does not make the Docker API itself harmless, so access must
 not be extended to unrelated containers.
 
-### Physical host to runner VM
+### Self-hosted GitHub Actions runners
 
-The runner is isolated in a Debian VM on a private NAT network. It receives no
-host Docker socket, host SSH private key, or HDD mount. Separate runner Unix
-accounts reduce accidental repository crossover inside the VM, but do not
-provide kernel-level isolation from each other.
+**Rewritten 2026-09-16: this section previously described a single,
+dedicated libvirt VM.** That VM was decommissioned 2026-08-31 in favor
+of one k3s Deployment per repository (`bootstrap/k3s-bootstrap`'s own
+`modules/github_runner`), pinned to a dedicated, tainted node
+(`k3s-node-2`, `ci=github-runner:NoSchedule`) so CI workloads never
+compete with or endanger anything on `k3s-node-1`. Every repository in
+`github/repo-infra/config.yml`'s `runner: true` list gets its own
+runner Pod, not just one shared VM serving a single repository.
+
+Each Pod runs the community `myoung34/github-runner` image with a
+privileged `docker:dind` sidecar — a deliberate trade-off, not an
+oversight: it lets every repository's existing `docker build`/`docker
+run` workflow steps keep working completely unmodified, at the real
+cost that a privileged container can escape to its own node. This is
+contained specifically to `k3s-node-2`, which runs nothing else, the
+same isolation principle the old VM's own private NAT network
+provided. Each Pod is ephemeral (one job, then a fresh Pod for the
+next), sidestepping the whole class of cross-job workspace-reuse bug a
+persistent runner needs real logic to handle.
+
+Runner registration used a shared, manually-rotated fine-grained PAT
+until 2026-09-16, when it switched to GitHub App installation tokens
+(`kandlerli-home-infra-runner`, `Administration: write`, installed on
+every runner-enabled repository) — the runner image mints its own
+short-lived registration token internally at container start, rather
+than a durable credential sitting in AWS Secrets Manager waiting to be
+manually rotated.
 
 ### Deployed AI boundary
 
-The deployed design separates the model-facing container from host access:
+**Rewritten 2026-09-16: this section previously described a single
+homeserver Docker container.** `home_agent` moved to a k3s-native
+Deployment 2026-08-30 (`infra/k3s-apps`' `modules/home_agent`) and now
+runs two containers as sidecars in one Pod, sharing a Unix socket
+through an `emptyDir` volume — the same trust shape the pre-migration
+homeserver deployment already had, just inside one Pod instead of one
+host:
 
 ```text
 Cloud model
    |
-home-agent container (unprivileged)
+home-agent container (unprivileged, sidecar A)
    |
-restricted Unix-socket API
+restricted Unix-socket API (shared emptyDir)
    |
-home-tools service (fixed read-only operations)
+nextcloud-tools container (unprivileged, sidecar B)
 ```
 
+`home_tools_service` (which reports the physical homeserver's own
+hardware health — disk, load, container status) couldn't move into
+this Pod the way `nextcloud_tools` did, since it genuinely needs to
+observe the real host, not a k3s VM. It's reached instead over a
+narrow, opt-in TCP listener bound to the k3s VM's own isolated-network
+address (`192.168.101.1:8095`), not a Unix socket, and not exposed
+beyond that network.
+
 The agent has no arbitrary shell, unrestricted SSH, root account,
-Docker socket, autonomous Ansible deployment, file deletion, or package
-installation capability.
+Docker socket, autonomous Ansible/Terraform deployment, file deletion,
+or package installation capability. `home_agent`'s own image is a
+private GHCR package built by a dedicated CI workflow on the
+self-hosted runner — deliberately never built on the homeserver
+itself.
 
 ## Public exposure controls
 
-The agent API is published at `ai.jkandler.de` with:
+**Rewritten 2026-09-16: authentication changed from Traefik Basic Auth
+to Authelia forward-auth (2026-09-08), and routing moved from the
+homeserver's own `shared_ingress` role to k3s-native Traefik
+(2026-09-01).** The agent API is published at `ai.jkandler.de/healthz`
+and `/v1/chat` with:
 
-- HTTPS termination
+- HTTPS termination (k3s-native Traefik, ACME-issued certificates)
+- Authelia forward-auth (MFA-gated OIDC session, not a static
+  username/password pair — unauthenticated requests redirect to
+  `auth.jkandler.de` rather than returning a bare 401)
 - authentication independent of the model prompt
 - rate and request-size limits
 - explicit proxy trust configuration
 - security headers appropriate to the UI/API
-- audit-friendly logs that exclude prompts, secret values, and tool payloads
-- verified preservation of the current Nextcloud route
+- audit-friendly logs that exclude prompts, secret values, and tool
+  payloads
 
-The shared proxy, Nextcloud reverse-proxy migration, guarded rollback path,
-agent authentication, and limits are deployed. The Basic Auth username is
-`julian`; the password and verifier remain encrypted with SOPS. The underlying
-agent port remains bound to host loopback.
+`ai.jkandler.de` is a single hostname split by *path* between two
+separate k3s Deployments: `/healthz` and `/v1/chat` go to `home_agent`
+(Authelia-gated as above); everything else goes to `open_webui`,
+which deliberately does **not** carry Authelia forward-auth — it does
+its own app-level Authelia OIDC login instead (see below). The
+underlying `home_agent` Service is never reachable except through this
+ingress chain — no direct `NodePort`/`hostPort`.
 
 ### Private Open WebUI boundary
 
-The privately deployed Open WebUI keeps the existing home-agent as the security
-and provider boundary. Open WebUI receives a placeholder API key, not
-`home_agent_openai_api_key`, and can reach only the agent's compatibility API
-over a non-masqueraded Docker bridge. It receives no Docker socket, Nextcloud
-mount, host tool socket, shell, or SSH credential. Live validation confirmed
-that outbound HTTPS is blocked.
+**Rewritten 2026-09-16: this section previously described a
+homeserver Docker container with a placeholder API key over a
+non-masqueraded bridge.** That deployment stopped 2026-08-30; Open
+WebUI now runs as its own k3s-native Deployment
+(`infra/k3s-apps`' `modules/open_webui`). Its connection to
+`home_agent` is to that Deployment's own in-cluster Service now, not a
+Docker bridge — Open WebUI's container still never gains real
+outbound egress to anything but that Service, the same boundary the
+old bridge enforced, just expressed differently. Speech-to-text (ADR
+0012) is still routed through `home_agent`'s own bounded relay for the
+same reason chat is.
+
+Since 2026-09-08, Open WebUI's own login is Authelia OIDC SSO
+(MFA-gated) — native email/password login and signup are both
+disabled at the protocol level (`ENABLE_PASSWORD_AUTH`/
+`ENABLE_SIGNUP=False`), closing what was otherwise a second,
+MFA-skipping credential path sitting behind Authelia's own gate. There
+is no Traefik Basic Auth in front of the UI route at all any more —
+Open WebUI's own authentication is the only gate, which is also why
+stacking Basic Auth in front of it was never viable: it would collide
+with the `Authorization: Bearer` header signed-in Open WebUI requests
+already carry.
 
 Uploads, plugins, runtime package installation, code execution, the code
 interpreter, web search, image generation, API keys, subagents, and workspace
 tools are disabled. The image is pinned by tag and digest, runs under a
-non-login host UID with all capabilities dropped and `no-new-privileges`, and
+non-login UID with all capabilities dropped and `no-new-privileges`, and
 has memory, CPU, process, and log limits. Its upstream startup behaviour
 requires a writable container root filesystem; this residual risk is recorded
 and must be reconsidered on each image upgrade.
 
-Open WebUI introduces sensitive local account and chat history under
-`/var/lib/open-webui`. Back it up before upgrades, protect backups as private
-data, and do not copy chats into logs or documentation. The public UI relies on
-Open WebUI authentication; stacking Traefik Basic Auth would collide with the
-Bearer `Authorization` header used by signed-in Open WebUI requests. The exact
-legacy `/healthz` and `/v1/chat` routes retain Traefik Basic Auth.
+Open WebUI's real account/chat-history data (`/var/lib/open-webui` on
+the homeserver, NFS-exported into the k3s Pod — migrated live from the
+original homeserver deployment, not started fresh) is sensitive local
+data. Back it up before upgrades (`infra/home-infra`'s `aux_backup`
+role, added 2026-09-16, now covers this specifically), protect backups
+as private data, and do not copy chats into logs or documentation.
 
 The first administrator was created privately on 2026-08-19. A post-onboarding
 check confirmed authentication and login enabled, onboarding closed, and
@@ -165,41 +242,65 @@ persisted.
 
 When requested, selected health data such as load, disk usage, container
 names, and container health state is sent to the configured OpenAI model.
-Nextcloud documents are explicitly outside the deployed milestone and must
-remain opt-in in any future retrieval design.
 
-The private web UI does not change that rule. Any future Nextcloud integration
-must use a separate least-privilege service, dedicated credentials, scoped
-paths and operations, explicit confirmation for writes, and audit records that
-do not disclose document contents.
+**Corrected 2026-09-16: the read-only Nextcloud boundary this section
+used to describe as "outside the deployed milestone" has actually
+been live since 2026-08-21.** See "Nextcloud tool boundary" below for
+its real, current scope. Write access (ADR 0011) and Shopping List
+tool access (ADR 0014) remain implemented in code but not yet
+deployed — both would execute immediately per ADR 0013 (no
+human-confirmation step) once they are.
 
-### Prepared read-only Nextcloud boundary
+Any future Nextcloud integration beyond what's already deployed must
+use a separate least-privilege service, dedicated credentials, scoped
+paths and operations, and audit records that do not disclose document
+contents. There is no background indexing today, and none should be
+added without a separate threat review.
 
-Infrastructure revision `313283c` prepares but does not deploy that separate
-boundary. `nextcloud-tools.service` is a dedicated non-login identity with no
-Docker group, no capabilities, a strict protected filesystem, and network
-access restricted to Unix sockets plus `127.0.0.1`. It authenticates to the AIO
-Apache loopback endpoint with a service-owned `0400` app-password file.
+### Nextcloud tool boundary
 
-The future `home-agent` integration mounts only the protected Unix socket and
-adds its numeric client group. Neither `home-agent` nor Open WebUI receives the
-app password, Nextcloud data mount, or general WebDAV network client. The
-service supports only bounded `PROPFIND` metadata and small approved text-file
-`GET` requests below one configured root. It contains no WebDAV write methods.
+**Rewritten 2026-09-16: this section previously described a
+"prepared but not deployed" boundary.** It's been live since
+2026-08-21, and the underlying deployment mechanism changed
+2026-08-30 — `nextcloud_tools_service.py` now runs as a sidecar
+alongside `home_agent` in the same k3s Pod (see "Deployed AI boundary"
+above), sharing a Unix socket through an `emptyDir`, not a
+homeserver-local Unix socket file. It authenticates to Nextcloud AIO's
+Apache over the k3s VM's own isolated-network address
+(`192.168.101.1:11000`), not homeserver loopback.
 
-The dedicated Nextcloud account and app password do not yet exist. The guarded
-bootstrap creates the non-admin account with an unrevealed generated login
-password and creates a limited app password without supplying that login
-password. The token exists in non-cached Ansible memory only during the apply;
-all relevant tasks use `no_log`, and the final value is written directly as the
-service-owned `0400` host file. It is not stored in SOPS or Docker.
+Neither `home_agent` nor Open WebUI receives the Nextcloud app
+password, a Nextcloud data mount, or a general WebDAV network client.
+The service supports only bounded `PROPFIND` metadata and small
+approved text-file `GET` requests below one configured root. It
+contains no WebDAV write methods in its currently-deployed form.
 
-The human owner must share only `AI Workspace` read-only with the new account.
-The guarded rotation play validates a replacement over loopback WebDAV before
-installing it and revokes only previous tokens named `home-agent-readonly`.
-Revoke the token independently if compromise is suspected.
+The dedicated Nextcloud account (`home-agent`, non-admin) and its app
+password were created by a guarded, one-time bootstrap: the account's
+own login password is generated and never displayed, and its limited
+app password is created without ever supplying that login password.
+The token existed in non-cached Ansible memory only during that
+original apply (`no_log` throughout); the current value lives in AWS
+Secrets Manager (`home-infra/home-agent`), put there via a deliberate
+`put-secret-value` — the same role SOPS used to play before the
+2026-09-09 SOPS-to-Secrets-Manager cutover, never in the agent
+container's own environment or filesystem.
 
-Requested filenames, metadata, and text contents cross the cloud boundary when
-the agent calls these tools. There is no background indexing. Populate the
-allowed folder only with data that may be disclosed to the configured provider
-on explicit request.
+The human owner shares only `Shared/AI Workspace` (read-only, for the
+currently-deployed read scope) with the dedicated account. A guarded
+rotation play validates a replacement token over loopback WebDAV
+before installing it, and revokes only previous tokens named
+`home-agent-readonly`. Revoke the token independently if compromise is
+suspected.
+
+Requested filenames, metadata, and text contents cross the cloud
+boundary when the agent calls these tools. There is no background
+indexing. Populate the shared folder only with data that may be
+disclosed to the configured provider on explicit request.
+
+Write access (ADR 0011, create/update/delete/move) and Shopping List
+tool access (ADR 0014) both reuse this same dedicated account and app
+password, and both execute immediately per ADR 0013 — no
+human-confirmation step — once actually deployed. Neither is deployed
+as of this writing; see `docs/home-infra-ai-context/context/
+current-state.md`'s "Known gaps" section for current status.
