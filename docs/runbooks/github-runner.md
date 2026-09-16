@@ -1,82 +1,56 @@
-# Runbook: Operate the GitHub Runner VM
+# Runbook: Operate the GitHub Runner VM — retired
 
-## Current configuration
+**Retired 2026-08-31, not applicable to the current architecture.**
+This runbook described a dedicated libvirt VM (`github-runner`,
+`192.168.100.10` on `virbr10`) running a single self-hosted GitHub
+Actions runner for one repository at a time. The whole VM was
+decommissioned and `infra/home-infra`'s own `ansible/roles/github_runner`
+deleted outright once the runner architecture moved to k3s: one
+Deployment per repository (`bootstrap/k3s-bootstrap`'s own
+`modules/github_runner`), pinned to a dedicated, tainted node
+(`k3s-node-2`, `ci=github-runner:NoSchedule`) so CI workloads never
+compete with or endanger anything on `k3s-node-1`. Every repository in
+`github/repo-infra/config.yml`'s `runner: true` list gets its own
+runner now, not just `dyndns`.
 
-| Setting | Value |
-| --- | --- |
-| VM name | `github-runner` |
-| Guest address | `192.168.100.10` |
-| Network | `github_runner_network` on `virbr10` |
-| vCPUs | 2 |
-| Memory | 2048 MiB |
-| Disk | 40 GiB qcow2 |
-| Managed repository | `KandlerLi/dyndns` |
-| OS packages | `ca-certificates`, `curl`, `git`, `gzip`, `python3`, `tar`, `unzip` |
+**Authentication also changed since this runbook was current**:
+runner registration used a shared, manually-rotated fine-grained PAT
+until 2026-09-16, when it switched to GitHub App installation tokens
+(`kandlerli-home-infra-runner`) — `myoung34/github-runner` (the same
+community image, now running in k3s instead of a VM) mints its own
+short-lived registration token internally. See `PARKED.md`'s own
+"GitHub App installation tokens" entry for that history.
 
-Since 2026-08-21, `dyndns`'s CI actually runs here: `checks.yml`'s `Validate`
-and `Terraform plan` jobs and `apply.yml`'s `apply` job all use
-`runs-on: [self-hosted, home, debian]` instead of `ubuntu-latest`. `python3`
-and `unzip` were added to the package list for this — `python3` for the
-Lambda unit tests, `unzip` for `hashicorp/setup-terraform`'s binary
-extraction. This is safe against untrusted code because `dyndns`'s
-`pull_request_creation_policy: collaborators_only` plus a single
-collaborator (the owner) means only the owner can ever open a PR that
-triggers these jobs.
+There's no dedicated operate/apply runbook for the current shape —
+it's applied the same way `bootstrap/k3s-bootstrap`'s other rare
+changes are, a local `terraform apply` with the k3s node's own
+cluster-admin kubeconfig (human-apply-only, never CI — see that
+repo's own README).
 
-## Apply runner configuration
+## Adding a repository — still the same mechanism, different apply step
 
-```bash
-cd /home/julian/projects/infra/home-infra
-.venv/bin/ansible-playbook ansible/playbooks/github-runner.yml \
-  --ask-become-pass
-```
+This runbook's original "Adding a repository" workflow is still
+substantially correct, just with a different final step. Confirmed
+directly against `infra/home-infra`'s own
+`scripts/sync_github_runner_repositories.py` (its own docstring notes
+it used to also generate an Ansible variable file for the now-deleted
+VM-based role; Terraform is its only remaining consumer):
 
-## Safety behaviour
-
-The role deliberately fails when:
-
-- a VM exists without the expected disk
-- a disk exists without the expected VM
-- the existing domain points to unexpected disk, network, MAC, or cloud-init
-  media
-- a remote runner registration conflicts with local state
-- a runner is busy while an update would interrupt it
-
-Resolve these states manually. Do not bypass the checks with forced disk or VM
-recreation.
-
-## Runtime validation
-
-Read-only evidence from the 2026-08-18 snapshot:
-
-- `libvirtd` active
-- `virbr10` active at `192.168.100.1/24`
-- guest interface `vnet9` present
-- neighbour `192.168.100.10` at configured MAC address reachable
-- VNC bound to loopback port 5900
-
-A direct non-privileged `virsh` enumeration timed out. Use an approved
-privileged session when exact domain state is required.
-
-## Adding a repository
-
-The repository entry in `github_runner_github_repositories` is generated,
-not hand-edited, since 2026-08-21 — see
-`/home/julian/projects/github/repo-infra/README.md`'s "Adding a
-repository with a self-hosted GitHub Actions runner" section for the full
-workflow. In short:
-
-1. Grant the fine-grained GitHub token access to the repository.
+1. Grant the GitHub App (not a PAT) access to the new repository, via
+   the App's own installation settings.
 2. Add `runner: true` to the repository's entry in
-   `/home/julian/projects/github/repo-infra/config.yml`.
-3. In `home-infra`, run
-   `.venv/bin/python scripts/sync_github_runner_repositories.py`, review the
-   diff to `ansible/inventory/group_vars/all/github_runner_repositories.yml`,
-   and commit it.
-4. Review the runner name and Unix account generated from the ID.
-5. Apply the runner playbook.
-6. Confirm the new runner is online in the repository settings.
+   `github/repo-infra/config.yml`.
+3. In `infra/home-infra`, run
+   `.venv/bin/python scripts/sync_github_runner_repositories.py` --
+   this writes directly to the sibling
+   `bootstrap/k3s-bootstrap/repositories.auto.tfvars.json` (Terraform
+   auto-loads any `*.auto.tfvars.json` in its root module directory,
+   nothing needs to reference it explicitly). Review the diff there
+   and commit it in `k3s-bootstrap`, not `home-infra`.
+4. Apply `bootstrap/k3s-bootstrap` (human-apply-only, never CI).
+5. Confirm the new runner is online in the repository settings.
 
-Removing configuration does not automatically unregister or delete a runner.
-Decommission it explicitly first, then remove `runner: true` from
+Removing configuration does not automatically unregister or delete a
+runner. Decommission it explicitly first (scale its Deployment to
+zero or remove its `for_each` entry), then remove `runner: true` from
 `config.yml` and re-run the sync script.

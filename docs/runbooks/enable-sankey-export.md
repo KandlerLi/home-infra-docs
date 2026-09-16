@@ -1,115 +1,29 @@
-# Runbook: Enable the Finanzfluss Sankey exporter
+# Runbook: Enable the Finanzfluss Sankey exporter — retired
 
-Status: **Implemented, not yet deployed.** See [ADR 0015](../adr/0015-sankey-export-automation.md)
-for the design. This replaces the hand-maintained
-`/home/julian/sankey` script and its manually-created
-`sankey-export.service` unit with an Ansible-managed role, a dedicated
-Nextcloud account, and a 1-minute polling timer.
+**Retired 2026-09-07, not applicable to the current architecture.**
+This runbook described `infra/home-infra`'s own systemd-timer-based
+deployment of the Sankey exporter (`ansible/playbooks/sankey-export.yml`,
+the `sankey_export` role and its `sankey-export.timer`/`.service`) — the
+whole role was deleted outright once the exporter moved to a k3s
+CronJob (`infra/k3s-apps`' own `modules/sankey_export/`), the same
+precedent `landing_page`'s own earlier retirement set: it owned no host
+prerequisite anything else depended on, so nothing was left behind the
+way `nextcloud_tools`/`open_webui` left a service account and data
+directory in place.
 
-## 1. Prerequisite: share the folder (manual, not Ansible)
+`finanzfluss_export.py` itself needed zero code changes in the move —
+it was already entirely env-var-configured. There's no dedicated deploy
+runbook for the current shape — it's deployed the same way every other
+`infra/k3s-apps` module is, through that repo's own normal Terraform
+apply (CI on merge to `main`). See
+`docs/home-infra-ai-context/context/current-state.md`'s own writeup of
+the 2026-09-07 cutover for the real bugs found moving it (a CPU-request
+QoS gotcha, a `hostPath` ownership fix, and a remote-directory
+mismatch that silently 404'd every tick until caught).
 
-Sign in to Nextcloud as `admin`, open the sharing settings for
-`Documents/Finanzen`, and share it with a new internal share to the
-`sankey-export` account (created in step 3 below — share it after the
-first bootstrap run, or pre-create the share once the account exists),
-granting **Can edit** (needed for both reading the workbook and writing
-the PNG). This is a manual step, same reasoning as every other Nextcloud
-integration in this repo (ADR 0008): automating a share grant would need
-`admin`'s own credential.
-
-**A share does not preserve the sharer's own path for the recipient.**
-`sankey_export_remote_dir` must be set to wherever the folder actually
-lands from the *dedicated account's own* point of view, not
-`admin`'s — confirm it rather than assuming:
-
-```bash
-docker exec nextcloud-aio-nextcloud php occ share:list \
-  --recipient=sankey-export --output=json
-```
-
-Look at `target-path`, not `source-path` — in this deployment it landed
-at `Shared/Finanzen` (Nextcloud's default is to surface incoming shares
-under a `Shared/` folder in the recipient's own root), so
-`ansible/inventory/group_vars/all/main.yml` sets
-`sankey_export_remote_dir: Shared/Finanzen`, matching the same `Shared/`
-prefix `nextcloud_tools_allowed_root` already needed. If your `occ
-share:list` output differs, update the override to match before deploying,
-not after — this was found live, as an actual failure (the service ran
-every minute, failed every time with "workbook not found", low enough
-memory use to confirm it never even got to launching Playwright).
-
-## 2. Run tests and syntax checks
-
-```bash
-cd /home/julian/projects/infra/home-infra
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/ansible-playbook ansible/playbooks/site.yml --syntax-check
-```
-
-## 3. Bootstrap the dedicated Nextcloud account
-
-```bash
-cd /home/julian/projects/infra/home-infra
-.venv/bin/ansible-playbook ansible/playbooks/sankey-export.yml \
-  --ask-become-pass \
-  --extra-vars sankey_export_bootstrap_confirmation=BOOTSTRAP_SANKEY_EXPORT
-```
-
-This creates the `sankey-export` Nextcloud account, generates its app
-password via `occ user:auth-tokens:add`, writes it to
-`/etc/sankey-export/app-password` (mode `0400`, host-only — this is
-intentionally not in SOPS; see ADR 0015 for why a Nextcloud app password
-can't be pre-chosen the way a login password can), creates the dedicated
-Linux service account, installs the venv and pinned dependencies, installs
-Chromium for Playwright, and starts the `sankey-export.timer`.
-
-If you hadn't shared the folder yet (step 1), do it now that the account
-exists.
-
-## 4. Enable it for routine deploys
-
-Add `sankey_export_enabled: true` to
-`ansible/inventory/group_vars/all/main.yml` so future `site.yml` runs
-(code updates, not just the one-time account bootstrap) keep it deployed:
-
-```bash
-cd /home/julian/projects/infra/home-infra
-.venv/bin/ansible-playbook ansible/playbooks/site.yml --ask-become-pass
-```
-
-## 5. Verify live, end to end
-
-1. `systemctl list-timers sankey-export.timer` — confirm it's active and
-   due within a minute.
-2. `journalctl -u sankey-export.service -n 20` after a tick with an
-   unchanged workbook — confirm it printed "Arbeitsmappe unverändert,
-   nichts zu tun." and exited quickly, with no Chromium process spawned
-   (`ps aux | grep chromium` should show nothing right after).
-3. Edit `Finanzfluss_Nextcloud.xlsx` in Nextcloud (change any amount).
-   Within about a minute, confirm `journalctl -u sankey-export.service`
-   shows a real run (workbook downloaded, Highcharts export intercepted,
-   PNG uploaded), and that `finanzfluss-diagramm.png` in
-   `Documents/Finanzen` has a new timestamp/content.
-4. Confirm the dedicated account genuinely can't see anything outside
-   `Documents/Finanzen` — e.g. a WebDAV `PROPFIND` against a different
-   path with its credential returns 403/404, not a listing.
-5. If step 3 fails at the Playwright stage, check
-   `journalctl -u sankey-export.service` for the specific warning
-   (`download_png_via_menu`'s return value is printed as a warning, not
-   swallowed) before assuming it's a permissions problem — a failed
-   export leaves the cached ETag stale on purpose, so simply waiting
-   another minute retries it automatically once the underlying issue is
-   fixed.
-
-## 6. Roll back
-
-```bash
-systemctl disable --now sankey-export.timer
-```
-
-removes the automation without touching the Nextcloud account or the old
-manually-created script (if it's still present at `/home/julian/sankey`,
-which was left alone and not deleted by this rollout). To remove the
-dedicated Nextcloud account entirely, revoke its token via `occ
-user:auth-tokens:delete` and delete the account via `occ user:delete`,
-then unshare `Documents/Finanzen` from it.
+The Nextcloud-side setup this runbook originally walked through (share
+`Documents/Finanzen` with the dedicated `sankey-export` account,
+confirm the recipient's own `target-path` via `occ share:list` rather
+than assuming it matches the sharer's path) is still the real, correct
+prerequisite for the current k3s CronJob too — that part of the design
+didn't change, only how the export job itself runs.
