@@ -8,8 +8,10 @@
 - [Update this documentation](update-documentation.md)
 - [Operate and publish the home-agent](publish-home-agent.md) — local operation
   and proposed public-ingress checklist
-- [Deploy and publish Open WebUI](publish-open-webui.md) — private bootstrap,
-  guarded route switch, validation, backup, and rollback
+- [Deploy and publish Open WebUI](publish-open-webui.md) — **retired**
+  2026-08-30, the Ansible/Docker deployment it described no longer exists;
+  see the file itself for where the service actually lives now
+  (`infra/k3s-apps`)
 - [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md) — **retired**
   2026-08-30, the Ansible/Docker deployment it described no longer exists;
   see the file itself for where the service actually lives now
