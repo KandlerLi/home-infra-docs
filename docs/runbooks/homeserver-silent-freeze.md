@@ -40,7 +40,8 @@ Confirmed via the actual privileged journal, not assumed:
 ## How this differs from the e1000e NIC watchdog-hang bug
 
 This is a materially different signature from the separately-tracked
-e1000e NIC watchdog-hang bug (`BACKLOG.md`): that bug's kernel stayed
+e1000e NIC watchdog-hang bug (`homeserver-e1000e-nic-watchdog-hang.md`):
+that bug's kernel stayed
 alive enough to log `Detected Hardware Unit Hang` continuously for
 hours during its own 2026-09-06 recurrence. This freeze's kernel
 logged nothing at all after 22:58:14 — a harder, more total freeze
