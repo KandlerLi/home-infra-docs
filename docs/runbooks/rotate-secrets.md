@@ -261,6 +261,19 @@ known-value admin login), and the `grafana/user`/`grafana/password`
 `pass` entries + the `monitoring_grafana_admin_user` Ansible default
 went with it. Nothing to rotate here.
 
+## Rotation reminders -- shipped, not the same thing as automated rotation
+
+`aws/secrets-manager`'s own `rotation-schedule.json` +
+`.github/workflows/check-secret-rotation.yml` (2026-09-17) email a
+warning once a listed secret is within 7 days of a manually-recorded
+deadline -- a **reminder**, distinct from the "actually rotate it
+unattended" problem the rest of this section covers below. Rotation
+itself still stays manual; this only makes staleness visible instead
+of silent. Only lists secrets with a genuine calendar-driven deadline
+(right now: `k3s-apps/ghcr-pull-token`'s own GitHub-enforced 90-day
+classic-PAT expiry) -- see that repo's own README.md for the full
+mechanism and how to add another secret to the list.
+
 ## Automated rotation -- reality check before building it
 
 AWS Secrets Manager's own native rotation is Lambda-based, with
