@@ -40,12 +40,18 @@ own file under `aws/secrets-manager/secrets/` for who that is, or
 
 ## Category A: plain credentials -- rotate anytime, no coordination needed
 
-`home_agent_openai_api_key` (`home-infra/home-agent`) and `token`
-(`k3s-apps/ghcr-pull-token` — split out of `home-infra/home-agent`
-2026-09-12, shared by `modules/home_agent` and `modules/sankey_export`).
-Generate the new credential at its own source (OpenAI dashboard, a new
-GHCR PAT), `put-secret-value`, then `terraform apply` in
+`home_agent_anthropic_api_key` and `home_agent_openai_api_key` (both
+`home-infra/home-agent`) and `token` (`k3s-apps/ghcr-pull-token` —
+split out of `home-infra/home-agent` 2026-09-12, shared by
+`modules/home_agent` and `modules/sankey_export`). Generate the new
+credential at its own source (Anthropic Console, OpenAI dashboard, a
+new GHCR PAT), `put-secret-value`, then `terraform apply` in
 `infra/k3s-apps` to roll the consuming Deployment/Secret.
+`home_agent_anthropic_api_key` is home_agent's own chat/tool-use
+credential (`agent.py`'s `AnthropicMessagesProvider`);
+`home_agent_openai_api_key` moved to Whisper speech-to-text only
+(`audio.py`) once chat switched providers 2026-09-18 — both are live
+and independently rotatable.
 
 `k3s_ingress_acme_dns01_access_key_id` / `_secret_access_key`
 (`home-infra/ingress`) is the same shape but its own credential is
