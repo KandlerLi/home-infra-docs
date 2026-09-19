@@ -30,3 +30,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0018](0018-scoped-operator-identity.md) | Accepted | A scoped IAM identity replaces root for local Terraform applies |
 | [0019](0019-homeserver-monitoring-alerting.md) | Accepted | Homeserver monitoring stack (Prometheus/Grafana/Alertmanager) and its dual-channel alerting |
 | [0020](0020-blocky-dns-ad-blocking.md) | Accepted | Network-wide DNS ad-blocking with Blocky, fed into Grafana |
+| [0021](0021-agent-shared-root-and-document-reading.md) | Accepted | Widen the agent's Nextcloud scope to all shares; let it read PDF and xlsx |
