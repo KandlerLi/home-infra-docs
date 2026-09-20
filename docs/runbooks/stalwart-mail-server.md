@@ -109,35 +109,50 @@ password.
 live: while it points at the OIDC directory, Stalwart's own `/admin`
 login screen is still password-only (no SSO button there) and the
 internal password check is disabled entirely -- `admin@` cannot log
-into the admin console at all while this is set. There is no known
-way to have both "Bulwark SSO into the mailbox" and "admin console
-password login" active at the same time in this Stalwart version.
+into the visual admin console at all while this is set.
 
-**Deliberate, current choice: left set to "Authelia SSO"** (mailbox
-convenience over admin-console convenience -- the console is needed
-rarely). To do admin work:
+**Left set to "Authelia SSO" permanently** (mailbox convenience over
+console convenience) -- **but this doesn't mean losing admin access.**
+Confirmed live 2026-09-20: an **API key** credential (`admin`'s own
+`/account` -> Security -> API Keys, "for programmatic access") works
+as a Bearer token against Stalwart's management API
+(`/api/...`) **regardless of the Authentication Directory setting** --
+it's validated as a Stalwart-internal credential, not routed through
+the configured directory at all. This is the real, ongoing way to
+administer Stalwart while SSO stays on:
 
-1. Log into `stalwart.jkandler.de/admin` via Authelia's own separate
-   `admin` identity first if there's ever an SSO path added for
-   `/admin` -- as of 2026-09-20 there isn't, so instead:
-2. Clear **Authentication Directory** back to empty (this itself
-   still works via whatever session got you to this page -- an
-   already-open admin session, or Authelia's forward-auth alone
-   reaching a still-password-gated Stalwart login you can't
-   pass -- see the bootstrap note below if truly locked out) and
-   Save.
-3. Restart the Pod (see above).
-4. Log in with `admin@`'s own Stalwart password.
-5. When done, set **Authentication Directory** back to "Authelia SSO"
-   and restart again.
+```bash
+export KUBECONFIG=~/.kube/k3s-node-1.yaml
+pgrep -f "ssh.*-L 6443:192.168.101.10:6443" \
+  || ssh -f -N -L 6443:192.168.101.10:6443 julian@192.168.178.100
+kubectl port-forward svc/stalwart-internal 18083:8080 &
 
-**If ever truly locked out of `/admin`** (the field is stuck on OIDC
-and no session anywhere has ever passed the admin password gate since):
-there is no known UI/API recovery path from outside the server itself.
-Recovery would mean editing Stalwart's own database file directly on
-the PVC (`kubectl exec` into the Pod, or a debug Pod mounting the same
-PVC) -- not yet exercised or documented in detail; treat as an
-unverified last resort.
+apikey=$(pass show mail/admin/api)   # or wherever it's kept
+curl -s -H "Authorization: Bearer $apikey" \
+  http://127.0.0.1:18083/api/... 
+```
+
+The key was generated once (2026-09-20) and is kept in `pass` as
+`mail/admin/api` -- outside Terraform/Secrets Manager entirely, same
+as every other Stalwart account credential (nothing here reads it
+back programmatically). Per Stalwart's own docs, this key **only**
+works against `/api/...` (provisioning/config); it does not grant
+mail-protocol login (IMAP/JMAP mail/SMTP) or the visual `/admin` UI
+itself.
+
+**Fallback, only for settings that genuinely need the visual UI**
+(the API key doesn't help there): toggle **Authentication Directory**
+back to empty, restart the Pod, log in with `admin@`'s own password,
+do the change, then set it back to "Authelia SSO" and restart again.
+Confirmed live this reverts and re-applies cleanly each time.
+
+**If ever truly locked out of both** (API key revoked/lost *and* the
+directory field stuck on OIDC): there is no known UI/API recovery path
+from outside the server itself. Recovery would mean editing Stalwart's
+own database file directly on the PVC (`kubectl exec` into the Pod, or
+a debug Pod mounting the same PVC) -- not yet exercised or documented
+in detail; treat as an unverified last resort. Keeping at least one
+valid, saved API key at all times avoids ever reaching this.
 
 ### Authelia's `admin` identity
 A second, separate Authelia user (`modules/authelia`'s
