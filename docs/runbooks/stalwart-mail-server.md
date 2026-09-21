@@ -123,14 +123,26 @@ administer Stalwart while SSO stays on:
 
 ```bash
 export KUBECONFIG=~/.kube/k3s-node-1.yaml
-pgrep -f "ssh.*-L 6443:192.168.101.10:6443" \
-  || ssh -f -N -L 6443:192.168.101.10:6443 julian@192.168.178.100
+# open the SSH tunnel to the k3s apiserver if it isn't already
+ssh -f -N -L 6443:192.168.101.10:6443 julian@192.168.178.100
 kubectl port-forward svc/stalwart-internal 18083:8080 &
 
 apikey=$(pass show mail/admin/api)   # or wherever it's kept
-curl -s -H "Authorization: Bearer $apikey" \
-  http://127.0.0.1:18083/api/... 
+curl -s -X POST http://127.0.0.1:18083/jmap/ \
+  -H "Authorization: Bearer $apikey" -H 'Content-Type: application/json' \
+  -d '{"using":["urn:ietf:params:jmap:core","urn:stalwart:jmap"],
+       "methodCalls":[["x:Authentication/get",{"ids":["singleton"]},"c1"]]}'
+unset apikey
 ```
+
+The management API is JMAP, `POST /jmap/` (the `apiUrl` from
+`/jmap/session`) with the `urn:stalwart:jmap` capability and `x:`
+object types (`x:Authentication`, singleton id `singleton`). `/api`
+is *not* the endpoint for these calls (POST `/api` returned 404,
+confirmed live 2026-09-21), although `GET /api/account` does exist.
+The session document doesn't list `urn:stalwart:jmap`, but the calls
+work anyway as long as the key's account holds the `sys*`
+permissions (`sysAuthenticationGet`/`sysAuthenticationUpdate` etc.).
 
 The key was generated once (2026-09-20) and is kept in `pass` as
 `mail/admin/api` -- outside Terraform/Secrets Manager entirely, same
@@ -140,11 +152,24 @@ works against `/api/...` (provisioning/config); it does not grant
 mail-protocol login (IMAP/JMAP mail/SMTP) or the visual `/admin` UI
 itself.
 
-**Fallback, only for settings that genuinely need the visual UI**
-(the API key doesn't help there): toggle **Authentication Directory**
-back to empty, restart the Pod, log in with `admin@`'s own password,
-do the change, then set it back to "Authelia SSO" and restart again.
-Confirmed live this reverts and re-applies cleanly each time.
+**Getting the visual UI back while SSO is on** (only for settings
+that genuinely need it -- the toggle lives *inside* the UI, so with
+SSO active you have no session to flip it from; use the API key):
+
+1. Note the SSO directory's id: `x:Authentication/get` above returns
+   `directoryId` (it was `jftufl1kaaqc` on 2026-09-21).
+2. Switch to internal: `x:Authentication/set` with
+   `{"update":{"singleton":{"directoryId":null}}}`, then
+   `kubectl delete pod -l app=stalwart` (settings only load at start).
+3. Log into `/admin` with `admin@`'s own Stalwart password, do the
+   change.
+4. Switch back: the same `set` with
+   `{"directoryId":"<the id from step 1>"}`, restart the Pod again.
+   Bulwark's SSO is down between steps 2 and 4.
+
+Confirmed live 2026-09-21 that the API key carries
+`sysAuthenticationUpdate` and the `get` works; the `set` call is what
+the Stalwart docs specify for this object.
 
 **If ever truly locked out of both** (API key revoked/lost *and* the
 directory field stuck on OIDC): there is no known UI/API recovery path
