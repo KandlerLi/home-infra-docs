@@ -177,9 +177,10 @@ Its own password lives only in Julian's password manager, same as
 - **SPF is soft-fail (`~all`)**, deliberately, while outbound is new.
   Tighten to `-all` in `aws/ses-relay` once outbound has run cleanly
   for a week or two.
-- **SES account is still in the sandbox** (production access
-  requested 2026-09-19/20, case pending/approved -- check current
-  status). Outbound to unverified recipients doesn't work until
-  approved.
+- **SES production access was granted 2026-09-21** (case
+  178988954600742: out of the sandbox in eu-central-1, 50,000
+  messages/day, 14/s). Outbound to arbitrary recipients should now
+  work; not yet confirmed by a real send to a non-verified address.
+  Watch SES bounce/complaint rates -- AWS expects a process for them.
 - **No off-server backup of mail data.** It's on the k3s VM's
   `local-path` PVC only.
