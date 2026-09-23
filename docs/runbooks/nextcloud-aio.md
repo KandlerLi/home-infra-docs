@@ -72,6 +72,36 @@ Expected baseline:
 - add an AAAA record based only on the presence of a host IPv6 address
 - change ownership of ports 80/443 outside the shared-ingress runbook
 
+## Known issues
+
+- **Apache loses its Docker network connection after some reboots.**
+  Confirmed on two independent reboots: `nextcloud-aio-apache` came
+  back up disconnected from the `nextcloud-aio` Docker network, unable
+  to reach the other AIO containers, needing a manual `docker network
+  connect nextcloud-aio nextcloud-aio-apache` to recover. The
+  underlying startup race is unknown and owned by AIO's own
+  mastercontainer, not something this repo can fix directly.
+  `nextcloud-aio-apache-network-fix.service` (`ansible/roles/
+  nextcloud_aio`) automates the recovery step instead: it runs on
+  every boot and on every Ansible apply (`state: restarted`, not
+  `started`, so a oneshot already `active (exited)` from a prior run
+  still re-executes and self-heals a currently-dropped connection),
+  and exits immediately as a no-op if Apache is already connected.
+- **The mounted downloads external-storage mount's permission cache
+  goes stale.** Nextcloud caches per-file permissions (including
+  whether the delete button shows up at all) from the last scan of a
+  mount -- it does not re-check the real filesystem live on every page
+  load. Files under the downloads mount are written and deleted by
+  Deluge entirely outside Nextcloud's awareness, and host-side
+  permission changes to that directory don't trigger a rescan on their
+  own either. Confirmed live: after fixing the host ACL so `www-data`
+  could actually delete, the UI still showed no delete option -- even
+  from a fresh, uncached browser profile -- until the mount was
+  explicitly rescanned (`occ files:scan`). `ansible/roles/
+  nextcloud_aio`'s own task runs this on every apply, not just once --
+  it's cheap, and it's the only thing keeping the mount's cache from
+  drifting from what Deluge does to the files underneath it.
+
 ## Reverse-proxy operation
 
 The AIO instance runs in its supported reverse-proxy mode. The desired state is
