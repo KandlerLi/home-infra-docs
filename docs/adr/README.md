@@ -31,3 +31,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0019](0019-homeserver-monitoring-alerting.md) | Accepted | Homeserver monitoring stack (Prometheus/Grafana/Alertmanager) and its dual-channel alerting |
 | [0020](0020-blocky-dns-ad-blocking.md) | Accepted | Network-wide DNS ad-blocking with Blocky, fed into Grafana |
 | [0021](0021-agent-shared-root-and-document-reading.md) | Accepted | Widen the agent's Nextcloud scope to all shares; let it read PDF and xlsx |
+| [0022](0022-trivy-config-scanning-and-public-repo-tradeoff.md) | Accepted | Trivy config scanning across every repo, and the public-repo branch-protection tradeoff |
