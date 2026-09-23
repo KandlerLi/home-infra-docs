@@ -215,3 +215,42 @@ With both fixed, a further test alert produced no error at all in
 Alertmanager's logs, and the user confirmed the email actually arrived.
 Both alerting channels are now independently verified end to end, not
 just "Alertmanager attempted delivery."
+
+## Update (2026-08-28 / 2026-09-07): three more real bugs found live
+
+- **`ansible.builtin.getent` does not accumulate looped keys into
+  `ansible_facts.getent_passwd`.** Each loop iteration *replaces* that
+  fact with a dict containing only the one key just looked up, so
+  looping this task over several accounts leaves only the last
+  iteration's key by the time the loop finishes (reproduced directly: a
+  two-item loop over `root`/`daemon` left only `daemon`). Account
+  creation itself loops fine (`ansible.builtin.user` has no such shared
+  state to clobber); the `getent` + `set_fact` identity lookup stays as
+  one task pair per account instead.
+- **A shared parent directory takes its owner/mode from whichever task
+  creates it first, not from a later task that also touches it.**
+  `ansible.builtin.file` on a path whose parent doesn't exist yet
+  creates that parent stamped with the *current* task's own
+  owner/mode — so a loop installing several sibling directories under
+  one shared root (e.g. `monitoring_data_dir/prometheus`,
+  `.../ntfy-relay`) can leave the shared root itself owned by whichever
+  one happened to run first, at a restrictive mode, silently blocking
+  every other account from even traversing into it. Never surfaced for
+  the Docker-based services here (a bind mount doesn't traverse the
+  host's real parent-directory chain the way a native process does) —
+  found only once `ntfy-relay.service`, the first native (non-container)
+  reader under that tree, got `EACCES` opening its own correctly-owned
+  file. Fixed with a dedicated task creating the shared parent first,
+  ahead of the loop.
+- **`community.docker.docker_image` reports `changed` on every run when
+  pulling a combined `name:tag@digest` reference.** Docker itself
+  leaves the local image stored with an untagged (`<none>`) tag when
+  pulled that way (confirmed via `docker images -a`), even though the
+  running container uses that exact image correctly. The module's own
+  idempotency check looks for a local image matching the full pull
+  string, never finds one, and pulls "again" every time —  a real
+  Docker behavior, not a module bug. Pulling by digest alone (dropping
+  the tag from the standalone pull task, while leaving the
+  `docker_container` tasks' own `name:tag@digest` references untouched,
+  since their own image comparison already worked correctly) sidesteps
+  it.
