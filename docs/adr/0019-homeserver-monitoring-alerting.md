@@ -282,3 +282,17 @@ means blackbox_exporter follows the redirect all the way to the login
 page, which returns a plain `200`, already valid. Verified against live
 Prometheus (`probe_success=1` for both targets) and a real `curl -L`
 reproducing the same redirect-following behavior.
+
+## Update: `ContainerDown`'s alert expression needed cAdvisor's own id churn accounted for
+
+`container_last_seen` is keyed by cAdvisor's own `id` label (the
+container's cgroup path), which changes to a brand-new value every time
+`site.yml` *recreates* a container (a config change, not just a
+restart). The old id's series then just stops updating and sits frozen
+in Prometheus while a fresh series starts under the new id, so
+comparing staleness per exact label set fired `ContainerDown` for that
+dead ghost series on every ordinary recreate, even though the actual
+current container was healthy. Fixed by aggregating by the stable
+`name` label first (taking the freshest id's value): as long as some
+container with this name has been seen recently, the alert doesn't
+fire.
