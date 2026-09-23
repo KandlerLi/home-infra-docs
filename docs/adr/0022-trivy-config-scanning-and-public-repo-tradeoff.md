@@ -38,8 +38,26 @@ first and left to block merges on unfixed findings.
   a `.trivyignore` suppression respectively (a `HEALTHCHECK` has no
   meaning for a `restart_policy: Never` CronJob Pod that's expected to
   exit every run, not stay up as a long-running service).
-- `dyndns`, `website`, `repo-infra`, `terraform-state`, `k3s-bootstrap`:
-  each confirmed clean (0 findings) before the check became required.
+- `website`: AWS-0132 (bucket should use a CMK) fixed with the shared
+  CMK. AWS-0320 (bucket name not DNS-compliant, since `www.jkandler.de`
+  has dots) suppressed, not fixed -- deliberately, after a real
+  production incident: a rename to a compliant name (`jkandler-website`)
+  was attempted live and reverted. Terraform's default
+  destroy-then-create replacement order tore down the old bucket's
+  policy/access-block/ownership-controls before failing to delete the
+  (non-empty) bucket; `force_destroy` didn't help because it wasn't
+  recorded on the *old* instance's own state; CloudFront's origin then
+  briefly pointed at a bucket that no longer existed; a credential
+  expiry mid-apply left a stuck state lock; recovery needed a manual
+  `terraform import` plus state surgery. Left suppressed rather than
+  retried: the check's own underlying concern (TLS certificate name
+  matching on dotted bucket names) never applied here in the first
+  place, since this bucket is only ever reached via CloudFront's Origin
+  Access Control, never raw virtual-hosted-style HTTPS directly -- not
+  worth repeating that incident for a fix with no real security
+  benefit.
+- `dyndns`, `repo-infra`, `terraform-state`, `k3s-bootstrap`: each
+  confirmed clean (0 findings) before the check became required.
 
 **Repos made public specifically to get real branch protection.**
 GitHub's classic branch protection API (`github_branch_protection`)
