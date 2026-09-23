@@ -73,3 +73,19 @@ No repo in this workspace has ever had a real credential committed to
 its git history; that invariant is what makes each of these
 public-repo decisions defensible on its own terms rather than a single
 blanket policy.
+
+## Three-stage rollout: trivy config, then trivy image, then gitleaks
+
+The audit this ADR documents was itself staged: `trivy-config` (this
+document's own subject) first, then `github/gha-common`'s
+`trivy-image.yml` (container image CVE scanning), then its
+`gitleaks.yml` (git-history secret scanning) -- each its own reusable
+workflow, added and rolled out to every caller one at a time.
+
+**Gitleaks, not `trivy fs`, for the git-history scan.** Confirmed
+live: `trivy fs` only scans the current checked-out tree, not git
+history -- it found nothing in a test repo with a secret committed and
+then later removed in a following commit, while gitleaks found it
+immediately. Since the whole point of this stage is catching a secret
+that was committed and later removed, `trivy fs` would have been a
+hollow checkbox for exactly that case.
