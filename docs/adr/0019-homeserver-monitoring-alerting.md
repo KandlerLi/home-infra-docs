@@ -254,3 +254,31 @@ just "Alertmanager attempted delivery."
   `docker_container` tasks' own `name:tag@digest` references untouched,
   since their own image comparison already worked correctly) sidesteps
   it.
+
+## Update (2026-09-01 / 2026-09-11): probe targets follow the ingress migration
+
+`shared_ingress`'s own Traefik loopback ping endpoint
+(`http://127.0.0.1:8082/ping`) was removed from
+`monitoring_probe_targets` once `shared_ingress` itself was deleted
+(Traefik moved to k3s, `infra/k3s-apps`' `modules/ingress/`) — nothing
+had listened on that loopback port since, and the target had been
+silently alerting on a service that was never coming back. The public
+probes already cover Traefik's own health indirectly, so no direct
+replacement was added.
+
+Separately, once `ai.jkandler.de`/`torrent.jkandler.de` moved onto
+Authelia forward-auth (superseding the Traefik Basic Auth this file
+used to describe), blackbox has no Authelia session to send and can't
+get an authenticated 2xx from those two targets. Probed with a new
+`http_2xx_or_401` module instead: still proves DNS/TLS/Traefik/the
+upstream are up and correctly gating access, even though it can't tell
+"healthy behind auth" from "up but broken behind auth" the way an
+unauthenticated 2xx check can. Found live: Authelia forward-auth
+actually returns a `302` redirect to `auth.jkandler.de`, not `401`, to
+an unauthenticated plain GET — initially flagged as a likely monitoring
+bug, since `302` isn't in `http_2xx_or_401`'s valid status codes, but
+turned out to be a non-issue: that module's own `follow_redirects: true`
+means blackbox_exporter follows the redirect all the way to the login
+page, which returns a plain `200`, already valid. Verified against live
+Prometheus (`probe_success=1` for both targets) and a real `curl -L`
+reproducing the same redirect-following behavior.
