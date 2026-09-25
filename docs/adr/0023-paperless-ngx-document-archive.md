@@ -8,8 +8,9 @@
 
 Julian wants to digitize his paper documents (letters, contracts, tax
 and payslip records) and keep them on his own server, searchable, rather
-than as loose scans. Capture will be **phone only**: no document scanner,
-no batch digitization of an old paper backlog planned.
+than as loose scans. Day-to-day capture is the phone. An existing HP
+OfficeJet 4630 (35-sheet ADF, simplex scan only) is available as an
+option for a one-off backlog of older paper.
 
 Options considered:
 
@@ -45,12 +46,31 @@ workspace's convention: black for live data, red for backups):
   `document_create_classifier`), so it needs no backup of its own.
 - Redis (task broker): no persistence needed.
 
-**Capture.** Upload from the iPhone through a Paperless mobile app
-(e.g. Swift Paperless), photo → upload → Paperless does OCR and
-classification. Which app is used, and whether its built-in document
-scanner gives good enough OCR input, is to be confirmed during rollout,
-not assumed here. No consume folder, no scanner, no mail ingestion for
-now; each can be added later without changing this design.
+**Capture.** Two paths, both ending in an upload through the web UI or
+API. Neither needs a consume folder on the server, and the scanner never
+talks to the server directly.
+
+- *Phone, day to day:* upload from the iPhone through a Paperless
+  mobile app (e.g. Swift Paperless), photo → upload → Paperless does
+  OCR and classification. Which app is used, and whether its built-in
+  document scanner gives good enough OCR input, is to be confirmed
+  during rollout, not assumed here.
+- *Scanner, backlog batches (optional):* the OfficeJet 4630 scans a
+  stack through its ADF on the laptop (SANE, via `sane-airscan` or
+  HPLIP -- which one works is still to be confirmed) into one PDF. A
+  PATCH-T separator sheet goes behind each document;
+  `PAPERLESS_CONSUMER_ENABLE_BARCODES` splits the upload at those
+  sheets and drops them, so one scan becomes several documents. Since
+  the 4630 cannot scan duplex, double-sided stacks are scanned twice
+  (fronts, then the flipped stack) and interleaved on the laptop
+  before upload, e.g. `qpdf --collate --empty --pages front.pdf
+  back.pdf z-1 -- out.pdf`. Paperless's own double-sided collation is
+  not used: it only works through a consume subdirectory, which this
+  design avoids. Wrong splits are fixed afterwards with the web UI's
+  split/merge.
+
+No mail ingestion for now; it can be added later without changing this
+design.
 
 **Access and authentication.** The phone must upload from outside the
 LAN, so the host is public behind the k3s Traefik ingress, like
@@ -111,5 +131,6 @@ One repo at a time, each through the usual PR flow:
    client, a landing-page entry, and a blackbox probe.
 6. Confirm live: SSO web login works and the password form is gone; an
    iPhone photo uploads through the app and comes back OCR'd and
-   searchable; the nightly export lands on the red HDD; a test restore
+   searchable; a scanner PDF with two separator sheets comes back as
+   three documents; the nightly export lands on the red HDD; a test restore
    of that export into a throwaway instance works.
