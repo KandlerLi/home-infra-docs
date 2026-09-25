@@ -40,6 +40,22 @@ routing specifically -- see Stalwart's own docs on mixing
 here as manual settings, the same category as the FRITZ!Box's own
 port-25 forward.
 
+**Update 2026-09-25: most of these are now Terraform-managed.** The
+community `tahacodes/stalwart` provider (pinned 0.2.4, in
+`infra/k3s-apps`' `modules/stalwart_config`) talks to Stalwart's
+management API, which is the same store the UI writes, so the conflict
+described above doesn't apply. Managed there now: CORS and the allowed
+Pod-network IP (`k3s-apps#81`), the ACME provider and the mail domain
+with DKIM set to Manual (`#82`), and the SES relay route plus the
+outbound routing strategy (`#90`, imported from the live settings with
+no value changes). **Change these in Terraform, not in the UI**: a UI
+edit shows up as drift in the next plan and gets reverted on apply.
+Still manual on purpose: the Authentication Directory (the Authelia
+OIDC switch below), because a mistake there locks out everything but
+the admin API key. The sections below still describe what each
+setting is and why; for the Terraform-managed ones, the UI steps are
+only a fallback if the provider is ever unusable.
+
 **Confirmed live pattern: Stalwart only reads several of these
 settings at process start.** Changing CORS, the IP allow/block lists,
 or the authentication directory in the UI does **not** take effect
@@ -56,6 +72,8 @@ settings are on the PVC and survive it.
 ## Manual settings, and how to redo each
 
 ### CORS (`Settings -> ... -> Permissive CORS policy`)
+*Terraform-managed (`modules/stalwart_config`) -- see the update above.*
+
 Enabled, so Bulwark's browser-side JMAP calls to `stalwart.jkandler.de`
 from `mail.jkandler.de` aren't blocked. `allow-origin: *`, not scoped
 to Bulwark's own origin specifically -- Stalwart's UI only offers an
@@ -63,6 +81,8 @@ on/off toggle here, not a per-origin allowlist. Real exposure is
 limited: every JMAP call still needs valid Stalwart credentials.
 
 ### Allowed IPs (`Security -> Allowed IPs`)
+*Terraform-managed (`modules/stalwart_config`) -- see the update above.*
+
 `10.42.0.0/16` (the k3s Pod network) is on the allow-list, so
 Stalwart's own automatic IP-banning never blocks the Traefik Pod
 itself (confirmed live: it did, once, and took down every real visitor
@@ -70,6 +90,8 @@ at the same time -- Traefik is the only IP Stalwart's HTTP listener
 ever actually sees).
 
 ### Outbound SMTP relay (`MTA -> Outbound -> Routes` / `Strategy` / `TLS Strategies`)
+*Terraform-managed (`modules/stalwart_config`) -- see the update above.*
+
 - **Routes**: a `ses-relay` route, type Relay Host, to
   `email-smtp.eu-central-1.amazonaws.com:587`, SMTP, STARTTLS (not
   implicit TLS). Username: the SES SMTP username (`terraform output
