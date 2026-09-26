@@ -21,9 +21,25 @@ this runbook is the record of how it is set up.
    - `Endpoint` can stay as generated, or use `vpn.jkandler.de` with
      the same port.
 
+### Linux (NetworkManager)
+
+Import the downloaded file with NetworkManager rather than `wg-quick`,
+which on a systemd-resolved desktop often fails on the config's `DNS =`
+line (`resolvconf: command not found`). The file holds the private key,
+and `nmcli` reads it as the calling user, so the import needs `sudo`:
+
+```bash
+sudo install -m 600 ~/Downloads/<file>.conf /etc/wireguard/fritz.conf
+sudo nmcli connection import type wireguard file /etc/wireguard/fritz.conf
+sudo rm /etc/wireguard/fritz.conf ~/Downloads/<file>.conf   # NM keeps its own copy
+nmcli connection modify fritz connection.autoconnect no ipv4.dns 192.168.178.100
+nmcli connection up fritz      # / down fritz
+```
+
 ## Verify
 
-From mobile data (not the home Wi-Fi), with the tunnel on:
+From mobile data or a phone hotspot, not the home Wi-Fi (on the LAN the
+tunnel's routes overlap the local network), with the tunnel on:
 
 ```bash
 ssh julian@192.168.178.100
