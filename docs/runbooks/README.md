@@ -59,6 +59,8 @@
   a second, independent PersistentConfig staleness incident (no model
   selectable, root cause traced to a Docker-era URL never replaced by
   the correct k3s Service address); fixed and confirmed live
+- [Admin VPN via the FRITZ!Box's WireGuard](fritzbox-wireguard-vpn.md) —
+  manual FRITZ!Box setting (ADR 0025): adding, verifying and removing devices
 
 Runbooks prefer reversible observations before changes. Commands that alter
 production state require explicit human review and approval.
