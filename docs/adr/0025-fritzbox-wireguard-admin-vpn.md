@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-09-26
 - Supersedes: [ADR 0024](0024-wireguard-admin-vpn.md)
-- Deployment status: not set up yet
+- Deployment status: live since 2026-09-26, first device (Linux laptop) confirmed: tunnel from outside the LAN, then SSH to the homeserver
 
 ## Context
 
