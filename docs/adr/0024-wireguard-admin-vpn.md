@@ -1,8 +1,8 @@
 # ADR 0024: WireGuard on the homeserver for admin access from outside
 
-- Status: Proposed
+- Status: Superseded by [ADR 0025](0025-fritzbox-wireguard-admin-vpn.md)
 - Date: 2026-09-26
-- Deployment status: not built
+- Deployment status: built and applied 2026-09-26 (`home-infra#69`), torn down by `home-infra#70`
 
 ## Context
 
