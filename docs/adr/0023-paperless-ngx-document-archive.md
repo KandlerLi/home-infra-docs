@@ -134,3 +134,44 @@ One repo at a time, each through the usual PR flow:
    searchable; a scanner PDF with two separator sheets comes back as
    three documents; the nightly export lands on the red HDD; a test restore
    of that export into a throwaway instance works.
+
+## Update 2026-09-27: Outlook mail ingestion via OAuth2
+
+Julian wants his existing Outlook.com mail attachments imported into
+Paperless, not only new ones. This replaces "No mail ingestion for now"
+above for that one account.
+
+Outlook.com no longer accepts a password or app password over IMAP, and
+the account has 2FA, so the plain IMAP form is not an option. Paperless's
+built-in OAuth2 mail support is used instead:
+
+- A Microsoft app registration (personal Microsoft accounts), redirect
+  URI `https://docs.jkandler.de/api/oauth/callback/`. It lives in
+  Microsoft's portal, outside Terraform: a manual, documented one-off
+  (runbook `k3s-apps/paperless` in `aws/secrets-manager`), like the
+  Stalwart UI settings.
+- Its client ID and secret go into the existing `k3s-apps/paperless`
+  Secrets Manager group and reach Paperless as
+  `PAPERLESS_OUTLOOK_OAUTH_CLIENT_ID`/`_SECRET`. The secret has a
+  Microsoft-enforced expiry and is tracked in the rotation schedule.
+- The account is then connected in Paperless's mail settings with an
+  interactive Microsoft login (including 2FA).
+
+Considered and not chosen: forwarding selected mail to a dedicated
+`scan@jkandler.de` Stalwart mailbox. It limits what Paperless can see to
+what is forwarded, but cannot reach mail that already exists.
+
+Consequences:
+
+- Paperless holds a refresh token with `IMAP.AccessAsUser.All`, i.e.
+  read access to the whole Outlook mailbox, in its database. The
+  database is covered by the nightly export; the token is not (the
+  exporter omits it), so a restore needs the account reconnected.
+- Mail rules decide what gets consumed. For the historic import: PDF
+  attachments only, a maximum age long enough to cover the mailbox, and
+  an action that does not depend on read state (with "mark as read",
+  already-read mail is skipped). Paperless also tracks processed
+  message UIDs itself.
+- A large one-off import runs through the single task worker; expect
+  hours, not minutes, and duplicates are consumed rather than rejected
+  unless `PAPERLESS_CONSUMER_DELETE_DUPLICATES` is set.
