@@ -14,7 +14,7 @@ accurate; only the repository name/path changed. See
 
 `KandlerLi/dyndns` was hardened by hand and by a repository-specific script
 (`dyndns/scripts/protect-repository.sh`), documented as a reusable pattern in
-`home-infra-ai-context/context/repository-security-blueprint.md`. Two GitHub
+[`repository-security.md`](../repository-security.md). Two GitHub
 Actions settings were never captured by that script or by any Terraform
 resource: whether third-party Actions must be pinned by commit SHA
 (`sha_pinning_required`) and the repository's default workflow token

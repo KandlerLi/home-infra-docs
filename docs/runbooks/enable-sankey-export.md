@@ -16,7 +16,7 @@ it was already entirely env-var-configured. There's no dedicated deploy
 runbook for the current shape — it's deployed the same way every other
 `infra/k3s-apps` module is, through that repo's own normal Terraform
 apply (CI on merge to `main`). See
-`docs/home-infra-ai-context/context/current-state.md`'s own writeup of
+[`current-state.md`](../current-state.md)'s own writeup of
 the 2026-09-07 cutover for the real bugs found moving it (a CPU-request
 QoS gotcha, a `hostPath` ownership fix, and a remote-directory
 mismatch that silently 404'd every tick until caught).

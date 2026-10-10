@@ -16,7 +16,7 @@ Update this repository whenever a change affects:
 
 1. Record the current date, enumerate all top-level directories under
    `/home/julian/projects`, and inspect every relevant project—including those
-   without Git—plus both documentation repositories.
+   without Git.
 2. Review committed infrastructure and uncommitted changes separately.
 3. Gather only the minimum read-only runtime evidence needed.
 4. Update `current-state.md` and the affected detailed pages.
@@ -26,12 +26,9 @@ Update this repository whenever a change affects:
    legend.
 8. Search for likely secret material before committing.
 9. Validate relative Markdown links and Mermaid code blocks.
-10. Update `/home/julian/projects/docs/home-infra-ai-context` using its
-    `context/synchronization.md` contract and add a dated handover for material
-    work.
-11. Confirm the AI context and human documentation agree on current/proposed
-    status, safety rules, and the next task.
-12. Commit documentation independently from infrastructure code.
+10. If a security boundary changed, update the
+    `check-security-invariants` skill (`/home/julian/projects/.claude/skills/`).
+11. Commit documentation independently from infrastructure code.
 
 ## Promote proposed architecture to current
 

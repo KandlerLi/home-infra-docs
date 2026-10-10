@@ -6,13 +6,16 @@
 - [System inventory](inventory.md) — hardware, hosts, services, and networks
 - [Networking and ingress](networking.md) — DNS, ports, IPv4, and IPv6
 - [Storage](storage.md) — disks, mounts, application data, and safety rules
-- [Security and secrets](security-and-secrets.md) — trust boundaries and SOPS
+- [Security and secrets](security-and-secrets.md) — trust boundaries and Secrets Manager
+- [Repositories](repositories.md) — every repo, its role, CI and validation
+- [Repository security model](repository-security.md) — governance, OIDC, plan/apply split
 - [Operations](operations.md) — routine Ansible and diagnostic commands
 - [Glossary](glossary.md) — local terms and abbreviations
 - [References](references.md) — authoritative external documentation
 
 ## C4 architecture
 
+- [Architecture overview](architecture/overview.md) — maintained summary of the current architecture
 - [Architecture index and notation](architecture/README.md)
 - [Current system context](architecture/current/system-context.md)
 - [Current container view](architecture/current/container.md)
@@ -27,6 +30,7 @@
 ## Decisions and runbooks
 
 - [Architecture decision records](adr/README.md)
+- [Decisions log](decisions.md) — smaller decisions without their own ADR
 - [Runbooks](runbooks/README.md)
 
 ## Evidence precedence
@@ -36,4 +40,5 @@ Conflicting information should be resolved in this order:
 1. Live, read-only observation of the homeserver
 2. Committed files in `/home/julian/projects/infra/home-infra`
 3. Uncommitted changes in that repository, marked as proposed
-4. Historical handover notes, marked as historical or unverified
+4. Historical handover notes (archived `home-infra-ai-context` repo), marked
+   as historical or unverified

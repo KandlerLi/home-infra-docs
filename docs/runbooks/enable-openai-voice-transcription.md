@@ -55,6 +55,6 @@ is in the separate Admin Panel, which only an admin account can reach:
 3. Confirm a normal (non-voice) chat message still works, and that
    `ai.jkandler.de` overall is unaffected.
 
-See `docs/home-infra-ai-context/context/current-state.md`'s ADR 0012
+See [`current-state.md`](../current-state.md)'s ADR 0012
 writeup for whether final German-transcription confirmation has actually
 landed yet -- as of that doc's last update it was still pending.

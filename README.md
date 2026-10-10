@@ -10,11 +10,10 @@ kept separately in:
 /home/julian/projects/infra/home-infra
 ```
 
-Secret-free cross-chat and cross-model handover context is kept separately in:
-
-```text
-/home/julian/projects/docs/home-infra-ai-context
-```
+Agent working rules live in the workspace `CLAUDE.md` and
+`.claude/skills/` (`/home/julian/projects`). The former
+`home-infra-ai-context` repository was merged into this one in 2026-10 and
+archived; it keeps only the dated session handovers from August 2026.
 
 The central Terraform state-bucket bootstrap project is:
 
@@ -37,53 +36,28 @@ above lives one level under a parent folder that groups it by purpose:
 project directory nested one level under one of those three folders, not
 only Git roots.
 
-## Snapshot status
+## Current status
 
-The initial documentation snapshot was taken on **2026-08-18** and the shared
-ingress deployment was recorded on **2026-08-19**.
-
-| Label | Meaning |
-| --- | --- |
-| Current | Observed live or confirmed in committed infrastructure |
-| Configured | Defined in committed Ansible; runtime may be unverified |
-| Proposed | Designed or implemented locally, but not deployed |
-| Unknown | Observed state whose owner or purpose has not yet been confirmed |
-
-The `home-agent` implementation is **deployed and verified**. Its container API
-remains loopback-only at `127.0.0.1:8090`; pinned Traefik `v3.7.1` publishes it
-at `ai.jkandler.de` behind Basic Auth and request limits. Traefik also routes
-public Nextcloud traffic to AIO Apache on `127.0.0.1:11000`.
-
-Open WebUI is **deployed and publicly routed** at `ai.jkandler.de`. It is
-healthy on `127.0.0.1:8091`; exact `/healthz` and `/v1/chat` routes continue to
-use the existing Basic-Auth-protected JSON agent API. Administrator onboarding
-is complete and anonymous signup is disabled. The frontend has no real provider
-credential or host access; Nextcloud data access uses the separately reviewed
-bounded tool service. Authenticated public login/chat is user-confirmed and the
-deployed enable flags are persisted in inventory.
-
-The read-only Nextcloud tool boundary and `AI Workspace` share are **deployed
-and validated**. The service/socket health
-checks initially passed and the share is mounted for `home-agent`. After the
-runtime-directory fix, the container can reach the socket reliably. The bounded
-list reported an allowlisted upstream HTTP 404. Nextcloud mounts received shares
-under its configured `/Shared` folder, so revision `bffedd8` persists the actual
-bounded root `Shared/AI Workspace`. It is deployed: local-only bounded list,
-filename search, and harmless small-text read checks all return 200 without
-printing names or content. Open WebUI acceptance passed, and the agent/tool
-enable flags are persisted in inventory.
+[`docs/current-state.md`](docs/current-state.md) is the maintained,
+dated record of what is live. The C4 pages under `docs/architecture/current/`
+date from August 2026 (Docker era); [`docs/architecture/overview.md`](docs/architecture/overview.md)
+is the up-to-date architecture summary until they are redrawn.
 
 ## Documentation map
 
 - [Documentation index](docs/README.md)
 - [Current state](docs/current-state.md)
 - [System inventory](docs/inventory.md)
+- [Architecture overview](docs/architecture/overview.md)
 - [C4 architecture index](docs/architecture/README.md)
+- [Repositories](docs/repositories.md)
+- [Repository security model](docs/repository-security.md)
 - [Networking and ingress](docs/networking.md)
 - [Storage](docs/storage.md)
 - [Security and secrets](docs/security-and-secrets.md)
 - [Operations](docs/operations.md)
 - [Architecture decisions](docs/adr/README.md)
+- [Decisions log](docs/decisions.md) (smaller decisions without their own ADR)
 - [Runbooks](docs/runbooks/README.md)
 - [Glossary](docs/glossary.md)
 - [References](docs/references.md)
