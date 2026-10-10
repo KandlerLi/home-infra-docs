@@ -21,7 +21,7 @@ Current projects, grouped by parent folder:
 | `terraform-state` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-14) | Terraform root managing the central S3 backend bucket and (as of 2026-08-23) the `julian` operator IAM identity — both foundational, root-only, essentially-bootstrap-once resources (ADR 0018) |
 | `repo-infra` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
 | `k3s-bootstrap` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only locally with the k3s node's own cluster-admin kubeconfig, never via GitHub Actions | The k3s cluster's self-hosted GitHub Actions runner (`modules/github_runner`), cluster-scoped PersistentVolumes, and privilege-defining RBAC (the Kubernetes Dashboard's own ServiceAccount, `k3s-apps`' own CI ServiceAccount) that can't live in `infra/k3s-apps` itself |
-| `home-infra-docs` | `docs/` | Git, `main`, private GitHub backup mirror | Human-facing C4 and operations documentation |
+| `home-infra-docs` | `docs/` | Git, `main`, public, standard branch protection (2026-10-10) | The single documentation repo: current state, architecture, ADRs, runbooks |
 | `home-infra-ai-context` | `docs/` | Archived (merged into `home-infra-docs` 2026-10) | Former cross-model context; keeps the dated handovers |
 
 Enumerate the workspace before each new broad task:
