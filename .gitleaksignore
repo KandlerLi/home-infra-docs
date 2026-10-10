@@ -1,0 +1,8 @@
+# gitleaks false positives. Two dead AWS access key IDs (one deleted,
+# one already inactive; triaged 2026-09-15 in the then-separate
+# home-infra-ai-context repo, see PARKED.md "Security audit") came in with
+# docs/current-state.md in commit 5ecc6e6. The file now shows only their
+# last four characters; this commit's history entry can't be rewritten,
+# so it is allowlisted here instead.
+5ecc6e6d509dc640e17ab721eb490ffdc1763883:docs/current-state.md:aws-access-token:139
+5ecc6e6d509dc640e17ab721eb490ffdc1763883:docs/current-state.md:aws-access-token:141

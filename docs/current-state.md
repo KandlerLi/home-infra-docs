@@ -136,9 +136,9 @@ roles, and the project's own old Terraform backend (S3 + DynamoDB). See
 **Resolved same day**: the audit's two open IAM findings. The orphaned
 2021 `ecsTaskExecutionRole` (unrelated to `whoami` — predated it by two
 years) was detached and deleted. The IAM user `julian`'s active,
-no-MFA-protected access key (`AKIA4NU5Y52WFYWZJJK6`, created 2026-08-17)
+no-MFA-protected access key (`AKIA…JJK6`, created 2026-08-17)
 was deleted; only its already-inactive predecessor
-(`AKIA4NU5Y52WOGOTXSUE`, 2026-07-19) remains, untouched since it wasn't
+(`AKIA…XSUE`, 2026-07-19) remains, untouched since it wasn't
 part of what was asked. At the time, `julian` still had
 `AdministratorAccess` and no MFA device — **both fully resolved
 2026-08-24**, see the "AWS automation identity" section below: `julian`
