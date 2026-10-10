@@ -483,7 +483,7 @@ bundled cleanup: `shared_ingress_auth_password`/`_hash` were retired
 outright rather than migrated — the `shared-auth` Traefik Basic Auth
 rollback they fed had sat unreferenced since the 2026-09-08 Authelia
 forward-auth cutover, and stayed only as a hedge against Authelia's
-own SQLite storage bug (`BACKLOG.md`'s tracked item) recurring; once
+own SQLite storage bug (then tracked in `BACKLOG.md`, closed 2026-09-16) recurring; once
 forward-auth held stable for several more days with no recurrence,
 the rollback stopped earning its keep. `home-infra/authelia` is
 deliberately last.
@@ -745,7 +745,9 @@ swapping either PAT for one needs its own investigation first (whether
 an installation token can actually authenticate a GHCR pull or a
 self-hosted runner registration the same way). Moved to `BACKLOG.md`
 now that the migration campaign itself has closed out, rather than
-carried forward in `PARKED.md` as active pull.
+carried forward in `PARKED.md` as active pull. Closed 2026-09-17: GitHub
+App installation tokens can't authenticate GHCR pulls, see "GHCR image
+pulls stay on a classic PAT" below.
 
 `home-infra/authelia`'s first real rotation (2026-09-13, 6 of its 9
 keys) established the pattern for re-encrypting a live SQLite database
