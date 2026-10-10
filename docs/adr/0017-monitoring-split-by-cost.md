@@ -39,8 +39,8 @@ policies scoped tightly to the three resource types actually touched
 and a self-hosted-runner CI/CD pipeline applying on merge to `main`
 (originally also gated behind the `production` environment's reviewer
 approval; that reviewer requirement was removed workspace-wide
-2026-09-07 as redundant with PR review — see home-infra-ai-context's
-own `decisions.md`).
+2026-09-07 as redundant with PR review — see
+[`decisions.md`](../decisions.md)).
 
 ## Consequences
 

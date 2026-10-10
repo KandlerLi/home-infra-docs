@@ -19,7 +19,7 @@ There's no dedicated deploy/publish runbook for the current shape —
 Open WebUI is deployed the same way every other `infra/k3s-apps`
 module is, through that repo's own normal Terraform apply (CI on
 merge to `main`). See
-`docs/home-infra-ai-context/context/current-state.md`'s "k3s learning
+[`current-state.md`](../current-state.md)'s "k3s learning
 cluster" section for the full cutover history.
 
 The one piece of this runbook's original content that's still real and

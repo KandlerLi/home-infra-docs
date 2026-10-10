@@ -15,7 +15,7 @@ before this retirement, just via a different, current mechanism:
 enabling it now means deploying `infra/k3s-apps`' own
 `modules/home_agent` through that repo's normal Terraform apply, not
 these dead Ansible plays. See
-`docs/home-infra-ai-context/context/current-state.md`'s "Known gaps"
+[`current-state.md`](../current-state.md)'s "Known gaps"
 section for the current, authoritative status, and its "k3s learning
 cluster" section for the cutover history.
 

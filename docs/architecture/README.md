@@ -5,6 +5,10 @@ hierarchical views rather than one all-purpose diagram.
 
 ## Views
 
+[`overview.md`](overview.md) is the maintained summary of the current
+architecture. The C4 views below were drawn in August 2026 and partly
+show the Docker-era setup; prefer `overview.md` where they disagree.
+
 ### Current deployment
 
 1. [System context](current/system-context.md) — people and external systems
