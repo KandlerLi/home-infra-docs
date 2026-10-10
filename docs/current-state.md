@@ -920,10 +920,10 @@ playbook (`ansible/playbooks/k3s.yml`) is deliberately not imported into
     ban) failed to reproduce it, and it has not recurred through
     several more days of varied production traffic since (OIDC
     role-sync work, Nextcloud SSO's own account migration, ordinary
-    daily use of all five gated services). No confirmed root cause --
-    tracked as a live, not-yet-closed risk in `BACKLOG.md`'s own
-    "Ingress auth: Authelia SQLite storage lost data twice" entry,
-    including the known ~5-minute recovery drill if it recurs.
+    daily use of all five gated services). No confirmed root cause.
+    Closed as a tracked risk 2026-09-16: no recurrence since, and the
+    nightly `authelia-backup` CronJob (restore-verified) means a
+    recurrence no longer loses TOTP/WebAuthn registrations.
   - Per-client OIDC integration gotchas found live, each fixed in
     `modules/authelia/secret.tf`: Grafana never actually falls through
     to the UserInfo endpoint for `role_attribute_path` despite being
