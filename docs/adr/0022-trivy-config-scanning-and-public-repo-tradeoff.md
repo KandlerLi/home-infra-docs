@@ -107,3 +107,27 @@ then later removed in a following commit, while gitleaks found it
 immediately. Since the whole point of this stage is catching a secret
 that was committed and later removed, `trivy fs` would have been a
 hollow checkbox for exactly that case.
+
+## Addendum 2026-10-10: `home-infra-docs` to be made public
+
+Decided by Julian 2026-10-10. Since `home-infra-ai-context` was merged in
+(home-infra-docs#8), this is the single docs repo, changed through PRs and
+gated by gitleaks, but `main` had no branch protection. Same tradeoff as
+above: public for real protection instead of a paid plan. Change:
+`github/repo-infra` `config.yml` sets `visibility: public` and requires
+`gitleaks / Gitleaks secret scan` (repo-infra#40); local apply by Julian.
+
+Content audit of every commit reachable from GitHub, PR refs included
+(129 commits): no credentials, private keys, tokens, AWS account ID,
+public IPv4/IPv6 addresses or personal data (address, birthday, phone,
+bank). Two identifiers that do appear were already public:
+`julian.kandler@outlook.com` (www.jkandler.de, `k3s-apps`) and the
+`Finanzfluss_Nextcloud.xlsx` workbook name (`k3s-apps`). Exposed for the
+first time: the LAN topology and known-gaps list in `current-state.md`,
+the same class of exposure accepted for `k3s-apps` above.
+
+One residual: `refs/pull/8/head` (commit `5ecc6e6`) carries the full IDs
+of two access keys of the IAM user `julian` (`main` shows only the last
+four characters). Both keys are deleted (the inactive one by Julian on
+2026-10-10, before the switch), so both IDs are inert; the secrets were
+never committed. PR refs can only be removed by GitHub support.
