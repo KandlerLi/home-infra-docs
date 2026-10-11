@@ -3,38 +3,17 @@
 Architecture and operations documentation for Julian Kandler's Debian
 homeserver and its supporting automation.
 
-This repository is the documentation source of truth. Infrastructure code is
-kept separately in:
+This repository is the documentation source of truth for the whole
+workspace. The code lives in separate repositories under
+`/home/julian/projects/`, grouped by what they manage: `aws/`, `github/`,
+`bootstrap/` (local-apply roots), `infra/` (`home-infra` Ansible,
+`k3s-apps`). [`docs/repositories.md`](docs/repositories.md) describes each
+one; the workspace `CLAUDE.md` has the short map and the agent working
+rules.
 
-```text
-/home/julian/projects/infra/home-infra
-```
-
-Agent working rules live in the workspace `CLAUDE.md` and
-`.claude/skills/` (`/home/julian/projects`). The former
-`home-infra-ai-context` repository was merged into this one in 2026-10 and
-archived; it keeps only the dated session handovers from August 2026.
-
-The central Terraform state-bucket bootstrap project is:
-
-```text
-/home/julian/projects/bootstrap/terraform-state
-```
-
-GitHub repository configuration and the account-wide AWS identity/GitHub
-OIDC control plane are both managed from:
-
-```text
-/home/julian/projects/github/repo-infra
-```
-
-Both bootstrap projects are local Git repositories whose tracked sources
-exclude all Terraform state artifacts. Since 2026-08-21 every project listed
-above lives one level under a parent folder that groups it by purpose:
-`/home/julian/projects/docs/`, `/home/julian/projects/bootstrap/`, or
-`/home/julian/projects/infra/`. The complete inventory boundary is every
-project directory nested one level under one of those three folders, not
-only Git roots.
+The former `home-infra-ai-context` repository was merged into this one in
+2026-10 and archived; it keeps only the dated session handovers from
+August 2026.
 
 ## Current status
 
@@ -48,7 +27,6 @@ diagrams.
 - [Documentation index](docs/README.md)
 - [Current state](docs/current-state.md)
 - [History](docs/history.md) (build and migration record)
-- [System inventory](docs/inventory.md)
 - [Architecture overview](docs/architecture/overview.md)
 - [C4 architecture index](docs/architecture/README.md)
 - [Repositories](docs/repositories.md)

@@ -1,7 +1,7 @@
 # Runbook: Manage Repository Infrastructure
 
 Status: current. Owning repository:
-`/home/julian/projects/github/repo-infra` (local Git `main`, no GitHub remote,
+`/home/julian/projects/github/repo-infra` (public GitHub repo with branch protection, applied only locally,
 shared encrypted S3 backend, key `repo-infra/terraform.tfstate`).
 
 ## Scope
@@ -24,10 +24,9 @@ module:
   `AWS_ACCOUNT_ID`/`AWS_ROLE_ARN`/`AWS_PLAN_ROLE_ARN` Actions variables set
   from the real created role ARNs.
 
-Currently managed: `dyndns` (GitHub settings + AWS deploy roles), `testing`
-(GitHub settings only). `whoami` has pre-existing manual protection but is
-intentionally excluded pending a separate archive/delete decision — do not
-add it without that decision being made first.
+Currently managed: every repository in the workspace; `config.yml` is the
+list. The ones with an `aws_policies.tf` entry also get AWS deploy roles.
+The former `testing` and `whoami` repositories no longer exist.
 
 ## Standard validation
 

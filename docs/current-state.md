@@ -11,9 +11,11 @@ on a single fact.
 
 | Item | State |
 | --- | --- |
-| Host | `homeserver`, `192.168.178.100` (Ansible inventory `home.yml`) |
+| Host | `homeserver`, `192.168.178.100` (Ansible inventory `home.yml`, user `julian`) |
+| Hardware | Fujitsu ESPRIMO P900, Intel Core i5-2400 (4 cores/4 threads), no GPU |
 | OS | Debian 13 (`trixie`), kernel 6.12 (checked 2026-10-11) |
 | Memory | 32 GiB (checked 2026-10-11) |
+| System disk | `/`, 51 GB SSD |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, Deluge downloads, k3s VM disks, Paperless media) |
 | Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/` |
 | Managed by | `infra/home-infra`: `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |

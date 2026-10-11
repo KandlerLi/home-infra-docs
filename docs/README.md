@@ -4,7 +4,6 @@
 
 - [Current state](current-state.md) — what is live now
 - [History](history.md) — build and migration record (not maintained; code comments point here)
-- [System inventory](inventory.md) — hardware, hosts, services, and networks
 - [Networking and ingress](networking.md) — DNS, ports, IPv4, and IPv6
 - [Storage](storage.md) — disks, mounts, application data, and safety rules
 - [Security and secrets](security-and-secrets.md) — trust boundaries and Secrets Manager

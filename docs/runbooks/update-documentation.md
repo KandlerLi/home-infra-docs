@@ -1,37 +1,30 @@
 # Runbook: Update Documentation
 
-## When to update
+Run this after every change that makes something in this repository
+untrue: a service, hostname, port, auth rule, backup, disk, node, DNS
+record, secret, CI identity, or a manual procedure.
 
-Update this repository whenever a change affects:
+## Where it goes
 
-- deployed software systems, applications, or data stores
-- host, container, VM, network, port, DNS, or storage inventory
-- trust boundaries or secret handling
-- standard operating commands
-- an architecture decision
-- the status of a proposed design
-- repository governance, CI/CD, OIDC, IAM, or Terraform state access
+| What changed | Update |
+| --- | --- |
+| A fact about what is live | [`current-state.md`](../current-state.md): facts only, date anything checked live |
+| A durable choice between real alternatives | A new ADR in [`adr/`](../adr/README.md) (next number); amend old ADRs only for factual accuracy |
+| A smaller decision, or the incident behind a workaround | [`decisions.md`](../decisions.md) |
+| A manual step | A runbook here, and the [index](README.md) |
+| A container, network path or trust relationship | The views in [`architecture/current/`](../architecture/current/) |
+| Disk layout or storage rules | [`storage.md`](../storage.md) |
+| Everyday commands | [`operations.md`](../operations.md) |
+| A security boundary | Also the `check-security-invariants` skill in `/home/julian/projects/.claude/skills/` |
 
-## Procedure
+[`history.md`](../history.md) is frozen: never append to it. Code comments
+get one line plus a pointer to where the reasoning lives.
 
-1. Record the current date, enumerate all top-level directories under
-   `/home/julian/projects`, and inspect every relevant project—including those
-   without Git.
-2. Review committed infrastructure and uncommitted changes separately.
-3. Gather only the minimum read-only runtime evidence needed.
-4. Update `current-state.md` and the affected detailed pages.
-5. Update C4 diagrams at every affected abstraction level.
-6. Add or supersede an ADR when a durable architectural choice changes.
-7. Check that every diagram has a title, scope, types, labelled arrows, and
-   legend.
-8. Search for likely secret material before committing.
-9. Validate relative Markdown links and Mermaid code blocks.
-10. If a security boundary changed, update the
-    `check-security-invariants` skill (`/home/julian/projects/.claude/skills/`).
-11. Commit documentation independently from infrastructure code.
+## Checks before the PR
 
-## Promote proposed architecture to current
+- No secret values, Terraform state, document contents or transient public
+  IPs.
+- Relative links resolve; Mermaid blocks render (check the PR's rich diff).
+- `git diff --check` is clean.
 
-Only move an element from `architecture/proposed` to `architecture/current`
-after deployment and runtime verification. Committed code alone is not proof
-of deployment.
+`main` is protected: every change goes through a PR with the gitleaks check.

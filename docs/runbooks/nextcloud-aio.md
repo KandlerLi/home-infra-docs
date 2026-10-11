@@ -26,16 +26,17 @@ against AIO's own upstream docs before writing this rather than guessed.
    mastercontainer if needed.
 
 This covers Nextcloud user data and AIO's own configuration/database state.
-See `docs/storage.md`'s "Backup scope" section for what it does **not**
-cover.
+What it does **not** cover (Deluge downloads, k3s data) and how those are
+backed up instead: the Backups table in `docs/current-state.md`.
 
 ## Current model
 
 Ansible manages the AIO master container. The master container manages the
 Nextcloud, Apache, PostgreSQL, Redis, Collabora, Talk, Imaginary, Notify Push,
-and Whiteboard containers. A separate Ansible-managed Traefik container owns
-public TCP ports 80/443 and routes `nextcloud.jkandler.de` to AIO Apache on
-`127.0.0.1:11000`.
+and Whiteboard containers. Traefik in k3s terminates TLS for
+`nextcloud.jkandler.de` and routes it to AIO Apache on `192.168.101.1:11000`
+(the homeserver's address on the k3s network; Apache also listens on
+`127.0.0.1:11000`).
 
 ## Read-only health check
 
@@ -70,7 +71,7 @@ Expected baseline:
 - move the data directory
 - expose the Docker socket to another application
 - add an AAAA record based only on the presence of a host IPv6 address
-- change ownership of ports 80/443 outside the shared-ingress runbook
+- move ports 80/443 away from the `k3s_ingress_forward` DNAT to k3s Traefik
 
 ## Known issues
 
@@ -104,21 +105,32 @@ Expected baseline:
 
 ## Reverse-proxy operation
 
-The AIO instance runs in its supported reverse-proxy mode. The desired state is
-persisted in Ansible with `nextcloud_aio_reverse_proxy_enabled`,
-`shared_ingress_enabled`, and `shared_ingress_start` set to true. Do not turn
-these off during an ordinary apply. See ADR 0005 and the publish-home-agent
-runbook for the guarded rollback procedure.
+AIO runs in its supported reverse-proxy mode
+(`nextcloud_aio_reverse_proxy_enabled: true`); Apache is reached only by
+Traefik in k3s over `192.168.101.1:11000`. Turning reverse-proxy mode off
+would make AIO try to own ports 80/443 itself; do not change it during an
+ordinary apply.
 
 ## Shut down for physical hardware maintenance
 
 Use the tracked helper instead of cutting power or manually stopping individual
 containers. The helper checks that `/mnt/black-hdd` is mounted, refuses to
-continue while a libvirt VM is running, asks AIO to stop its application
+continue while a libvirt VM is running (so the k3s VMs have to be shut down
+first, see below), asks AIO to stop its application
 containers, verifies the stop, flushes filesystem buffers, and requests an OS
 poweroff. It does not create a backup.
 
-From the controller:
+First shut down the k3s VMs; this takes every k3s service (all public
+hostnames except Nextcloud, LAN DNS, mail) offline until the host is back.
+They start again by themselves at boot (`autostart`).
+
+```bash
+ssh -t julian@192.168.178.100 \
+  'sudo virsh shutdown k3s-node-2 && sudo virsh shutdown k3s-node-1'
+ssh -t julian@192.168.178.100 'sudo virsh list'   # repeat until empty
+```
+
+Then, from the controller:
 
 ```bash
 cd /home/julian/projects/infra/home-infra

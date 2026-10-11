@@ -126,7 +126,7 @@ the new two-level nesting; the discovery command changed from
 `find /home/julian/projects -mindepth 1 -maxdepth 1` to
 `find /home/julian/projects -mindepth 2 -maxdepth 2`.
 
-## Self-hosted GitHub Actions runners are opted into via `config.yml`, wired by a generated Ansible variable
+## Self-hosted GitHub Actions runners are opted into via `config.yml`, wired by a generated variable
 
 Adding an AWS-deploying repository already meant editing only `repo-infra`'s
 `config.yml` and `aws_policies.tf`. Attaching a self-hosted GitHub Actions
@@ -164,6 +164,14 @@ that would mean Terraform triggering long-running, imperative VM
 configuration via `local-exec`, a much larger and riskier change for a
 homelab-scale setup — but now driven from one source of truth instead of two
 independently-maintained lists.
+
+**Update 2026-10-11:** the runner VM and its Ansible role are gone; runners
+are Deployments in `bootstrap/k3s-bootstrap` (since 2026-08-31). The
+decision stands, only the target changed: the same sync script now
+writes `bootstrap/k3s-bootstrap/repositories.auto.tfvars.json`. Adding a
+runner-backed repository is now: `runner: true` in `config.yml`, run
+`scripts/sync_github_runner_repositories.py` in `home-infra`, commit the
+regenerated file in `k3s-bootstrap`, and apply `k3s-bootstrap` locally.
 
 ## Secrets moved from SOPS/GPG to AWS Secrets Manager
 
