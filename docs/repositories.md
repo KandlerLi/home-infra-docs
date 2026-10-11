@@ -1,11 +1,12 @@
 # Workspace and Repository Map
 
-Inventory boundary: **every project directory nested one level under
-`/home/julian/projects/docs`, `/home/julian/projects/bootstrap`, or
-`/home/julian/projects/infra`**, not only Git repositories. Since 2026-08-21
-those three parent folders group every project by purpose: `docs/` for
-documentation-only repositories, `bootstrap/` for control-plane/state
-Terraform roots, `infra/` for workload repositories.
+Inventory boundary: every project directory directly under
+`/home/julian/projects/` or one level under its group folders, not only Git
+repositories. Groups by purpose: `aws/` (Terraform that provisions AWS
+resources), `github/` (GitHub configuration and shared CI), `bootstrap/`
+(local-apply control-plane roots), `infra/` (homeserver and k3s workloads).
+This documentation repository sits at the top level as
+`/home/julian/projects/home-infra-docs` (moved out of `docs/` 2026-10-11).
 
 Current projects, grouped by parent folder:
 
@@ -13,21 +14,23 @@ Current projects, grouped by parent folder:
 | --- | --- | --- | --- |
 | `home-infra` | `infra/` | Git, `main`, public, standard branch protection (2026-09-13) | Ansible and homeserver services |
 | `k3s-apps` | `infra/` | Git, `main`, aligned with `origin/main` | Terraform (`kubernetes` provider) workloads for the personal k3s learning cluster |
-| `dyndns` | `infra/` | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
-| `website` | `infra/` | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
-| `aws-budget` | `infra/` | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
-| `homeserver-health-check` | `infra/` | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, self-hosted runner, applied and confirmed live |
-| `ses-relay` | `infra/` | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, self-hosted runner, applied and live (ADR 0019) |
+| `dyndns` | `aws/` | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
+| `website` | `aws/` | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
+| `aws-budget` | `aws/` | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
+| `homeserver-health-check` | `aws/` | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, self-hosted runner, applied and confirmed live |
+| `ses-relay` | `aws/` | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, self-hosted runner, applied and live (ADR 0019) |
 | `terraform-state` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-14) | Terraform root managing the central S3 backend bucket and (as of 2026-08-23) the `julian` operator IAM identity — both foundational, root-only, essentially-bootstrap-once resources (ADR 0018) |
-| `repo-infra` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
+| `repo-infra` | `github/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
 | `k3s-bootstrap` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only locally with the k3s node's own cluster-admin kubeconfig, never via GitHub Actions | The k3s cluster's self-hosted GitHub Actions runner (`modules/github_runner`), cluster-scoped PersistentVolumes, and privilege-defining RBAC (the Kubernetes Dashboard's own ServiceAccount, `k3s-apps`' own CI ServiceAccount) that can't live in `infra/k3s-apps` itself |
-| `home-infra-docs` | `docs/` | Git, `main`, public, standard branch protection (2026-10-10) | The single documentation repo: current state, architecture, ADRs, runbooks |
-| `home-infra-ai-context` | `docs/` | Archived (merged into `home-infra-docs` 2026-10) | Former cross-model context; keeps the dated handovers |
+| `gha-common` | `github/` | Git, `main`, public, standard branch protection | Shared reusable GitHub Actions workflows every repo's CI calls |
+| `secrets-manager` | `aws/` | Git, `main`, public, standard branch protection, CI-applied | AWS Secrets Manager containers (names only, never values) and the rotation schedule |
+| `home-infra-docs` | top level | Git, `main`, public, standard branch protection (2026-10-10) | The single documentation repo: current state, architecture, ADRs, runbooks |
+| `home-infra-ai-context` | none (no local clone) | Archived (merged into `home-infra-docs` 2026-10) | Former cross-model context; keeps the dated handovers |
 
 Enumerate the workspace before each new broad task:
 
 ```bash
-find /home/julian/projects -mindepth 2 -maxdepth 2 -type d -printf '%P\n' | sort
+find /home/julian/projects -mindepth 1 -maxdepth 2 -type d -not -path '*/.*' -printf '%P\n' | sort
 ```
 
 ## `home-infra`
@@ -706,7 +709,7 @@ terraform plan
 
 ## `home-infra-docs`
 
-Path: `/home/julian/projects/docs/home-infra-docs`
+Path: `/home/julian/projects/home-infra-docs`
 
 The single documentation repository: current state, architecture, ADRs,
 decisions log, repositories, operations and runbooks. Update it in the same
