@@ -5,34 +5,24 @@ hierarchical views rather than one all-purpose diagram.
 
 ## Views
 
-[`overview.md`](overview.md) is the maintained summary of the current
-architecture. The C4 views below were drawn in August 2026 and partly
-show the Docker-era setup; prefer `overview.md` where they disagree.
-
-### Current deployment
+All views are current as of 2026-10-11. For the maintained prose summary see
+[`overview.md`](overview.md).
 
 1. [System context](current/system-context.md) — people and external systems
-2. [Container view](current/container.md) — major applications and data stores
-3. [Infrastructure automation components](current/component-home-infra.md) —
-   internals of the Ansible automation container
-4. [Home-agent components](current/component-home-agent.md) — bounded request,
-   model, and read-only tool orchestration
-5. [Deployment view](current/deployment.md) — physical host, Docker, VM, DNS,
-   and network placement
-6. [Ansible deployment flow](current/dynamic-ansible.md) — runtime sequence for
-   an infrastructure apply
-7. [Agent health-check flow](current/dynamic-home-agent.md) — runtime sequence
-   for a read-only health request
-8. [Repository infrastructure control plane](current/repo-infra.md) —
-   local-only GitHub repository settings and AWS OIDC/IAM identity ownership
-9. [Read-only Nextcloud tools](proposed/nextcloud-tools.md) — retained deployed
-   view of the validated bounded data path
-
-### Retained deployment views
-
-1. [Publication index](proposed/README.md)
-2. [Deployed routing view](proposed/deployment.md)
-3. [Open WebUI rollout](proposed/open-webui.md) — retained deployed rollout view
+2. [Container view](current/container.md) — applications and data stores,
+   grouped by where they run
+3. [Deployment view](current/deployment.md) — homeserver, k3s VMs, networks,
+   disks, AWS
+4. [Infrastructure automation](current/component-home-infra.md) — which
+   repository manages what, local vs. CI apply
+5. [Repository infrastructure control plane](current/repo-infra.md) — GitHub
+   settings and the AWS OIDC/IAM identities CI runs with
+6. [Change rollout](current/dynamic-ansible.md) — PR to apply for Terraform,
+   and an Ansible run
+7. [home_agent components](current/component-home-agent.md) — API, model
+   loop, tools, sidecar
+8. [home_agent chat flow](current/dynamic-home-agent.md) — one chat message
+   with a Nextcloud tool call
 
 ## Notation
 
@@ -41,21 +31,21 @@ element type in brackets.
 
 | Visual convention | Meaning |
 | --- | --- |
-| Blue node | Person |
-| Dark blue node | Software system in scope |
+| Dark blue node | Person |
+| Blue node | Software system in scope |
 | Grey node | External software system |
-| Light blue node | C4 container or component |
+| Medium blue node | C4 container |
+| Light blue node | C4 component |
 | Green node | Data store |
 | Beige node | Deployment or infrastructure node |
-| Dashed border or relationship | Proposed/not deployed |
 
 Colours are supplementary; every node also has a textual type.
 
 ## Scope choices
 
 The system in scope is **Home Infrastructure**: the applications, automation,
-and data stores operated on or for the homeserver. AWS Route 53, the dynamic
-DNS provider, GitHub, and the cloud model provider are external systems.
+and data stores operated on or for the homeserver. GitHub, AWS, the model
+providers, Let's Encrypt and the FRITZ!Box are external systems.
 
 The C4 code level is intentionally omitted. The source code and Ansible task
 files are small enough to navigate directly, while system, container,

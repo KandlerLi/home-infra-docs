@@ -16,17 +16,8 @@
 
 ## C4 architecture
 
-- [Architecture overview](architecture/overview.md) — maintained summary of the current architecture
-- [Architecture index and notation](architecture/README.md)
-- [Current system context](architecture/current/system-context.md)
-- [Current container view](architecture/current/container.md)
-- [Infrastructure automation components](architecture/current/component-home-infra.md)
-- [Home-agent components](architecture/current/component-home-agent.md)
-- [Current deployment](architecture/current/deployment.md)
-- [Current Ansible deployment flow](architecture/current/dynamic-ansible.md)
-- [Current agent health-check flow](architecture/current/dynamic-home-agent.md)
-- [Public agent routing](architecture/proposed/README.md)
-- [Deployed read-only Nextcloud tools](architecture/proposed/nextcloud-tools.md)
+- [Architecture overview](architecture/overview.md) — prose summary
+- [Architecture index and notation](architecture/README.md) — all C4 views
 
 ## Decisions and runbooks
 

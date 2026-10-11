@@ -1,77 +1,75 @@
-# Infrastructure Automation — Component Diagram
+# Infrastructure Automation — Container Diagram
 
-- **C4 type:** Component
-- **Scope:** Infrastructure Automation container
-- **Status:** Current committed configuration as of 2026-08-19
+- **C4 type:** Container
+- **Scope:** The repositories that define the infrastructure, and what each
+  one manages
+- **Status:** Current as of 2026-10-11
 
 ```mermaid
 flowchart LR
-    operator["Julian<br/>[Person]<br/>Runs and reviews automation"]
-    host["Debian Homeserver<br/>[External Software System]"]
-    github["GitHub API<br/>[External Software System]"]
+    julian["Julian<br/>[Person]"]
 
-    subgraph automation["Infrastructure Automation [Container: Ansible]"]
-        playbooks["Playbooks<br/>[Component: Ansible YAML]<br/>Orchestrate host and runner configuration"]
-        inventory["Inventory and Group Variables<br/>[Component: YAML]<br/>Define hosts and non-secret settings"]
-        secrets["Encrypted Variables<br/>[Component: SOPS/GPG]<br/>Provide secrets only at execution time"]
-        base["Base Role<br/>[Component: Ansible role]<br/>Installs administrative base packages"]
-        storage["Storage Role<br/>[Component: Ansible role]<br/>Mounts the large HDD safely"]
-        docker["Docker Role<br/>[Component: Ansible role]<br/>Installs and starts Docker Engine"]
-        nextcloud["Nextcloud AIO Role<br/>[Component: Ansible role]<br/>Runs the AIO master container"]
-        agent["Home Agent Role<br/>[Component: Ansible role]<br/>Runs the bounded API and read-only collector"]
-        ingress["Shared Ingress Role<br/>[Component: Ansible role]<br/>Runs guarded Traefik and file routing"]
-        libvirt["libvirt Host Role<br/>[Component: Ansible role]<br/>Installs KVM/QEMU and libvirt"]
-        runner["GitHub Runner Role<br/>[Component: Ansible role]<br/>Provisions the VM and runner services"]
+    subgraph local["Applied locally by Julian"]
+        ansible["infra/home-infra<br/>[Container: Ansible]<br/>site.yml: homeserver; k3s.yml: k3s VMs"]
+        tfstate["bootstrap/terraform-state<br/>[Container: Terraform]<br/>State bucket, operator identity, account baseline"]
+        k3sboot["bootstrap/k3s-bootstrap<br/>[Container: Terraform]<br/>CI runners, PVs, privilege-defining RBAC"]
+        repoinfra["github/repo-infra<br/>[Container: Terraform]<br/>GitHub settings, OIDC provider, per-repo CI roles"]
     end
 
-    operator -->|"Invokes and reviews"| playbooks
-    inventory -->|"Supplies hosts and configuration"| playbooks
-    secrets -->|"Supplies decrypted runtime variables"| playbooks
-    playbooks -->|"Includes"| base
-    playbooks -->|"Includes"| storage
-    playbooks -->|"Includes"| docker
-    playbooks -->|"Includes"| nextcloud
-    playbooks -->|"Includes"| agent
-    playbooks -->|"Includes"| ingress
-    playbooks -->|"Includes"| libvirt
-    playbooks -->|"Includes"| runner
-    base -->|"Configures through SSH with become"| host
-    storage -->|"Mounts storage through SSH with become"| host
-    docker -->|"Configures Docker through SSH with become"| host
-    nextcloud -->|"Calls the Docker API through Ansible modules"| host
-    agent -->|"Configures systemd and Docker through SSH with become"| host
-    ingress -->|"Configures hardened Traefik through Docker modules"| host
-    libvirt -->|"Calls libvirt through Ansible modules"| host
-    runner -->|"Calls registration and runner APIs over HTTPS"| github
-    runner -->|"Defines VM and configures guest over SSH"| host
+    subgraph ci["Applied by CI on merge to main"]
+        k3sapps["infra/k3s-apps<br/>[Container: Terraform]<br/>All app workloads in k3s"]
+        awsrepos["aws/dyndns, website, ses-relay,<br/>aws-budget, homeserver-health-check,<br/>secrets-manager<br/>[Containers: Terraform]"]
+        gha["github/gha-common<br/>[Container: reusable workflows]<br/>Checks, plan, apply, scans"]
+    end
+
+    homeserver["Homeserver and k3s VMs<br/>[Deployment Nodes]"]
+    cluster["k3s cluster<br/>[Deployment Node]"]
+    awsn["AWS account<br/>[External Software System]"]
+    githubn["GitHub<br/>[External Software System]"]
+    state[("Terraform state<br/>[Data store: S3]")]
+    secrets[("Secrets Manager<br/>[Data store]")]
+
+    julian -->|"ansible-playbook --ask-become-pass"| ansible
+    julian -->|"terraform apply"| tfstate & k3sboot & repoinfra
+    julian -->|"Merges PRs"| githubn
+    githubn -->|"Runs"| gha
+    gha -->|"Plan on PR, apply on merge"| k3sapps & awsrepos
+    ansible -->|"Configures"| homeserver
+    ansible -->|"Reads secrets"| secrets
+    k3sboot --> cluster
+    k3sapps --> cluster
+    k3sapps -->|"Reads secrets"| secrets
+    repoinfra --> githubn
+    repoinfra -->|"OIDC provider, CI roles"| awsn
+    awsrepos --> awsn
+    tfstate --> awsn
+    tfstate & k3sboot & repoinfra & k3sapps & awsrepos -->|"State"| state
 
     classDef person fill:#08427b,color:#fff,stroke:#052e56
     classDef external fill:#666,color:#fff,stroke:#333
-    classDef component fill:#85bbf0,color:#111,stroke:#0b4884
-    class operator person
-    class host,github external
-    class playbooks,inventory,secrets,base,storage,docker,nextcloud,agent,ingress,libvirt,runner component
+    classDef container fill:#438dd5,color:#fff,stroke:#0b4884
+    classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
+    classDef node fill:#f5e6c8,color:#000,stroke:#8a6d3b
+    class julian person
+    class awsn,githubn external
+    class ansible,tfstate,k3sboot,repoinfra,k3sapps,awsrepos,gha container
+    class state,secrets datastore
+    class homeserver,cluster node
 ```
 
-## Component responsibilities
+## Why the split
 
-| Component | Responsibility |
-| --- | --- |
-| Playbooks | Establish ordering and host scope |
-| Inventory and Group Variables | Resolve `homeserver`, LAN address, Python interpreter, and repository configuration |
-| Encrypted Variables | Keep GitHub tokens, the OpenAI key, and agent authentication material encrypted in Git |
-| Base Role | Base packages and administrative group membership |
-| Storage Role | Safe mount-point ownership and UUID-based HDD mount |
-| Docker Role | Docker APT repository, packages, and service |
-| Nextcloud AIO Role | AIO volume and master-container configuration |
-| Home Agent Role | Hardened agent container, credential file, and fixed read-only host collector |
-| Shared Ingress Role | Pinned Traefik configuration, ACME state, routes, limits, and guarded cutover |
-| libvirt Host Role | Hypervisor packages, service, and image cache |
-| GitHub Runner Role | VM, private network, cloud-init, repository registration, and systemd services |
+The local-only roots define the identities and privileges CI itself runs
+with (state bucket, OIDC roles, runner RBAC), so CI must never apply them.
+Ansible needs an interactive become password and stays local too. Everything
+else is applied by CI on merge, with the PR review as the only gate. Details:
+the repo map in `/home/julian/projects/CLAUDE.md` and
+[`repositories.md`](../../repositories.md).
 
 ## Legend
 
-- Blue: person
+- Dark blue: person
 - Grey: external system
-- Light blue: component inside the Ansible container
-- Arrow label: intent and direction
+- Medium blue: repository (C4 container: deployable unit of automation)
+- Green: data store
+- Beige: what gets configured

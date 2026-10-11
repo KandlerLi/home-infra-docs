@@ -1,28 +1,29 @@
 # Repository Infrastructure — Container Diagram
 
 - **C4 type:** Container
-- **Scope:** GitHub repository configuration and AWS identity control plane
-- **Status:** Current/deployed as of 2026-08-21
+- **Scope:** GitHub repository configuration and the AWS identity control
+  plane for CI
+- **Status:** Current as of 2026-10-11
 
 ```mermaid
 flowchart LR
-    operator["Julian<br/>[Person]<br/>Reviews and runs privileged control-plane changes locally"]
-    github_api["GitHub API<br/>[External Software System]<br/>Repository settings, Actions permissions, OIDC tokens"]
-    aws["AWS IAM<br/>[External Software System]<br/>Authenticates OIDC and enforces role permissions"]
+    operator["Julian<br/>[Person]<br/>Runs control-plane changes locally"]
+    github_api["GitHub API<br/>[External Software System]<br/>Repository settings, branch protection, OIDC tokens"]
+    aws["AWS IAM<br/>[External Software System]<br/>OIDC provider and per-repo roles"]
 
     subgraph infrastructure["Home Infrastructure [Software System]"]
-        repo_infra["Repository Infrastructure<br/>[Container: local-only Terraform]<br/>Owns GitHub repo settings, OIDC provider, and repository plan/apply roles"]
-        dyndns_iac["DynDNS Automation<br/>[Container: Terraform and GitHub Actions]<br/>Owns DNS updater application resources"]
-        state["Terraform State Backend<br/>[Container: S3 data store]<br/>Stores isolated repo-infra and DynDNS state keys"]
+        repo_infra["repo-infra<br/>[Container: local-only Terraform]<br/>config.yml + aws_policies.tf for every repo"]
+        workloads["CI-applied repos<br/>[Containers: Terraform + GitHub Actions]<br/>k3s-apps, dyndns, website, ses-relay, aws-budget, homeserver-health-check, secrets-manager"]
+        state["Terraform state<br/>[Container: S3 data store]<br/>One key per root"]
     end
 
-    operator -->|"Runs reviewed plans with a short-lived bootstrap identity"| repo_infra
-    repo_infra -->|"Manages repository settings, Actions permissions, environments"| github_api
-    repo_infra -->|"Manages OIDC provider, trust policies, and least-privilege roles"| aws
-    repo_infra -->|"Reads, locks, and writes repo-infra state"| state
-    github_api -->|"Exchanges repository-bound OIDC tokens"| aws
-    aws -->|"Issues short-lived plan/apply sessions"| dyndns_iac
-    dyndns_iac -->|"Reads or updates only the DynDNS state key"| state
+    operator -->|"Applies with the julian IAM user + gh login"| repo_infra
+    repo_infra -->|"Settings, branch protection, PR policy, environments"| github_api
+    repo_infra -->|"OIDC provider, plan and apply role per repo"| aws
+    repo_infra -->|"Own state key"| state
+    github_api -->|"Repository-bound OIDC tokens"| aws
+    aws -->|"Short-lived plan/apply sessions"| workloads
+    workloads -->|"Each its own state key"| state
 
     classDef person fill:#08427b,color:#fff,stroke:#052e56
     classDef external fill:#666,color:#fff,stroke:#333
@@ -30,32 +31,22 @@ flowchart LR
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class operator person
     class github_api,aws external
-    class repo_infra,dyndns_iac container
+    class repo_infra,workloads container
     class state datastore
 ```
 
-## Deployed boundary
-
 | Container | Technology | Responsibility |
 | --- | --- | --- |
-| Repository Infrastructure | Terraform, GitHub provider, AWS provider, trusted local AWS/GitHub session | Own GitHub repository settings plus account-wide OIDC and repository-bound plan/apply identities |
-| DynDNS Automation | Terraform, GitHub Actions OIDC | Manage application resources without changing its own automation identity |
-| Terraform State Backend | Amazon S3 | Isolate repo-infra and workload state under separate encrypted keys |
+| repo-infra | Terraform (GitHub + AWS providers), local only | Every repo's GitHub settings; the account-wide OIDC provider; a read-only plan role (PR subject) and an apply role (`production` environment subject) per AWS-deploying repo |
+| CI-applied repos | Terraform via `gha-common` workflows | Manage their own resources; can never change their own trust or policies |
+| Terraform state | S3 (`bootstrap/terraform-state`) | Isolated state per root; the plan role can only read its own key |
 
-## History
-
-This container was originally split across two Terraform roots: `dyndns`
-itself (initial manual identity setup), then a dedicated `aws-account-bootstrap`
-root (ADR 0006, 2026-08-19), and a separately created `github-infra` root for
-GitHub-side repository settings (ADR 0009, 2026-08-20). They were consolidated
-into this single `repo-infra` container on 2026-08-21 (ADR 0010) so that
-adding a new AWS-deploying GitHub repository requires one config change and
-one Terraform apply instead of coordinating two separate roots.
+Adding a repo: the `onboard-new-repo` skill. Decisions: ADR 0009, 0010,
+0022.
 
 ## Legend
 
-- Blue: person
+- Dark blue: person
 - Grey: external system
-- Light blue: C4 application container
+- Medium blue: C4 application container
 - Green: C4 data-store container
-- Arrow label: protocol or intent of the relationship

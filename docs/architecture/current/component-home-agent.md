@@ -1,58 +1,59 @@
-# home-agent API — Component Diagram
+# home_agent — Component Diagram
 
 - **C4 type:** Component
-- **Scope:** `home-agent` API container
-- **Status:** Current/deployed and publicly routed as of 2026-08-19
+- **Scope:** The `home_agent` Pod (`infra/k3s-apps` `modules/home_agent`)
+- **Status:** Current as of 2026-10-11
+
+Source: `infra/home-infra` `ansible/roles/home_agent/files/agent/` (agent,
+built into `ghcr.io/kandlerli/home-agent` by CI) and
+`nextcloud_tools/` (sidecar, synced into `k3s-apps`).
 
 ```mermaid
 flowchart LR
-    caller["Authenticated API Client<br/>[Person or External System]"]
-    proxy["Traefik Basic Auth and Limits<br/>[External Container]"]
-    cloud["OpenAI Responses API<br/>[External Software System]"]
-    host_tools["home-tools Unix API<br/>[External Container]"]
-    key["API Key File<br/>[External Data Store]"]
+    owui["Open WebUI<br/>[Container]"]
+    anthropic["Anthropic Messages API<br/>[External Software System]"]
+    whisper["OpenAI Whisper API<br/>[External Software System]"]
+    hometools["home-tools<br/>[Container: systemd on the homeserver]"]
+    aio["Nextcloud AIO<br/>[Container]"]
 
-    subgraph api["home-agent API [Container: Python]"]
-        http["HTTP Request Handler<br/>[Component]<br/>Validates bounded JSON requests"]
-        provider["Responses Provider<br/>[Component]<br/>Runs bounded model/tool orchestration"]
-        schema["Tool Registry<br/>[Component]<br/>Defines six argument-free read-only tools"]
-        client["Home Tools Client<br/>[Component]<br/>Maps tool names to fixed Unix-socket paths"]
-        config["Runtime Configuration<br/>[Component]<br/>Loads model, socket path, and key file"]
+    subgraph pod["home_agent Pod"]
+        api["HTTP API<br/>[Component: api.py]<br/>/v1/chat, /v1/chat/completions, /v1/models, /v1/audio/transcriptions; body limits"]
+        loop["Agent loop<br/>[Component: agent.py]<br/>Pinned model, tool-use rounds, bounded output"]
+        audio["Transcription relay<br/>[Component: audio.py]<br/>25 MB cap, model pinned, no content logging"]
+        htc["Home tools client<br/>[Component: home_tools.py]<br/>Fixed health collectors, no arguments"]
+        nctc["Nextcloud tools client<br/>[Component: nextcloud_tools.py]<br/>list, search, read, read_document, write, shopping list"]
+        sidecar["nextcloud_tools service<br/>[Component: sidecar container]<br/>Path policy, size/type allowlist, WebDAV + OCS, audit log"]
     end
 
-    caller -->|"Uses HTTPS at ai.jkandler.de"| proxy
-    proxy -->|"Forwards bounded requests to 127.0.0.1:8090"| http
-    http -->|"Requests a response"| provider
-    config -->|"Reads the key once at startup"| key
-    config -->|"Initialises"| provider
-    schema -->|"Constrains available function calls"| provider
-    provider -->|"Calls model with tools and function outputs over HTTPS"| cloud
-    provider -->|"Dispatches an approved tool name"| client
-    client -->|"GETs one fixed endpoint over Unix HTTP"| host_tools
-    provider -->|"Returns final natural-language text"| http
+    owui -->|"Chat and audio over HTTP"| api
+    api --> loop
+    api --> audio
+    loop -->|"HTTPS"| anthropic
+    audio -->|"HTTPS"| whisper
+    loop --> htc
+    loop --> nctc
+    htc -->|"HTTP 192.168.101.1:8095"| hometools
+    nctc -->|"Unix socket in a shared emptyDir"| sidecar
+    sidecar -->|"WebDAV/OCS as the home-agent account"| aio
 
     classDef external fill:#666,color:#fff,stroke:#333
-    classDef component fill:#85bbf0,color:#111,stroke:#0b4884
-    class caller,proxy,cloud,host_tools,key external
-    class http,provider,schema,client,config component
+    classDef container fill:#438dd5,color:#fff,stroke:#0b4884
+    classDef component fill:#85bbf0,color:#000,stroke:#5d82a8
+    class anthropic,whisper external
+    class owui,hometools,aio container
+    class api,loop,audio,htc,nctc,sidecar component
 ```
 
-## Tool registry
+## Boundaries
 
-| Model tool | Fixed local endpoint | Data returned |
-| --- | --- | --- |
-| `get_system_health` | `/v1/health` | Combined status for every approved check |
-| `get_cpu_and_load` | `/v1/system` | Hostname, uptime, CPU count, and load averages |
-| `get_memory_usage` | `/v1/memory` | Memory and swap totals and usage |
-| `get_disk_usage` | `/v1/disks` | Usage of `/` and `/mnt/black-hdd` only |
-| `get_systemd_failures` | `/v1/systemd/failed` | Failed unit name, state, and bounded description |
-| `get_docker_status` | `/v1/docker/containers` | Container name, image, state, and bounded status |
-
-No tool accepts a command, path, container name, unit name, or free-form
-argument.
+The agent holds the Anthropic and OpenAI keys; Open WebUI holds neither.
+The sidecar holds the Nextcloud app password; the agent container does
+not. Nextcloud scope is whatever Julian shares with `home-agent` under
+`Shared` (ADR 0021). The full rule set is the `check-security-invariants`
+skill.
 
 ## Legend
 
-- Grey: person, external system, external container, or external data store
-- Light blue: component inside `home-agent`
-- Solid relationship: deployed runtime interaction
+- Grey: external system
+- Medium blue: container outside this Pod
+- Light blue: component
