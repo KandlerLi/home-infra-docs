@@ -93,7 +93,7 @@ All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), 
   homeserver) and CNAMEs to it for `ai`, `auth`, `docs`, `grafana`,
   `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vpn`.
 - [`website`](https://github.com/KandlerLi/website): `www` alias A/AAAA to CloudFront, the only AAAA record.
-- [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`~all`), DMARC and the SES DKIM records.
+- [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`-all`), DMARC and the SES DKIM records.
 - Public IP values are never recorded in Git.
 
 LAN DNS: clients use Blocky in k3s via the homeserver
@@ -192,5 +192,5 @@ from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts
 ## Known gaps
 
 Open work is tracked privately. Notable standing gaps: no off-site backup; Stalwart
-mail not backed up off the VM; SPF still `~all`; the hardware watchdog did
+mail not backed up off the VM; the hardware watchdog did
 not fire during the 2026-09-24 silent freeze.
