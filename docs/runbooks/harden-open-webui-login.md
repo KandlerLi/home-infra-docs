@@ -5,7 +5,7 @@ not a Terraform change — see "Why this isn't in Terraform" below for why, and
 re-read this runbook if it ever needs to be redone.
 
 Applies to the current k3s deployment of Open WebUI
-(`infra/k3s-apps/modules/open_webui`, `kubernetes_deployment_v1.open_webui`,
+([`k3s-apps/modules/open_webui`](https://github.com/KandlerLi/k3s-apps/blob/main/modules/open_webui), `kubernetes_deployment_v1.open_webui`,
 pod label `app=open-webui`) — not the older homeserver-Docker deployment
 described in `publish-open-webui.md`, which this cluster deployment
 superseded.

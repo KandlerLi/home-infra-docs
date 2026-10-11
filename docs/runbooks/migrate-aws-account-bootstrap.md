@@ -3,7 +3,7 @@
 Status: completed on 2026-08-19; retained as migration and recovery evidence.
 The destination root this runbook describes, `aws-account-bootstrap`, was
 itself retired and deleted on 2026-08-21 after its resources were migrated a
-second time into `/home/julian/projects/github/repo-infra` (see
+second time into [`repo-infra`](https://github.com/KandlerLi/repo-infra) (see
 [ADR 0010](../adr/0010-consolidate-repo-and-identity-control-plane.md) and
 [Manage repository infrastructure](manage-repo-infra.md) for
 the current procedure). This runbook remains as historical evidence of the
@@ -48,7 +48,7 @@ Stop if the plan proposes any AWS resource change, replacement, or destroy.
 
 ## Phase 2: import into the local control plane
 
-From `/home/julian/projects/github/repo-infra`:
+From [`repo-infra`](https://github.com/KandlerLi/repo-infra):
 
 ```bash
 export AWS_PROFILE=terraform-bootstrap

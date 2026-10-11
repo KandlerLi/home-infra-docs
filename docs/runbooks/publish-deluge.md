@@ -1,7 +1,7 @@
 # Runbook: Deploy and Publish Deluge — retired
 
 **Retired 2026-08-29/30, not applicable to the current architecture.**
-This runbook described `infra/home-infra`'s own Docker-based Deluge
+This runbook described [`home-infra`](https://github.com/KandlerLi/home-infra)'s own Docker-based Deluge
 deployment (a container with a web UI on `127.0.0.1:8112`, published
 publicly through the retired `shared_ingress` role's own
 `publish-deluge.yml`/`rollback-deluge.yml` playbooks). `deluge.yml`
@@ -13,12 +13,12 @@ current k3s-native copy still depends on. Running it will not do what
 this runbook describes, even though the command itself doesn't error.
 `publish-deluge.yml`/`rollback-deluge.yml` are both fully deleted.
 
-`torrent.jkandler.de` is served by `infra/k3s-apps`' own
+`torrent.jkandler.de` is served by [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own
 `modules/deluge` now, reached through k3s-native Traefik
 (`k3s_ingress_forward`'s DNAT relay) with Authelia forward-auth gating
 the route instead of Traefik Basic Auth (since 2026-09-08). There's no
 dedicated deploy/publish runbook for the current shape -- it's
-deployed the same way every other `infra/k3s-apps` module is, through
+deployed the same way every other [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) module is, through
 that repo's own normal Terraform apply. See
 [`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history.
@@ -33,7 +33,7 @@ relevant, unrelated to which deployment mechanism serves the route:
   originally described, still manual/out-of-band, not Ansible- or
   Terraform-managed.
 - **This data still isn't covered by AIO's built-in Nextcloud
-  backup** -- see `docs/storage.md` and `infra/home-infra`'s own
+  backup** -- see `docs/storage.md` and [`home-infra`](https://github.com/KandlerLi/home-infra)'s own
   `aux_backup` role (added 2026-09-16), which now covers
   `deluge-config` specifically (not the bulk `downloads` directory,
   deliberately excluded as large and re-attainable by re-downloading).

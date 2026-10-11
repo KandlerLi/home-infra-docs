@@ -1,6 +1,6 @@
 # Secure Repository and Deployment Blueprint
 
-Source example: `/home/julian/projects/aws/dyndns` at `df2fa76` on 2026-08-19.
+Source example: [`dyndns`](https://github.com/KandlerLi/dyndns) at `df2fa76` on 2026-08-19.
 
 This records how `KandlerLi/dyndns` was secured and how to adapt the pattern to
 other repositories. It is a blueprint, not a script to run unchanged. Resource
@@ -27,7 +27,7 @@ The design aims to ensure that:
 ## Layer 1: Repository governance
 
 Since 2026-08-21 most of this is Terraform-managed by
-`/home/julian/projects/github/repo-infra` (`github_branch_protection`,
+[`repo-infra`](https://github.com/KandlerLi/repo-infra) (`github_branch_protection`,
 `github_actions_repository_permissions`, `github_workflow_repository_permissions`,
 `github_repository_environment`), not by a script — see that root's README
 for the resource-level detail.
@@ -115,7 +115,7 @@ that checkpoint after merge, closer to the point of actual risk.
 The same reasoning was applied a second time on 2026-09-07, to that
 `production` environment reviewer gate itself: an AI agent may commit and
 open PRs on this repository, but merging remains a deliberate human action
-the agent never performs (see the workspace's own `CLAUDE.md`) — so the
+the agent never performs (the owner's standing rule) — so the
 separate "approve deployment" click was reviewing nothing a second pair of
 eyes hadn't already seen at merge time, for the same single-owner reason the
 2026-08-21 removal already established. The gate was removed; the
@@ -244,7 +244,7 @@ IDs or assume a name-only subject is equivalent.
 The account-wide GitHub OIDC provider has `prevent_destroy = true`. Its
 Terraform ownership, together with both repository roles and policies, was
 moved without destruction to the local-only `aws-account-bootstrap` root on
-2026-08-19, then to `/home/julian/projects/github/repo-infra` on 2026-08-21 when
+2026-08-19, then to [`repo-infra`](https://github.com/KandlerLi/repo-infra) on 2026-08-21 when
 that root was retired and its resources consolidated with GitHub repository
 settings management (see ADR 0010 in `home-infra-docs`).
 
@@ -254,7 +254,7 @@ Terraform state uses an encrypted S3 backend with native S3 lock files. IAM is
 scoped to the repository's exact state and lock object keys.
 
 The shared bucket is currently defined by the local
-`/home/julian/projects/bootstrap/terraform-state` Git repository. It has no remote yet.
+[`terraform-state`](https://github.com/KandlerLi/terraform-state) Git repository. It has no remote yet.
 Its ignored local state backup and backend metadata must be treated as
 sensitive; do not inspect, copy, publish, delete, or migrate them as part of
 routine documentation work. Before publishing it or using this pattern for
@@ -275,7 +275,7 @@ and state prefix where AWS supports those dimensions. Notably:
 
 Keeping the automation roles read-only prevents the CI deployment role from
 expanding its own permissions or changing its trust. Ownership places
-the provider and both roles/policies in `/home/julian/projects/github/repo-infra`
+the provider and both roles/policies in [`repo-infra`](https://github.com/KandlerLi/repo-infra)
 (alongside GitHub repository settings management). That root has no GitHub
 Actions workflow and requires a human-selected, short-lived local bootstrap
 identity plus a GitHub token. This creates an explicit
@@ -335,7 +335,7 @@ copied into Git or long-lived handover documentation.
 
 Avoid the OIDC/environment chicken-and-egg problem by using this sequence.
 For this workspace, most of it is now handled by
-`/home/julian/projects/github/repo-infra`'s `modules/repo` (see
+[`repo-infra`](https://github.com/KandlerLi/repo-infra)'s `modules/repo` (see
 `home-infra-docs/docs/runbooks/manage-repo-infra.md`) rather than by hand:
 the module derives the repository's numeric ID and builds the OIDC trust
 subject automatically, and creates the plan/apply roles, state-bucket access,

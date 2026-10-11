@@ -29,7 +29,7 @@
 Conflicting information should be resolved in this order:
 
 1. Live, read-only observation of the homeserver
-2. Committed files in `/home/julian/projects/infra/home-infra`
+2. Committed files in [`home-infra`](https://github.com/KandlerLi/home-infra)
 3. Uncommitted changes in that repository, marked as proposed
 4. Historical handover notes (archived `home-infra-ai-context` repo), marked
    as historical or unverified

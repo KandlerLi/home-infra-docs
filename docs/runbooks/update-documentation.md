@@ -15,7 +15,7 @@ record, secret, CI identity, or a manual procedure.
 | A container, network path or trust relationship | The views in [`architecture/current/`](../architecture/current/) |
 | Disk layout or storage rules | [`storage.md`](../storage.md) |
 | Everyday commands | [`operations.md`](../operations.md) |
-| A security boundary | Also the `check-security-invariants` skill in `/home/julian/projects/.claude/skills/` |
+| A security boundary | Also the owner's agent rule set (`check-security-invariants`, kept outside this repo) |
 
 [`history.md`](../history.md) is frozen: never append to it. Code comments
 get one line plus a pointer to where the reasoning lives.

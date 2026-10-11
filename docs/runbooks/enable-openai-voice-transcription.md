@@ -2,10 +2,10 @@
 
 **Deploy mechanism retired 2026-08-30, not the feature itself.** This
 runbook's own step 2 (`ansible-playbook ansible/playbooks/home-agent.yml`/
-`open-webui.yml`) belonged to `infra/home-infra`'s Docker-based deployment
+`open-webui.yml`) belonged to [`home-infra`](https://github.com/KandlerLi/home-infra)'s Docker-based deployment
 of both services — both playbooks are gone, along with the roles' own
 container management, once `home_agent`/`open_webui` moved to k3s-native
-Deployments (`infra/k3s-apps`' `modules/home_agent`/`modules/open_webui`).
+Deployments ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/home_agent`/`modules/open_webui`).
 The transcription relay itself (`home_agent`'s `/v1/audio/transcriptions`
 endpoint) is vendored into that same k3s-apps module and deployed through
 its normal Terraform apply — no dedicated runbook for that mechanism.

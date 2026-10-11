@@ -37,9 +37,9 @@ place.
 **S3 + CloudFront + ACM, following the established Terraform + GitHub
 Actions OIDC pattern.** The user's own instinct was AWS S3; this repeats
 the shape `dyndns` already established rather than inventing a new one: a
-new Terraform root (`aws/website`) using the same shared
+new Terraform root ([`website`](https://github.com/KandlerLi/website)) using the same shared
 `jkandler-terraform-state` S3 backend, GitHub repository and AWS deploy
-roles provisioned by `github/repo-infra` (`config.yml` +
+roles provisioned by [`repo-infra`](https://github.com/KandlerLi/repo-infra) (`config.yml` +
 `aws_policies.tf`), OIDC-based short-lived AWS credentials, no IAM users
 or long-lived keys. The S3 bucket is private with no static-website-
 hosting endpoint or public bucket policy; CloudFront reaches it only

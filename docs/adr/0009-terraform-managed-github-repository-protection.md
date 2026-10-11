@@ -5,7 +5,7 @@
 - Deployment status: Applied
 
 **2026-08-21 update**: `github-infra` was renamed to
-`/home/julian/projects/github/repo-infra` and absorbed the AWS identity control
+[`repo-infra`](https://github.com/KandlerLi/repo-infra) and absorbed the AWS identity control
 plane described in ADR 0006. The decisions and consequences below remain
 accurate; only the repository name/path changed. See
 [ADR 0010](0010-consolidate-repo-and-identity-control-plane.md).
@@ -22,7 +22,8 @@ permissions/PR-approval restriction. Both had been toggled directly through
 the GitHub web UI, so their state existed only on GitHub — undocumented and
 unrepresented in any committed configuration.
 
-A new local Terraform root, `/home/julian/projects/github-infra`, was started
+A new local Terraform root, `github-infra` (since renamed
+[`repo-infra`](https://github.com/KandlerLi/repo-infra)), was started
 to bring GitHub-side repository configuration under Terraform for `dyndns`
 and a scratch repository `testing`. A read-only audit against the live
 GitHub account (`gh api`, all 21 repositories) confirmed the scope of what

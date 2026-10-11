@@ -1,44 +1,36 @@
 # Workspace and Repository Map
 
-Inventory boundary: **every project directory nested one level under
-`/home/julian/projects/docs`, `/home/julian/projects/bootstrap`, or
-`/home/julian/projects/infra`**, not only Git repositories. Since 2026-08-21
-those three parent folders group every project by purpose: `docs/` for
-documentation-only repositories, `bootstrap/` for control-plane/state
-Terraform roots, `infra/` for workload repositories.
+Every repository lives under
+[github.com/KandlerLi](https://github.com/KandlerLi). Local clones are
+grouped by what each repo manages: AWS resources, GitHub configuration,
+local-apply control-plane roots, and the homeserver/k3s workloads.
 
-Current projects, grouped by parent folder:
-
-| Project | Parent | Git status | Responsibility |
+| Project | Group | Git status | Responsibility |
 | --- | --- | --- | --- |
-| `home-infra` | `infra/` | Git, `main`, public, standard branch protection (2026-09-13) | Ansible and homeserver services |
-| `k3s-apps` | `infra/` | Git, `main`, aligned with `origin/main` | Terraform (`kubernetes` provider) workloads for the personal k3s learning cluster |
-| `dyndns` | `infra/` | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
-| `website` | `infra/` | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
-| `aws-budget` | `infra/` | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
-| `homeserver-health-check` | `infra/` | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, self-hosted runner, applied and confirmed live |
-| `ses-relay` | `infra/` | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, self-hosted runner, applied and live (ADR 0019) |
-| `terraform-state` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-14) | Terraform root managing the central S3 backend bucket and (as of 2026-08-23) the `julian` operator IAM identity — both foundational, root-only, essentially-bootstrap-once resources (ADR 0018) |
-| `repo-infra` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
-| `k3s-bootstrap` | `bootstrap/` | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only locally with the k3s node's own cluster-admin kubeconfig, never via GitHub Actions | The k3s cluster's self-hosted GitHub Actions runner (`modules/github_runner`), cluster-scoped PersistentVolumes, and privilege-defining RBAC (the Kubernetes Dashboard's own ServiceAccount, `k3s-apps`' own CI ServiceAccount) that can't live in `infra/k3s-apps` itself |
-| `home-infra-docs` | `docs/` | Git, `main`, public, standard branch protection (2026-10-10) | The single documentation repo: current state, architecture, ADRs, runbooks |
-| `home-infra-ai-context` | `docs/` | Archived (merged into `home-infra-docs` 2026-10) | Former cross-model context; keeps the dated handovers |
-
-Enumerate the workspace before each new broad task:
-
-```bash
-find /home/julian/projects -mindepth 2 -maxdepth 2 -type d -printf '%P\n' | sort
-```
+| [`home-infra`](https://github.com/KandlerLi/home-infra) | workloads | Git, `main`, public, standard branch protection (2026-09-13) | Ansible and homeserver services |
+| [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) | workloads | Git, `main`, aligned with `origin/main` | Terraform (`kubernetes` provider) workloads for the personal k3s learning cluster |
+| [`dyndns`](https://github.com/KandlerLi/dyndns) | AWS | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
+| [`website`](https://github.com/KandlerLi/website) | AWS | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
+| [`aws-budget`](https://github.com/KandlerLi/aws-budget) | AWS | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
+| [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) | AWS | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, self-hosted runner, applied and confirmed live |
+| [`ses-relay`](https://github.com/KandlerLi/ses-relay) | AWS | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, self-hosted runner, applied and live (ADR 0019) |
+| [`terraform-state`](https://github.com/KandlerLi/terraform-state) | control plane | Git, `main`, public, standard branch protection (2026-09-14) | Terraform root managing the central S3 backend bucket and (as of 2026-08-23) the `julian` operator IAM identity — both foundational, root-only, essentially-bootstrap-once resources (ADR 0018) |
+| [`repo-infra`](https://github.com/KandlerLi/repo-infra) | GitHub | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
+| [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) | control plane | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only locally with the k3s node's own cluster-admin kubeconfig, never via GitHub Actions | The k3s cluster's self-hosted GitHub Actions runner (`modules/github_runner`), cluster-scoped PersistentVolumes, and privilege-defining RBAC (the Kubernetes Dashboard's own ServiceAccount, `k3s-apps`' own CI ServiceAccount) that can't live in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) itself |
+| [`gha-common`](https://github.com/KandlerLi/gha-common) | GitHub | Git, `main`, public, standard branch protection | Shared reusable GitHub Actions workflows every repo's CI calls |
+| [`secrets-manager`](https://github.com/KandlerLi/secrets-manager) | AWS | Git, `main`, public, standard branch protection, CI-applied | AWS Secrets Manager containers (names only, never values) and the rotation schedule |
+| [`home-infra-docs`](https://github.com/KandlerLi/home-infra-docs) | docs | Git, `main`, public, standard branch protection (2026-10-10) | The single documentation repo: current state, architecture, ADRs, runbooks |
+| [`home-infra-ai-context`](https://github.com/KandlerLi/home-infra-ai-context) | docs | Archived (merged into `home-infra-docs` 2026-10) | Former cross-model context; keeps the dated handovers |
 
 ## `home-infra`
 
-Path: `/home/julian/projects/infra/home-infra`
+Repository: [`home-infra`](https://github.com/KandlerLi/home-infra)
 
 Owns Ansible inventory, roles, playbooks, tests, encrypted variables, the
 home-agent source, the home-tools service, Nextcloud AIO master configuration,
 Traefik, the now-retired Open WebUI Docker runtime (container stopped
 2026-08-30, role files still here but unreachable — the deployed runtime is
-`infra/k3s-apps`' `modules/open_webui` now), deployed read-only Nextcloud tools
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/open_webui` now), deployed read-only Nextcloud tools
 plus implemented-but-not-yet-deployed Nextcloud write tools (ADR 0011,
 confirmation step later removed per ADR 0013 — see
 `docs/runbooks/enable-nextcloud-writes.md`), implemented-but-not-yet-deployed
@@ -86,7 +78,7 @@ pushes `home_agent`'s image to a private GHCR package
 (`ghcr.io/kandlerli/home-agent`) on the same self-hosted runner, on
 every push touching `ansible/roles/home_agent/files/agent/**` --
 needed once `home_agent` started moving into the k3s cluster
-(`infra/k3s-apps`' `modules/home_agent/`), specifically to avoid
+([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/home_agent/`), specifically to avoid
 building it on the homeserver itself, unlike every other image this
 repo runs (which `docker_image`/`docker build` locally on the
 homeserver as part of the normal Ansible apply). Uses the workflow's
@@ -135,7 +127,7 @@ Built as a homeserver Docker role for network-wide DNS ad-blocking
 (ADR 0020), applied and confirmed working briefly there in late
 August 2026 -- but this role no longer exists in this repo at all
 (`ansible/roles/blocky/` is gone). Blocky moved to a k3s-native
-Deployment (`infra/k3s-apps`' own `modules/blocky`) on 2026-09-01,
+Deployment ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/blocky`) on 2026-09-01,
 alongside the `shared_ingress`-to-k3s cutover below, reached from the
 LAN via `k3s_ingress_forward`'s own DNAT relay rather than binding
 directly to the homeserver's LAN IP. See `history.md`'s own
@@ -161,7 +153,7 @@ added when Deluge's migration needed real shared storage with the
 homeserver rather than an isolated sandbox copy.
 
 Cluster workloads themselves live in a separate, Terraform-managed
-sibling repository, `infra/k3s-apps` — see its own project section
+sibling repository, [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) — see its own project section
 below. **Applied and live**: `home.jkandler.de` (2026-08-29) and
 `torrent.jkandler.de` (2026-08-29/30) both now serve from there instead
 of a homeserver Docker container; see `history.md`'s "k3s
@@ -185,7 +177,7 @@ uses, in its own subdirectory. See the role's own README for the full
 reasoning. **Built and unit-tested, not yet applied** -- matching
 `deluge`/`monitoring`'s own rollout history (private validation
 before persisting `aux_backup_enabled: true` in inventory); see
-`PARKED.md`'s "Nextcloud data has zero backup" entry for the fuller
+the private task list's "Nextcloud data has zero backup" entry for the fuller
 backup-scope investigation this came out of.
 
 `ansible/tasks/` holds task files shared across roles/playbooks by
@@ -234,7 +226,7 @@ tests/test_open_webui.py
 Focused validation:
 
 ```bash
-cd /home/julian/projects/infra/home-infra
+cd home-infra
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/ansible-playbook ansible/playbooks/site.yml --syntax-check
 .venv/bin/ansible-lint ansible/roles/home_agent ansible/roles/nextcloud_tools \
@@ -247,7 +239,7 @@ misrepresent a focused production-profile pass as a clean global lint run.
 
 ## `k3s-apps`
 
-Path: `/home/julian/projects/infra/k3s-apps`
+Repository: [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)
 
 Terraform-managed workloads (the `kubernetes` provider directly against
 the cluster, not plain `kubectl apply -f` — a deliberate choice to keep
@@ -348,7 +340,7 @@ at a time, each proven live first, matching the user's explicit
 Validation:
 
 ```bash
-cd /home/julian/projects/infra/k3s-apps
+cd k3s-apps
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
@@ -356,7 +348,7 @@ terraform validate
 
 ## `dyndns`
 
-Path: `/home/julian/projects/aws/dyndns`
+Repository: [`dyndns`](https://github.com/KandlerLi/dyndns)
 
 Owns Terraform for Route 53 stable CNAMEs, the dynamic apex A-record updater,
 API Gateway, Lambda, Secrets Manager container, the Lambda runtime IAM role,
@@ -408,7 +400,7 @@ squash commit).
 Validation:
 
 ```bash
-cd /home/julian/projects/aws/dyndns
+cd dyndns
 terraform fmt -check -recursive
 python3 -m unittest discover -s tests -v
 terraform init -backend=false
@@ -422,7 +414,7 @@ in [Secure Repository and Deployment Blueprint](repository-security-blueprint.md
 
 ## `website`
 
-Path: `/home/julian/projects/aws/website`
+Repository: [`website`](https://github.com/KandlerLi/website)
 
 Owns Terraform for a static personal CV site served at
 `https://www.jkandler.de/`: a private S3 bucket reached only through
@@ -457,7 +449,7 @@ connection to this repository beyond sharing the same domain name.
 Validation:
 
 ```bash
-cd /home/julian/projects/aws/website
+cd website
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
@@ -465,7 +457,7 @@ terraform validate
 
 ## `aws-budget`
 
-Path: `/home/julian/projects/aws/aws-budget`
+Repository: [`aws-budget`](https://github.com/KandlerLi/aws-budget)
 
 Owns Terraform for a single `aws_budgets_budget` resource: a $10/month
 cost budget with email notifications at 80% actual, 100% actual, and
@@ -504,7 +496,7 @@ forecasted), subscriber `julian.kandler@outlook.com`.
 Validation:
 
 ```bash
-cd /home/julian/projects/aws/aws-budget
+cd aws-budget
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
@@ -512,7 +504,7 @@ terraform validate
 
 ## `homeserver-health-check`
 
-Path: `/home/julian/projects/aws/homeserver-health-check`
+Repository: [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check)
 
 Owns Terraform for a single Route53 health check + CloudWatch alarm + SNS
 email subscription, checking `https://jkandler.de/` (the bare apex, not
@@ -549,7 +541,7 @@ plan") green.
 
 ## `ses-relay`
 
-Path: `/home/julian/projects/aws/ses-relay`
+Repository: [`ses-relay`](https://github.com/KandlerLi/ses-relay)
 
 Terraform for an SES sending identity used only to relay
 `monitoring`'s (see `home-infra`'s own section) Alertmanager email alerts
@@ -593,7 +585,7 @@ through it live.
 Validation:
 
 ```bash
-cd /home/julian/projects/aws/ses-relay
+cd ses-relay
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
@@ -602,7 +594,7 @@ terraform validate
 Validation:
 
 ```bash
-cd /home/julian/projects/aws/homeserver-health-check
+cd homeserver-health-check
 terraform fmt -check -recursive
 terraform init -backend=false
 terraform validate
@@ -610,7 +602,7 @@ terraform validate
 
 ## `repo-infra`
 
-Path: `/home/julian/projects/github/repo-infra` (renamed from `github-infra` on
+Repository: [`repo-infra`](https://github.com/KandlerLi/repo-infra) (renamed from `github-infra` on
 2026-08-21, absorbing the formerly separate `aws-account-bootstrap` root —
 see `home-infra-docs/docs/adr/0010-consolidate-repo-and-identity-control-plane.md`)
 
@@ -698,7 +690,7 @@ and `home-infra-docs/docs/adr/0010-consolidate-repo-and-identity-control-plane.m
 Validation:
 
 ```bash
-cd /home/julian/projects/github/repo-infra
+cd repo-infra
 terraform fmt -check -recursive
 terraform validate
 terraform plan
@@ -706,7 +698,7 @@ terraform plan
 
 ## `home-infra-docs`
 
-Path: `/home/julian/projects/docs/home-infra-docs`
+Repository: [`home-infra-docs`](https://github.com/KandlerLi/home-infra-docs)
 
 The single documentation repository: current state, architecture, ADRs,
 decisions log, repositories, operations and runbooks. Update it in the same
@@ -726,16 +718,16 @@ docs/runbooks/publish-open-webui.md
 
 ## `home-infra-ai-context` (archived)
 
-Path: `/home/julian/projects/docs/home-infra-ai-context`
+Repository: [`home-infra-ai-context`](https://github.com/KandlerLi/home-infra-ai-context)
 
 Merged into `home-infra-docs` in 2026-10 and archived. Its living context
-files now live here under `docs/`, its agent rules in the workspace
-`CLAUDE.md` and `.claude/skills/`. It is kept read-only for its dated
+files now live here under `docs/`; its agent rules moved to the owner's
+local agent configuration. It is kept read-only for its dated
 `handovers/` (2026-08-19 to 2026-08-30).
 
 ## `terraform-state` project and S3 backend
 
-Path: `/home/julian/projects/bootstrap/terraform-state`
+Repository: [`terraform-state`](https://github.com/KandlerLi/terraform-state)
 
 Git repository on `main`, with a private GitHub backup mirror (added
 2026-08-23's disaster-recovery audit, like `repo-infra` and 3 others).

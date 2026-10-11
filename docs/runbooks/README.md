@@ -24,7 +24,7 @@ need Julian's review; prefer read-only checks first.
 
 | Runbook | Status |
 | --- | --- |
-| [Homeserver silent freeze](homeserver-silent-freeze.md) | Root cause unknown; watchdog did not fire on 2026-09-24 (`PARKED.md`) |
+| [Homeserver silent freeze](homeserver-silent-freeze.md) | Root cause unknown; watchdog did not fire on 2026-09-24 |
 | [e1000e NIC watchdog hang](homeserver-e1000e-nic-watchdog-hang.md) | Mitigated, root cause unconfirmed |
 
 ## Historical
@@ -33,7 +33,7 @@ Kept because code comments or ADRs point at them; the setups they
 describe no longer exist. Each file says where the thing lives now.
 
 - [GitHub runner VM](github-runner.md): runners are k3s Deployments in
-  `bootstrap/k3s-bootstrap` since 2026-08-31
+  [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) since 2026-08-31
 - [Publish the home-agent](publish-home-agent.md),
   [Deploy and publish Open WebUI](publish-open-webui.md),
   [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md),
@@ -41,6 +41,6 @@ describe no longer exist. Each file says where the thing lives now.
   [Enable the Shopping List tools](enable-nextcloud-shopping-list.md),
   [Deploy and publish Deluge](publish-deluge.md),
   [Enable the Sankey exporter](enable-sankey-export.md): all moved to
-  `infra/k3s-apps` (2026-08-29 to 2026-09-07)
+  [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (2026-08-29 to 2026-09-07)
 - [Migrate AWS account bootstrap ownership](migrate-aws-account-bootstrap.md):
   the first identity handoff, superseded by `repo-infra` (ADR 0010)

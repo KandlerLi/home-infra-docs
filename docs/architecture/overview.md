@@ -113,7 +113,7 @@ inventory flags were persisted.
 - ingress: pinned Traefik `v3.7.1`, host network, file provider, no Docker socket
 - documentation: C4 views in `home-infra-docs`
 
-See `/home/julian/projects/docs/home-infra-docs/docs/architecture/README.md` for the
+See `docs/architecture/README.md` for the
 authoritative diagrams and notation.
 
 ## Prepared Nextcloud read path

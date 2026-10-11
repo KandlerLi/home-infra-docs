@@ -30,7 +30,7 @@ audio.stt.openai.api_base_url = "http://home-agent:8000/v1"
 original homeserver-Docker deployment (see `modules/open_webui/main.tf`'s
 own header comment: "Points at home_agent's own in-cluster Service ...
 instead of the Docker \"home-agent\" network alias"). Since the k3s
-migration (2026-08-30), `infra/k3s-apps`' own Terraform has correctly set
+migration (2026-08-30), [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own Terraform has correctly set
 both of these via `OPENAI_API_BASE_URL`/`AUDIO_STT_OPENAI_API_BASE_URL` to
 the real in-cluster Service address, `http://home-agent-svc/v1` — but
 because this deployment's database was carried over from the Docker

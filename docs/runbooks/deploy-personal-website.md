@@ -2,7 +2,7 @@
 
 Status: **Deployed, confirmed live at `https://www.jkandler.de/`.** See
 [ADR 0016](../adr/0016-personal-website.md) for the design. This deploys a
-static site (`aws/website`) to `https://www.jkandler.de/` via S3 +
+static site ([`website`](https://github.com/KandlerLi/website)) to `https://www.jkandler.de/` via S3 +
 CloudFront + ACM, following the same Terraform + GitHub Actions OIDC
 pattern `dyndns` established. `jkandler.de` (bare) is untouched by this —
 it stays owned by `dyndns`'s DynDNS record.
@@ -26,7 +26,7 @@ is needed; if you ever find yourself pasting a value into the GitHub UI
 here, something has gone wrong with the Terraform instead.
 
 ```bash
-cd /home/julian/projects/github/repo-infra
+cd repo-infra
 terraform plan
 terraform apply
 ```
@@ -36,7 +36,7 @@ terraform apply
 The repo now exists on GitHub but is empty. Push the local commit:
 
 ```bash
-cd /home/julian/projects/aws/website
+cd website
 git remote add origin git@github.com:KandlerLi/website.git
 git push -u origin main
 ```
@@ -68,7 +68,7 @@ first-run duration than usual is expected.
 
 ## 5. Roll back
 
-`terraform destroy` in `aws/website` removes the S3 bucket, CloudFront
+`terraform destroy` in [`website`](https://github.com/KandlerLi/website) removes the S3 bucket, CloudFront
 distribution, ACM certificate, and DNS records. CloudFront distribution
 deletion can take several minutes (it must first be disabled). This does
 not affect `dyndns` or the `jkandler.de` apex in any way.

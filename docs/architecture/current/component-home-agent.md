@@ -1,10 +1,10 @@
 # home_agent — Component Diagram
 
 - **C4 type:** Component
-- **Scope:** The `home_agent` Pod (`infra/k3s-apps` `modules/home_agent`)
+- **Scope:** The `home_agent` Pod ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps) `modules/home_agent`)
 - **Status:** Current as of 2026-10-11
 
-Source: `infra/home-infra` `ansible/roles/home_agent/files/agent/` (agent,
+Source: [`home-infra`](https://github.com/KandlerLi/home-infra) `ansible/roles/home_agent/files/agent/` (agent,
 built into `ghcr.io/kandlerli/home-agent` by CI) and
 `nextcloud_tools/` (sidecar, synced into `k3s-apps`).
 

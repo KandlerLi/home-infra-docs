@@ -95,7 +95,7 @@ blanket policy.
 ## Three-stage rollout: trivy config, then trivy image, then gitleaks
 
 The audit this ADR documents was itself staged: `trivy-config` (this
-document's own subject) first, then `github/gha-common`'s
+document's own subject) first, then [`gha-common`](https://github.com/KandlerLi/gha-common)'s
 `trivy-image.yml` (container image CVE scanning), then its
 `gitleaks.yml` (git-history secret scanning) -- each its own reusable
 workflow, added and rolled out to every caller one at a time.
@@ -114,7 +114,7 @@ Decided by Julian 2026-10-10. Since `home-infra-ai-context` was merged in
 (home-infra-docs#8), this is the single docs repo, changed through PRs and
 gated by gitleaks, but `main` had no branch protection. Same tradeoff as
 above: public for real protection instead of a paid plan. Change:
-`github/repo-infra` `config.yml` sets `visibility: public` and requires
+[`repo-infra`](https://github.com/KandlerLi/repo-infra) `config.yml` sets `visibility: public` and requires
 `gitleaks / Gitleaks secret scan` (repo-infra#40); local apply by Julian.
 
 Content audit of every commit reachable from GitHub, PR refs included

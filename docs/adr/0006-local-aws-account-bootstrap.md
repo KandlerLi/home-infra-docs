@@ -6,7 +6,7 @@
 
 **2026-08-21 update**: the resources this ADR describes were migrated from
 the dedicated `aws-account-bootstrap` root (now deleted) into
-`/home/julian/projects/github/repo-infra`, alongside GitHub repository settings
+[`repo-infra`](https://github.com/KandlerLi/repo-infra), alongside GitHub repository settings
 management. The consequences below remain substantively accurate — the AWS
 identity control plane is still a distinct Terraform state from `dyndns`'s
 workload state — but the repository name/location is no longer current. See
@@ -26,7 +26,7 @@ that CI cannot change.
 
 ## Decision
 
-Create `/home/julian/projects/github/repo-infra` as a private, local-only
+Create [`repo-infra`](https://github.com/KandlerLi/repo-infra) as a private, local-only
 Terraform root. It owns the account-wide GitHub OIDC provider and both DynDNS
 automation roles with their inline policies. It uses the isolated S3 backend
 key `aws-account-bootstrap/terraform.tfstate`.
@@ -35,7 +35,7 @@ Never run this root in GitHub Actions or through a role that it manages. Use a
 human-selected, short-lived local administrative or narrowly scoped bootstrap
 identity.
 
-Keep `/home/julian/projects/bootstrap/terraform-state` focused on the central S3 backend
+Keep [`terraform-state`](https://github.com/KandlerLi/terraform-state) focused on the central S3 backend
 bucket. Keep application resources and the Lambda runtime role in `dyndns`.
 
 ## Consequences

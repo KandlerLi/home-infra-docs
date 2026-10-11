@@ -4,12 +4,9 @@ Architecture and operations documentation for Julian Kandler's Debian
 homeserver and its supporting automation.
 
 This repository is the documentation source of truth for the whole
-workspace. The code lives in separate repositories under
-`/home/julian/projects/`, grouped by what they manage: `aws/`, `github/`,
-`bootstrap/` (local-apply roots), `infra/` (`home-infra` Ansible,
-`k3s-apps`). [`docs/repositories.md`](docs/repositories.md) describes each
-one; the workspace `CLAUDE.md` has the short map and the agent working
-rules.
+setup. The code lives in separate repositories under
+[github.com/KandlerLi](https://github.com/KandlerLi);
+[`docs/repositories.md`](docs/repositories.md) describes each one.
 
 The former `home-infra-ai-context` repository was merged into this one in
 2026-10 and archived; it keeps only the dated session handovers from

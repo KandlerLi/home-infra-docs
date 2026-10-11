@@ -5,7 +5,7 @@
 **Rewritten 2026-09-16: this section previously described SOPS, which
 was fully retired 2026-09-09.** Every secret in this workspace now
 lives in AWS Secrets Manager, managed by a dedicated repository
-(`aws/secrets-manager`) whose own Terraform creates only the secret
+([`secrets-manager`](https://github.com/KandlerLi/secrets-manager)) whose own Terraform creates only the secret
 *containers* — never a value. Each container is a self-contained
 module directory (`secrets/<repo>/<service>/`, its own `main.tf` plus
 a `README.md` documenting exactly which keys it holds, who consumes
@@ -33,7 +33,7 @@ mechanism.
 
 ### Terraform state
 
-`/home/julian/projects/bootstrap/terraform-state` is a dedicated Git repository that owns
+[`terraform-state`](https://github.com/KandlerLi/terraform-state) is a dedicated Git repository that owns
 the central S3 state-bucket configuration. The bucket is configured with
 versioning, AES-256 server-side encryption, and full public-access blocking.
 Its ignore rules exclude state, backup, plan, variable-value, crash, override,
@@ -47,7 +47,7 @@ recovery-aware, explicitly approved plan.
 
 ### Repository infrastructure: GitHub settings and AWS identity control plane
 
-`/home/julian/projects/github/repo-infra` (renamed from `github-infra`; absorbed the
+[`repo-infra`](https://github.com/KandlerLi/repo-infra) (renamed from `github-infra`; absorbed the
 formerly separate `aws-account-bootstrap` root on 2026-08-21, see
 [ADR 0010](adr/0010-consolidate-repo-and-identity-control-plane.md)) is a
 local-only Terraform root (no GitHub remote of its own) that manages, per
@@ -104,11 +104,11 @@ not be extended to unrelated containers.
 
 **Rewritten 2026-09-16: this section previously described a single,
 dedicated libvirt VM.** That VM was decommissioned 2026-08-31 in favor
-of one k3s Deployment per repository (`bootstrap/k3s-bootstrap`'s own
+of one k3s Deployment per repository ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s own
 `modules/github_runner`), pinned to a dedicated, tainted node
 (`k3s-node-2`, `ci=github-runner:NoSchedule`) so CI workloads never
 compete with or endanger anything on `k3s-node-1`. Every repository in
-`github/repo-infra/config.yml`'s `runner: true` list gets its own
+[`repo-infra/config.yml`](https://github.com/KandlerLi/repo-infra/blob/main/config.yml)'s `runner: true` list gets its own
 runner Pod, not just one shared VM serving a single repository.
 
 Each Pod runs the community `myoung34/github-runner` image with a
@@ -134,7 +134,7 @@ manually rotated.
 
 **Rewritten 2026-09-16: this section previously described a single
 homeserver Docker container.** `home_agent` moved to a k3s-native
-Deployment 2026-08-30 (`infra/k3s-apps`' `modules/home_agent`) and now
+Deployment 2026-08-30 ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/home_agent`) and now
 runs two containers as sidecars in one Pod, sharing a Unix socket
 through an `emptyDir` volume — the same trust shape the pre-migration
 homeserver deployment already had, just inside one Pod instead of one
@@ -198,7 +198,7 @@ ingress chain — no direct `NodePort`/`hostPort`.
 homeserver Docker container with a placeholder API key over a
 non-masqueraded bridge.** That deployment stopped 2026-08-30; Open
 WebUI now runs as its own k3s-native Deployment
-(`infra/k3s-apps`' `modules/open_webui`). Its connection to
+([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/open_webui`). Its connection to
 `home_agent` is to that Deployment's own in-cluster Service now, not a
 Docker bridge — Open WebUI's container still never gains real
 outbound egress to anything but that Service, the same boundary the
@@ -228,7 +228,7 @@ and must be reconsidered on each image upgrade.
 Open WebUI's real account/chat-history data (`/var/lib/open-webui` on
 the homeserver, NFS-exported into the k3s Pod — migrated live from the
 original homeserver deployment, not started fresh) is sensitive local
-data. Back it up before upgrades (`infra/home-infra`'s `aux_backup`
+data. Back it up before upgrades ([`home-infra`](https://github.com/KandlerLi/home-infra)'s `aux_backup`
 role, added 2026-09-16, now covers this specifically), protect backups
 as private data, and do not copy chats into logs or documentation.
 
@@ -303,4 +303,4 @@ tool access (ADR 0014) both reuse this same dedicated account and app
 password, and both execute immediately per ADR 0013 — no
 human-confirmation step. Both are in the deployed `home_agent` code;
 each only works once Julian has shared the matching folder or list with
-the account. Live confirmation is tracked in `PARKED.md`.
+the account. Live confirmation is tracked in the private task list.

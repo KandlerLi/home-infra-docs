@@ -12,8 +12,7 @@ a libvirt guest.
 ## Decision
 
 Store declarative infrastructure configuration in the `home-infra` Git
-repository and apply it with Ansible. Keep repositories below
-`/home/julian/projects/`.
+repository and apply it with Ansible.
 
 ## Consequences
 

@@ -1,8 +1,8 @@
 # Current Production State
 
 What is live now. History lives in the ADRs, the git log and the archived
-`home-infra-ai-context` handovers; open work lives in
-`/home/julian/projects/PARKED.md` and `BACKLOG.md`. Facts marked
+`home-infra-ai-context` handovers; open work is tracked in a private task
+list, not here. Facts marked
 "checked 2026-10-11" were read live that day (read-only SSH, `gh api`);
 everything else is taken from the committed code. Revalidate before relying
 on a single fact.
@@ -18,7 +18,7 @@ on a single fact.
 | System disk | `/`, 51 GB SSD |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, Deluge downloads, k3s VM disks, Paperless media) |
 | Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/` |
-| Managed by | `infra/home-infra`: `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
+| Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `storage`, `authelia_backup`,
 `paperless_storage`, `nfs_server`, `docker`, `deluge`, `nextcloud_aio`,
@@ -68,13 +68,13 @@ Admin VPN: the FRITZ!Box's built-in WireGuard (ADR 0025,
 
 ### Public hostnames
 
-All routed by k3s Traefik (`infra/k3s-apps`, each app module's
+All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), each app module's
 `ingress_routes`). "Forward-auth" = Authelia, MFA-gated, before the app.
 
 | Hostname | Service | Auth at the edge |
 | --- | --- | --- |
 | `jkandler.de` | 301 to `www.jkandler.de` | none |
-| `www.jkandler.de` | static site, S3 + CloudFront (`aws/website`, ADR 0016) | none (not via the homeserver) |
+| `www.jkandler.de` | static site, S3 + CloudFront ([`website`](https://github.com/KandlerLi/website), ADR 0016) | none (not via the homeserver) |
 | `auth.jkandler.de` | Authelia | none (it is the login) |
 | `nextcloud.jkandler.de` | Nextcloud AIO | none; Nextcloud's own Authelia OIDC login |
 | `ai.jkandler.de` `/healthz`, `/v1/*` | `home_agent` API | forward-auth |
@@ -89,11 +89,11 @@ All routed by k3s Traefik (`infra/k3s-apps`, each app module's
 
 ### DNS (Route 53)
 
-- `aws/dyndns`: the apex `jkandler.de` A record (dynamic, updated from the
+- [`dyndns`](https://github.com/KandlerLi/dyndns): the apex `jkandler.de` A record (dynamic, updated from the
   homeserver) and CNAMEs to it for `ai`, `auth`, `docs`, `grafana`,
   `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vpn`.
-- `aws/website`: `www` alias A/AAAA to CloudFront, the only AAAA record.
-- `aws/ses-relay`: MX, SPF (`~all`), DMARC and the SES DKIM records.
+- [`website`](https://github.com/KandlerLi/website): `www` alias A/AAAA to CloudFront, the only AAAA record.
+- [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`~all`), DMARC and the SES DKIM records.
 - Public IP values are never recorded in Git.
 
 LAN DNS: clients use Blocky in k3s via the homeserver
@@ -112,14 +112,14 @@ from a checksum-verified release binary:
 
 Workloads are Terraform-managed, never `kubectl apply`:
 
-- **`infra/k3s-apps`** (CI-applied on merge): `ingress` (Traefik, file
+- **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)** (CI-applied on merge): `ingress` (Traefik, file
   provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), `open_webui`,
   `grafana`, `alertmanager`, `node_exporter`, `deluge`, `landing_page`,
   `kubernetes_dashboard`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
   `paperless`.
-- **`bootstrap/k3s-bootstrap`** (local apply only): the self-hosted
+- **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (one Deployment per repo, on `k3s-node-2`,
   GitHub App registration, NetworkPolicy: no inbound, outbound only DNS
   and the public internet, plus the Kubernetes and Stalwart APIs for the
@@ -134,7 +134,7 @@ Workloads are Terraform-managed, never `kubectl apply`:
   dedicated `home-agent` account (ADR 0021; only the second-brain share is
   editable), Shopping List items (ADR 0014). Each tool only reaches what
   Julian has shared with that account; which of them are confirmed live
-  is tracked in `PARKED.md`. Open WebUI advertises only the
+  is tracked in the private task list. Open WebUI advertises only the
   synthetic model name `home-agent`. Boundaries: the
   `check-security-invariants` skill.
 - **Mail**: Stalwart for `info@`/`julian@jkandler.de`; inbound on 25,
@@ -156,10 +156,10 @@ Workloads are Terraform-managed, never `kubectl apply`:
 | Deluge config, Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
-| Stalwart mail | none outside the k3s VM (`BACKLOG.md`) | — |
+| Stalwart mail | none outside the k3s VM | — |
 
 Backup age is alerted on via `backup-freshness` + Prometheus. Everything is
-on the same homeserver; there is no off-site copy (`BACKLOG.md`).
+on the same homeserver; there is no off-site copy.
 
 ## Monitoring and alerting
 
@@ -168,9 +168,9 @@ and blackbox probes of the public hostnames (HTTPS probes also cover
 certificate expiry). Alerts go to Alertmanager in k3s
 (`192.168.101.10:9093`), which notifies ntfy (via `ntfy-relay`) and email
 (SES). Grafana (`grafana.jkandler.de`) reads Prometheus and Blocky's
-query-log Postgres. Separately, `aws/homeserver-health-check` (Route 53
+query-log Postgres. Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
 health check + CloudWatch + SNS) alerts when the homeserver is unreachable
-from outside, and `aws/aws-budget` alerts on cost.
+from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts on cost.
 
 ## AWS and GitHub control plane
 
@@ -178,20 +178,19 @@ from outside, and `aws/aws-budget` alerts on cost.
   (MFA, scoped write policy + `ViewOnlyAccess`, ADR 0018); root only for
   `terraform-state` applies.
 - CI reaches AWS through GitHub OIDC with a separate plan and apply role
-  per repo, all defined in `github/repo-infra` (local apply only, ADR
+  per repo, all defined in [`repo-infra`](https://github.com/KandlerLi/repo-infra) (local apply only, ADR
   0010). All Terraform state is in the shared S3 bucket from
-  `bootstrap/terraform-state`.
+  [`terraform-state`](https://github.com/KandlerLi/terraform-state).
 - Secrets live in AWS Secrets Manager containers defined by
-  `aws/secrets-manager`; values are seeded by hand and rotated per its
+  [`secrets-manager`](https://github.com/KandlerLi/secrets-manager); values are seeded by hand and rotated per its
   `rotation-schedule.md`.
 - GitHub repository settings, branch protection, Actions permissions and
-  PR policy for every repo: `github/repo-infra` `config.yml`. Public repos
+  PR policy for every repo: [`repo-infra`](https://github.com/KandlerLi/repo-infra) `config.yml`. Public repos
   get branch protection (ADR 0022); `home-infra-ai-context` is archived.
   CI applies on merge with no approval step beyond the PR review.
 
 ## Known gaps
 
-Tracked in `/home/julian/projects/PARKED.md` (active) and `BACKLOG.md`
-(no current pull). Notable standing ones: no off-site backup; Stalwart
+Open work is tracked privately. Notable standing gaps: no off-site backup; Stalwart
 mail not backed up off the VM; SPF still `~all`; the hardware watchdog did
 not fire during the 2026-09-24 silent freeze.
