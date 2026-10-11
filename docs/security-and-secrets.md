@@ -301,6 +301,6 @@ disclosed to the configured provider on explicit request.
 Write access (ADR 0011, create/update/delete/move) and Shopping List
 tool access (ADR 0014) both reuse this same dedicated account and app
 password, and both execute immediately per ADR 0013 — no
-human-confirmation step — once actually deployed. Neither is deployed
-as of this writing; see
-[`current-state.md`](current-state.md)'s "Known gaps" section for current status.
+human-confirmation step. Both are in the deployed `home_agent` code;
+each only works once Julian has shared the matching folder or list with
+the account. Live confirmation is tracked in `PARKED.md`.

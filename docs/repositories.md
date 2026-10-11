@@ -138,7 +138,7 @@ August 2026 -- but this role no longer exists in this repo at all
 Deployment (`infra/k3s-apps`' own `modules/blocky`) on 2026-09-01,
 alongside the `shared_ingress`-to-k3s cutover below, reached from the
 LAN via `k3s_ingress_forward`'s own DNAT relay rather than binding
-directly to the homeserver's LAN IP. See `current-state.md`'s own
+directly to the homeserver's LAN IP. See `history.md`'s own
 "k3s learning cluster" section and its 2026-09-16 correction note for
 the full history, including a real production DNS outage caused by
 this move's own DNAT rule sitting committed-but-unapplied for two
@@ -164,7 +164,7 @@ Cluster workloads themselves live in a separate, Terraform-managed
 sibling repository, `infra/k3s-apps` — see its own project section
 below. **Applied and live**: `home.jkandler.de` (2026-08-29) and
 `torrent.jkandler.de` (2026-08-29/30) both now serve from there instead
-of a homeserver Docker container; see `current-state.md`'s "k3s
+of a homeserver Docker container; see `history.md`'s "k3s
 learning cluster" section for the full cutover history, including why
 `landing_page` was deleted outright while `deluge` was reshaped down to
 host prerequisites instead.
@@ -329,7 +329,7 @@ at a time, each proven live first, matching the user's explicit
   the internet via a new `home-infra` `k3s_ingress_forward` role
   (iptables DNAT on the homeserver). ACME uses DNS-01 against Route53
   (lego's own provider, `dyndns`'s new `traefik-acme-dns01` IAM user),
-  not the original role's own TLS-ALPN-01 — see `current-state.md`'s
+  not the original role's own TLS-ALPN-01 — see `history.md`'s
   own "k3s learning cluster" section for the full migration writeup,
   including a real path-MTU bug found and fixed in this repo's own
   `modules/github_runner/` along the way.
@@ -375,7 +375,7 @@ other job runs inside it via `container:`); PR #16 fixed stale README
 references; PR #17 dropped `terraform.tfvars`/`.example` to match
 `website`/`ses-relay`; PR #18 added `traefik-acme-dns01` for
 `k3s-apps`' own ACME DNS-01 challenge, plus an `action-timeout-s` fix on
-the credentials step (see `current-state.md`'s "k3s learning cluster"
+the credentials step (see `history.md`'s "k3s learning cluster"
 section for the path-MTU bug this PR's own checks kept hitting); PR #19
 widened that user's own policy with `route53:ListResourceRecordSets`,
 found missing only once Traefik made its first real DNS-01 attempt). The

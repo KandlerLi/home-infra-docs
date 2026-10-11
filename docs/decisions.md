@@ -1,34 +1,14 @@
-# Durable Decisions
+# Decisions Log
+
+Decisions that have no ADR of their own, plus context code comments point
+at. Decisions with an ADR live only in [`adr/`](adr/README.md); sections
+that merely retold an ADR were removed 2026-10-11 (see git history).
 
 ## Cloud inference first
 
-The i5-2400, 16 GiB RAM, and lack of a GPU still make a useful primary local
+The i5-2400 and the lack of a GPU still make a useful primary local
 LLM an unreasonable baseline. The homeserver orchestrates a cloud model. Ollama
 may be added later as an optional provider, never as a hidden prerequisite.
-
-## Read-only explicit tools first
-
-The first agent milestone exposes fixed, argument-free health collectors. This
-delivers useful autonomy without granting a general execution primitive.
-
-## Separate model-facing and host-facing processes
-
-`home-agent` is an unprivileged Docker container. `home-tools` is a systemd
-service with narrowly coded collectors. They communicate through a protected
-Unix socket. This keeps Docker and host inspection out of the model-facing
-process.
-
-## Shared ingress without Docker discovery
-
-Traefik uses the file provider and no Docker socket. Host networking is used so
-it can reach loopback-only Nextcloud and agent upstreams. The image is pinned to
-`traefik:v3.7.1`.
-
-## Migrate Nextcloud before publishing the agent
-
-Nextcloud AIO originally owned public 443. A guarded maintenance migration
-moved AIO Apache to `127.0.0.1:11000`, put Traefik on 80/443, validated
-Nextcloud, then independently enabled the authenticated agent route.
 
 ## Infrastructure-managed DNS
 
@@ -36,40 +16,11 @@ Stable subdomain CNAMEs belong in `/home/julian/projects/aws/dyndns`, not as man
 Route 53 console changes. GitHub Actions uses OIDC and protected environments;
 the FRITZ!Box DynDNS secret value is outside Terraform state.
 
-## Local-only AWS identity control plane
-
-The account-wide GitHub OIDC provider and repository-bound plan/apply roles
-belong in `/home/julian/projects/github/repo-infra` (originally a dedicated
-`aws-account-bootstrap` root per this decision, merged into `repo-infra` on
-2026-08-21 alongside GitHub repository settings — see
-`home-infra-docs/docs/adr/0010-consolidate-repo-and-identity-control-plane.md`),
-separate from both the state-bucket root and workload roots. This
-administrative Terraform root runs only from a trusted local controller with
-a human-selected, short-lived bootstrap identity plus a GitHub token. It must
-never run through GitHub Actions or through a role it manages.
-
-The S3 bucket remains owned by `terraform-state`; application resources and
-the Lambda runtime role remain owned by `dyndns`. Cross-state ownership
-transfers must use reviewed no-destroy removal/import steps.
-
 ## No public IPv6 without proof
 
 A previous AAAA record sent traffic to the FRITZ!Box and exposed its
 self-signed certificate. Public AAAA remains prohibited until address updates,
 firewall, listeners, hostname routing, and TLS are verified externally.
-
-## Open WebUI remains a frontend, not the trust boundary
-
-The secure agent API was intentionally delivered before a frontend. Open WebUI
-is now the deployed, publicly routed chat/history layer, but it connects only
-to a bounded OpenAI-compatible endpoint on `home-agent`. It receives neither
-the real provider credential nor host access. Authenticated public chat is
-validated.
-
-The UI route uses Open WebUI authentication rather than Traefik Basic Auth
-because both would need the same `Authorization` header. Exact legacy API
-routes retain Basic Auth. Optional execution, upload, plugin, and workspace
-features remain disabled by default.
 
 ## Human approval before writes
 
@@ -97,52 +48,8 @@ drift in the protection that is actually live, because it was never told
 that protection exists. A change made by hand or by re-running the script is
 invisible to the IaC that is supposed to be this workspace's single source
 of truth. Bringing branch protection under actual Terraform management (see
-the decision below) is the concrete fix for this specific gap; this decision
+ADR 0009) is the concrete fix for this specific gap; this decision
 is the general rule that prevents new gaps of the same shape.
-
-## dyndns's branch protection is imported into Terraform as a universal baseline
-
-The concrete fix for the gap above: `repo-infra`'s `modules/repo` gained a
-`github_branch_protection` resource (the GraphQL-based provider resource,
-not the REST-based `_v3` variant, since it covers more of the live
-settings), applied unconditionally to **every** repository the module
-manages, not opt-in. The one per-repository knob is a new
-`required_status_check_contexts` list in `config.yml` (empty by default),
-since which CI job/status names must pass is inherently repository-specific
-and can't be hardcoded generically.
-
-`dyndns`'s live protection was imported zero-diff (`terraform import`,
-`dyndns:main`); its previously-disabled decoy `github_repository_ruleset`
-was deleted as dead weight. `testing` — which had no branch protection at
-all — got real protection for the first time from the same universal rule
-(no force-push/deletion, admin-enforced, PRs required, 0 required native
-reviews and no required status checks since it has no CODEOWNERS/CI of its
-own). Both repositories also picked up `has_wiki=false`,
-`allow_auto_merge=false`, and enabled `github_repository_vulnerability_alerts`
-(already true on `dyndns`; a real, intended change on `testing`).
-
-One import gotcha worth remembering: `github_branch_protection.repository_id`
-must be set to `github_repository.this.node_id`, not `.name`. A plain name
-plans clean on `terraform import` but shows as `# forces replacement` on the
-very next `terraform plan`, because the provider normalizes the field to the
-GraphQL node ID once a rule exists — passing the name would have destroyed
-and recreated `dyndns`'s live protection just to bring it under Terraform.
-
-`pull_request_creation_policy` — the actual mechanism restricting who can
-open a PR at all — has no Terraform resource yet (GitHub shipped it in Feb
-2026; `terraform-provider-github` issues #3251 and #3198 are open, tracked,
-unimplemented feature requests). Neither it nor collaborator pruning (also
-with no Terraform resource declaring an authoritative empty collaborator
-set in this workspace today) has a Terraform resource to move into; both
-were, for a while, kept as a documented, narrowly-scoped exception in a
-trimmed `dyndns/scripts/protect-repository.sh`.
-
-On 2026-09-02 that script was deleted anyway: even trimmed to just these
-two settings, it was still an imperative script wrapping `gh api` against
-live state — the precise shape the rule above exists to prevent, exception
-or not. Both settings remain at whatever value the script last set; any
-future change to either is a deliberate, manual `gh`/web UI action at that
-moment, not a persisted script, until upstream provider support lands.
 
 ## dyndns merges no longer require a separate owner-approval status
 
@@ -193,104 +100,6 @@ access for all six repos, not just removed a redundant click.
 Current flow: open a PR, review the `Terraform plan` job's speculative plan
 output, merge once `Validate` and `Terraform plan` are green — Terraform
 applies immediately, no separate approval step left.
-
-## dyndns's CI actually runs on the self-hosted runner now
-
-The self-hosted runner had been registered against `dyndns` since it was
-provisioned, but every workflow job used `runs-on: ubuntu-latest` — nothing
-ever actually used it. The user asked for it to be used. This is safe
-against untrusted code specifically *because* of the collaborator
-restriction already covered above: `pull_request_creation_policy:
-collaborators_only` plus a single collaborator (the owner) means only the
-owner can ever open a PR, so the usual "self-hosted runner + public repo"
-risk (an external contributor's fork PR modifying a workflow to execute
-arbitrary code on your runner) doesn't apply here — every job that runs was
-always going to be the owner's own code regardless of which runner executes
-it.
-
-`checks.yml`'s `Validate`/`Terraform plan` jobs and `apply.yml`'s `apply`
-job now use `runs-on: [self-hosted, home, debian]`. Doing this surfaced a
-real gap: the runner VM's package list (`ca-certificates`, `curl`, `git`,
-`gzip`, `tar`) had neither `python3` (needed for the Lambda unit tests) nor
-`unzip` (needed by `hashicorp/setup-terraform`'s binary extraction) — both
-jobs would have failed immediately. Fixed by adding both packages to
-`home-infra`'s `github_runner` role (`configure_guest.yml`), applied via the
-`github-runner.yml` playbook (human-run, since production Ansible here
-always requires an interactively-entered become password — this workspace
-has no stored/passwordless sudo path).
-
-## GitHub repository protection is Terraform-managed
-
-`dyndns` was already secured through a combination of a manual/script-driven
-process and a documented blueprint (`repository-security.md`).
-Two Actions settings — `sha_pinning_required` and the repository default
-workflow permissions/PR-approval restriction — had been toggled by hand
-through the GitHub web UI and were never captured by that script or by any
-Terraform resource; a read-only `gh api` audit confirmed this was the actual
-gap between live GitHub state and the new `/home/julian/projects/github/repo-infra`
-(then named `github-infra`) Terraform root's declared configuration for
-`dyndns` and its scratch companion `testing`.
-
-Both settings were imported rather than recreated: `sha_pinning_required` was
-first added as an explicit per-repository attribute on the already-tracked
-`github_actions_repository_permissions` resource, and the previously
-entirely untracked `github_workflow_repository_permissions` resource was
-absorbed with a `terraform import` block per repository. A `terraform plan`
-showing only the two imports (0 changes, 0 destroys) was reviewed before
-applying, and a post-apply `gh api` spot-check confirmed the tracked and live
-values still match.
-
-`sha_pinning_required` was then simplified to a hardcoded `true` for every
-repository the module manages — matching the baseline
-`dyndns/scripts/protect-repository.sh` already applies manually — rather than
-carrying it as a per-repository value. `testing`'s prior `false` state was a
-scratch-repo artifact, not a deliberate choice, so it was allowed to converge
-to `true` as well.
-
-A third repository, `whoami`, has its own pre-existing manual protection (a
-disabled ruleset, non-default merge settings, unrestricted Actions
-permissions) but is intentionally excluded from `repo-infra` — the user may
-archive or delete it, so it must not be imported without a separate,
-deliberate decision. `repo-infra` (then `github-infra`) originally used
-Terraform's default local state backend; that root was later merged with the
-AWS identity control plane (see the decision below) and migrated to the
-shared encrypted S3 backend as part of that consolidation.
-
-## GitHub repository and AWS identity control planes are consolidated
-
-Adding a new GitHub repository that deploys to AWS previously required
-editing two separate local-only Terraform roots: `aws-account-bootstrap`
-(100% hardcoded for `dyndns`, no way to add a second repository without
-duplicating the whole file) and `github-infra`. The two were coupled only by
-convention — `aws-account-bootstrap`'s README told the operator to paste its
-output ARNs into the GitHub repo Variables UI by hand, and `github-infra`
-independently guessed the same ARNs by string convention plus a hardcoded
-AWS account ID — so there were three independent, undetectably-driftable
-copies of the same contract (the hardcoded IAM config, the guessed ARN
-strings, and whatever was actually pasted into GitHub).
-
-`aws-account-bootstrap`'s 5 resources (the account-wide OIDC provider, both
-DynDNS IAM roles, both inline role policies) were merged into `repo-infra`
-(renamed from `github-infra`) in a single Terraform state, via the same
-no-destroy `removed`/`import` pattern as the original `dyndns` →
-`aws-account-bootstrap` handoff. `modules/repo` gained AWS sub-resources
-gated on an optional per-repository `aws_policies.tf` entry: a generic
-baseline (state-bucket access, self-role/OIDC read, trust policy built from
-the repository's own computed `repo_id`) plus that repository's specific IAM
-statements, with the resulting role ARNs wired into the repository's Actions
-variables as real Terraform references. `aws-account-bootstrap` is deleted;
-it was local-only with no remote and only 4 commits, so nothing of value was
-lost.
-
-This keeps the original `aws-account-bootstrap` decision's core concern
-intact — the AWS identity control plane is still a distinct Terraform state
-from `dyndns`'s workload state, so ordinary DynDNS plans still can't touch
-administrative IAM resources, and a compromised DynDNS workflow still can't
-modify its own trust or permissions. What changed is only which repository
-the identity resources live in, and that AWS permissions — inherently
-deployment-specific and impossible to derive automatically — are now the one
-thing a human still writes per new AWS-deploying repository, in one file, in
-one repository, instead of duplicating a whole Terraform root.
 
 ## Workspace projects are grouped by purpose into three parent folders
 
@@ -355,20 +164,6 @@ that would mean Terraform triggering long-running, imperative VM
 configuration via `local-exec`, a much larger and riskier change for a
 homelab-scale setup — but now driven from one source of truth instead of two
 independently-maintained lists.
-
-## Nextcloud access uses a separate read-only service
-
-The prepared first Nextcloud milestone keeps credentials in a dedicated
-host-side `nextcloud-tools` systemd service. `home-agent` gets only a protected
-Unix socket, and Open WebUI gets neither. One dedicated non-admin account may
-see only a read-only `AI Workspace` share. Allowed operations are bounded
-listing, filename/path search, and small UTF-8 text reads; no WebDAV write
-method exists. A guarded bootstrap play creates the account and a limited app
-password, keeps the token out of persistent Ansible variables, and installs it
-directly as a service-owned secret. Sharing `AI Workspace` remains a manual
-owner action so Ansible never needs a personal Nextcloud credential. The
-implementation remains disabled until explicit production approval, the share,
-and private validation are complete.
 
 ## Secrets moved from SOPS/GPG to AWS Secrets Manager
 

@@ -20,7 +20,7 @@ deploy runbook for this shape — it's deployed the same way every other
 `infra/k3s-apps` module is, through that repo's own normal Terraform
 apply (CI on merge to `main`).
 
-See [`current-state.md`](../current-state.md)'s own "k3s
+See [`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history and current
 architecture, and `infra/k3s-apps`' own `modules/home_agent/` for the
 live Terraform.

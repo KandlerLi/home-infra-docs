@@ -15,8 +15,8 @@ before this retirement, just via a different, current mechanism:
 enabling it now means deploying `infra/k3s-apps`' own
 `modules/home_agent` through that repo's normal Terraform apply, not
 these dead Ansible plays. See
-[`current-state.md`](../current-state.md)'s "Known gaps"
-section for the current, authoritative status.
+[`current-state.md`](../current-state.md) and `PARKED.md` for the
+current status.
 
 The two real, still-applicable pieces of this runbook's original
 content:
