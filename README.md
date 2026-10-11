@@ -38,10 +38,10 @@ only Git roots.
 
 ## Current status
 
-[`docs/current-state.md`](docs/current-state.md) is the maintained,
-dated record of what is live. The C4 pages under `docs/architecture/current/`
-date from August 2026 (Docker era); [`docs/architecture/overview.md`](docs/architecture/overview.md)
-is the up-to-date architecture summary until they are redrawn.
+[`docs/current-state.md`](docs/current-state.md) is the maintained record
+of what is live; the C4 views under
+[`docs/architecture/`](docs/architecture/README.md) show the same system as
+diagrams.
 
 ## Documentation map
 

@@ -1,46 +1,50 @@
-# Infrastructure Apply — Dynamic Diagram
+# Change Rollout — Dynamic Diagrams
 
 - **C4 type:** Dynamic
-- **Scope:** One reviewed Ansible deployment
-- **Status:** Current workflow
+- **Scope:** How a change reaches production, for a CI-applied Terraform
+  repo and for the Ansible-managed homeserver
+- **Status:** Current as of 2026-10-11
+
+## CI-applied Terraform repo (e.g. `infra/k3s-apps`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Julian
-    participant Git as home-infra Git working tree
-    participant SOPS as SOPS/GPG
-    participant Ansible as Ansible controller
-    participant Host as Debian homeserver
-    participant Docker as Docker Engine
-    participant Libvirt as libvirt/KVM
-    participant GitHub as GitHub API
+    actor J as Julian
+    participant G as GitHub
+    participant R as Self-hosted runner (k3s-node-2)
+    participant A as AWS (OIDC, S3 state, Secrets Manager)
+    participant T as Target (k3s cluster or AWS)
 
-    Julian->>Git: Review git status and diff
-    Julian->>Ansible: Run syntax check and connectivity check
-    Ansible->>SOPS: Decrypt required variables in controller memory
-    SOPS-->>Ansible: Return secret variables
-    Julian->>Ansible: Approve and start playbook with become
-    Ansible->>Host: Apply base packages and storage mount over SSH
-    Ansible->>Docker: Apply Docker and Nextcloud AIO state
-    Ansible->>Libvirt: Validate or provision runner network and VM
-    Ansible->>GitHub: Obtain runner metadata and short-lived registration token
-    Ansible->>Host: Configure runner guest over SSH
-    Ansible-->>Julian: Report changed, unchanged, and failed tasks
-    Julian->>Git: Review resulting configuration and operational state
+    J->>G: Push branch, open PR
+    G->>R: checks.yml (gha-common): validate, trivy, gitleaks
+    R->>A: Assume plan role (OIDC, pull_request subject)
+    R->>T: terraform plan (read-only)
+    R-->>G: Plan posted as PR comment
+    J->>G: Review and merge
+    G->>R: apply.yml on main (production environment)
+    R->>A: Assume apply role (OIDC, environment subject)
+    R->>T: terraform apply
 ```
 
-## Flow constraints
+## Ansible (`infra/home-infra`)
 
-- The human reviews changes before deployment.
-- Long-lived GitHub credentials remain on the controller.
-- The runner VM receives only short-lived registration credentials.
-- Destructive recovery of orphaned VM or disk state is deliberately manual.
-- An AI agent is not part of the current deployment sequence.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor J as Julian
+    participant L as Laptop (ansible-playbook)
+    participant A as AWS Secrets Manager
+    participant H as Homeserver
 
-## Legend
+    J->>L: ansible-playbook site.yml --ask-become-pass
+    L->>A: Fetch secret groups with Julian's own credentials
+    L->>H: SSH, become root
+    L->>H: Apply roles in order (base ... aux_backup)
+    H-->>L: Changed/ok per task
+```
 
-- Actor: human operator
-- Participant: C4 person, container, component, or external system instance
-- Solid arrow: synchronous request/action
-- Dashed arrow: result or response
+`k3s.yml` follows the same pattern for the k3s VMs and is deliberately run
+separately from `site.yml`. The locally applied Terraform roots
+(`repo-infra`, `terraform-state`, `k3s-bootstrap`) are run by Julian
+through each repo's `scripts/roll-out.sh`.
