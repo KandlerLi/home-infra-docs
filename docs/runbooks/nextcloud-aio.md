@@ -114,23 +114,18 @@ ordinary apply.
 ## Shut down for physical hardware maintenance
 
 Use the tracked helper instead of cutting power or manually stopping individual
-containers. The helper checks that `/mnt/black-hdd` is mounted, refuses to
-continue while a libvirt VM is running (so the k3s VMs have to be shut down
-first, see below), asks AIO to stop its application
-containers, verifies the stop, flushes filesystem buffers, and requests an OS
-poweroff. It does not create a backup.
+containers. The helper checks that `/mnt/black-hdd` is mounted, shuts down
+the k3s VMs (`k3s-node-2`, then `k3s-node-1`, up to 5 minutes each), asks AIO
+to stop its application containers, verifies the stop, flushes filesystem
+buffers, and requests an OS poweroff. A VM that doesn't stop in time aborts
+the run before anything else is stopped or powered off. It does not create a
+backup.
 
-First shut down the k3s VMs; this takes every k3s service (all public
-hostnames except Nextcloud, LAN DNS, mail) offline until the host is back.
-They start again by themselves at boot (`autostart`).
+Shutting down the VMs takes every k3s service (all public hostnames except
+Nextcloud, LAN DNS, mail) offline until the host is back. They start again by
+themselves at boot (`autostart`).
 
-```bash
-ssh -t julian@192.168.178.100 \
-  'sudo virsh shutdown k3s-node-2 && sudo virsh shutdown k3s-node-1'
-ssh -t julian@192.168.178.100 'sudo virsh list'   # repeat until empty
-```
-
-Then, from the controller:
+From the controller:
 
 ```bash
 cd home-infra
