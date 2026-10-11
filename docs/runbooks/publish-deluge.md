@@ -20,7 +20,7 @@ the route instead of Traefik Basic Auth (since 2026-09-08). There's no
 dedicated deploy/publish runbook for the current shape -- it's
 deployed the same way every other `infra/k3s-apps` module is, through
 that repo's own normal Terraform apply. See
-[`current-state.md`](../current-state.md)'s own "k3s
+[`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history.
 
 Two pieces of this runbook's original content are still genuinely
