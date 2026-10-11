@@ -2,22 +2,10 @@
 
 ## Update workflow
 
-1. Enumerate every project directory nested one level under
-   `/home/julian/projects/docs`, `/home/julian/projects/bootstrap`, and
-   `/home/julian/projects/infra`, then check Git status in each relevant Git
-   repository and explicitly note any affected project without version
-   control.
-2. Distinguish committed configuration, uncommitted work, and deployed state.
-3. Gather live state with read-only commands only.
-4. Update the relevant inventory or runbook page.
-5. Update affected C4 diagrams and architecture decision records.
-6. Verify that no secrets, Terraform state, or document contents were added.
-7. Check Markdown links and Mermaid syntax before committing.
-
-This applies to relevant implementation, DNS/cloud, workflow, security,
-architecture, operations, repository, and production-state changes—not only
-large deployments. Open work in progress is tracked in
-`/home/julian/projects/PARKED.md`, not here.
+Follow [`docs/runbooks/update-documentation.md`](docs/runbooks/update-documentation.md):
+which file takes which kind of change, and the checks before a PR. `main` is
+protected; every change is a PR with the gitleaks check. Open work is tracked
+in `/home/julian/projects/PARKED.md`, not here.
 
 ## C4 diagram rules
 
@@ -36,8 +24,8 @@ hostnames, and secret variable names. Do not record:
 
 - API keys or tokens
 - private keys
-- decrypted SOPS content
-- Docker container environments
+- secret values from AWS Secrets Manager
+- container environments (`docker inspect`, Kubernetes Secrets)
 - document names or contents from private Nextcloud collections
 - transient public IP addresses
 - raw Terraform state or saved plan files
