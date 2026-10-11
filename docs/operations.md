@@ -82,12 +82,10 @@ as a command-line argument. Commands and rotation steps:
 
 ## Planned shutdown (hardware maintenance)
 
-Shut down both k3s VMs first (`sudo virsh shutdown k3s-node-2`, then
-`k3s-node-1`, until `sudo virsh list` is empty); the script refuses while
-any VM runs. Then copy [`home-infra/scripts/shutdown-homeserver-for-maintenance.sh`](https://github.com/KandlerLi/home-infra/blob/main/scripts/shutdown-homeserver-for-maintenance.sh)
+Copy [`home-infra/scripts/shutdown-homeserver-for-maintenance.sh`](https://github.com/KandlerLi/home-infra/blob/main/scripts/shutdown-homeserver-for-maintenance.sh)
 to the host, run it with `sudo bash … --check`, then without `--check`, and
-type `POWER OFF` when asked. It stops Nextcloud AIO cleanly, checks the
-disks and failed units, syncs and powers off. It does not take a backup.
+type `POWER OFF` when asked. It shuts down both k3s VMs, stops Nextcloud
+AIO cleanly, checks the disks and failed units, syncs and powers off. It does not take a backup.
 After boot the VMs start by themselves; start the AIO containers in the AIO
 interface, then run the public checks above. Full steps:
 [`runbooks/nextcloud-aio.md`](runbooks/nextcloud-aio.md).
