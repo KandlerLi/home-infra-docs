@@ -212,7 +212,6 @@ scripts/sync_github_runner_repositories.py
 tests/test_sync_github_runner_repositories.py
 ansible/playbooks/site.yml
 ansible/playbooks/home-agent.yml
-ansible/playbooks/shared-ingress-k3s-cutover.yml
 ansible/playbooks/k3s.yml
 ansible/roles/home_agent/
 ansible/roles/open_webui/
