@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-24
-- Deployment status: applied and live -- `aws/ses-relay` deployed,
+- Deployment status: applied and live -- [`ses-relay`](https://github.com/KandlerLi/ses-relay) deployed,
   `ansible/roles/monitoring` deployed via `site.yml`, Grafana additionally
   published through `shared_ingress` (see Update below)
 
@@ -54,7 +54,7 @@ to every alert.** Asked directly, since ADR 0017 left this open — the
 user wants both, not a choice between them, specifically so one channel
 being misconfigured doesn't mean total silence.
 
-**Email goes through a new SES relay (`aws/ses-relay`), not the
+**Email goes through a new SES relay ([`ses-relay`](https://github.com/KandlerLi/ses-relay)), not the
 existing Outlook address.** The original assumption — an SMTP app
 password for `julian.kandler@outlook.com`, the same channel already used
 for AWS Budget/health-check alerts — turned out not to work: as of 2026,
@@ -74,7 +74,7 @@ the SES console's own credential wizard runs). Computing it inside
 Terraform would put the actual, usable SMTP password in state, on top of
 the raw IAM secret key already there. Instead, Terraform outputs the raw
 secret key (marked sensitive, as `aws_iam_access_key` outputs normally
-are), and `aws/ses-relay/scripts/derive_smtp_password.py` runs the
+are), and [`ses-relay/scripts/derive_smtp_password.py`](https://github.com/KandlerLi/ses-relay/blob/main/scripts/derive_smtp_password.py) runs the
 transform locally, once, with the result going straight into SOPS —
 never through Terraform state, matching this workspace's existing pattern
 for other one-time, can't-automate secrets (the GPG passphrase, the SNS/
@@ -98,7 +98,7 @@ either constraint than either extreme.
   natively understand Alertmanager's webhook payload shape. A
   notification does arrive; making it readable is a deliberately
   deferred follow-up, not solved here.
-- `aws/ses-relay` adds one more small AWS-side repository to this
+- [`ses-relay`](https://github.com/KandlerLi/ses-relay) adds one more small AWS-side repository to this
   workspace's now-familiar per-purpose pattern (own Terraform root, own
   `repo-infra` entry, self-hosted CI/CD) — a cost proportional to what it
   actually does (verify one sending domain, one recipient, one scoped
@@ -120,7 +120,7 @@ wall otherwise:
   `ses:VerifyEmailIdentity`, `ses:VerifyDomainDkim`,
   `ses:GetIdentityVerificationAttributes`, `ses:GetIdentityDkimAttributes`,
   and `ses:DeleteIdentity` were all originally scoped to the two specific
-  identity ARNs in `github/repo-infra`'s IAM policy for `ses-relay` —
+  identity ARNs in [`repo-infra`](https://github.com/KandlerLi/repo-infra)'s IAM policy for `ses-relay` —
   each one denied live, one at a time, across three separate applies,
   regardless of the ARN being correct. All six now use `Resource: "*"`;
   SES simply has no finer-grained option for this action group.
@@ -260,7 +260,7 @@ just "Alertmanager attempted delivery."
 `shared_ingress`'s own Traefik loopback ping endpoint
 (`http://127.0.0.1:8082/ping`) was removed from
 `monitoring_probe_targets` once `shared_ingress` itself was deleted
-(Traefik moved to k3s, `infra/k3s-apps`' `modules/ingress/`) — nothing
+(Traefik moved to k3s, [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/ingress/`) — nothing
 had listened on that loopback port since, and the target had been
 silently alerting on a service that was never coming back. The public
 probes already cover Traefik's own health indirectly, so no direct

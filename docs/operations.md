@@ -44,7 +44,7 @@ and [`runbooks/homeserver-silent-freeze.md`](runbooks/homeserver-silent-freeze.m
 The Kubernetes Dashboard is at `k8s.jkandler.de` (forward-auth). For
 `kubectl`, SSH to `k3s-node-1` through the homeserver (the VM network is
 not reachable from the LAN). Workloads change only through
-`infra/k3s-apps` or `bootstrap/k3s-bootstrap`, never `kubectl apply`.
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps) or [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap), never `kubectl apply`.
 
 ## Applying changes
 
@@ -53,22 +53,22 @@ branch, validate and PR steps and the doc update; the
 [change rollout view](architecture/current/dynamic-ansible.md) shows the
 flow.
 
-- **CI-applied repos** (`infra/k3s-apps`, `aws/*`): merge the PR; CI plans
+- **CI-applied repos** ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), `aws/*`): merge the PR; CI plans
   on the PR and applies on merge.
-- **Local Terraform roots** (`github/repo-infra`,
-  `bootstrap/terraform-state`, `bootstrap/k3s-bootstrap`): `git pull` on
+- **Local Terraform roots** ([`repo-infra`](https://github.com/KandlerLi/repo-infra),
+  [`terraform-state`](https://github.com/KandlerLi/terraform-state), [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)): `git pull` on
   `main` first (an apply from a stale checkout silently applies the old
   config), then `./scripts/roll-out.sh plan` and `apply` in that repo. Any
   unexpected create, replace or destroy is a stop condition.
-- **Ansible** (`infra/home-infra`): `scripts/roll-out.sh` (homeserver,
+- **Ansible** ([`home-infra`](https://github.com/KandlerLi/home-infra)): `scripts/roll-out.sh` (homeserver,
   `site.yml`) and `scripts/roll-out-k3s.sh` (k3s VMs, `k3s.yml`) run the
   tests, a dry run and the real apply with `--ask-become-pass`.
 
 ## DNS
 
-Records are Terraform-owned: subdomains in `aws/dyndns`
-`deployment.auto.tfvars`, mail records in `aws/ses-relay`, `www` in
-`aws/website`. Change them by PR, never in the Route 53 console; verify
+Records are Terraform-owned: subdomains in [`dyndns`](https://github.com/KandlerLi/dyndns)
+`deployment.auto.tfvars`, mail records in [`ses-relay`](https://github.com/KandlerLi/ses-relay), `www` in
+[`website`](https://github.com/KandlerLi/website). Change them by PR, never in the Route 53 console; verify
 with a public resolver afterwards.
 
 ## Secrets
@@ -78,13 +78,13 @@ keys as JSON. Change a value by merging into the existing JSON from a
 silent prompt, never by overwriting the whole secret or passing the value
 as a command-line argument. Commands and rotation steps:
 [`runbooks/rotate-secrets.md`](runbooks/rotate-secrets.md) and
-`aws/secrets-manager`'s `rotation-schedule.md`.
+[`secrets-manager`](https://github.com/KandlerLi/secrets-manager)'s `rotation-schedule.md`.
 
 ## Planned shutdown (hardware maintenance)
 
 Shut down both k3s VMs first (`sudo virsh shutdown k3s-node-2`, then
 `k3s-node-1`, until `sudo virsh list` is empty); the script refuses while
-any VM runs. Then copy `infra/home-infra/scripts/shutdown-homeserver-for-maintenance.sh`
+any VM runs. Then copy [`home-infra/scripts/shutdown-homeserver-for-maintenance.sh`](https://github.com/KandlerLi/home-infra/blob/main/scripts/shutdown-homeserver-for-maintenance.sh)
 to the host, run it with `sudo bash … --check`, then without `--check`, and
 type `POWER OFF` when asked. It stops Nextcloud AIO cleanly, checks the
 disks and failed units, syncs and powers off. It does not take a backup.

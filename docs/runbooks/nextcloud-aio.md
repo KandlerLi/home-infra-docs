@@ -133,7 +133,7 @@ ssh -t julian@192.168.178.100 'sudo virsh list'   # repeat until empty
 Then, from the controller:
 
 ```bash
-cd /home/julian/projects/infra/home-infra
+cd home-infra
 
 scp scripts/shutdown-homeserver-for-maintenance.sh \
   julian@192.168.178.100:/tmp/

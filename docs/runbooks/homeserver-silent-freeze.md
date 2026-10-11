@@ -51,7 +51,7 @@ own log confirms it never fired for this incident.
 
 ## What was fixed: a hardware watchdog backstop, not the root cause
 
-Applied 2026-09-12 (`infra/home-infra`, `ansible/roles/base`):
+Applied 2026-09-12 ([`home-infra`](https://github.com/KandlerLi/home-infra), `ansible/roles/base`):
 confirmed live this hardware has a working watchdog timer device
 (`/dev/watchdog`, `/dev/watchdog0`/`1`) that systemd wasn't using
 (`RuntimeWatchdogUSec=0`). Enabled via `RuntimeWatchdogSec=30s` in

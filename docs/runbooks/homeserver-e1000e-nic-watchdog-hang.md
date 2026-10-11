@@ -18,7 +18,7 @@ well-documented Intel e1000e/82579LM PCIe ASPM bug -- `NETDEV WATCHDOG
 every ~7s, network fully dead during each cycle. Self-recovered after
 ~14 minutes.
 
-**Attempted fix, 2026-09-04** (`infra/home-infra`, `ansible/roles/base`):
+**Attempted fix, 2026-09-04** ([`home-infra`](https://github.com/KandlerLi/home-infra), `ansible/roles/base`):
 `pcie_aspm=off` kernel boot parameter. First signal looked clean.
 
 **Recurred, 2026-09-06** (~9.5h outage, 01:13-09:07 CEST):
@@ -28,7 +28,7 @@ never recovered on its own -- `Detected Hardware Unit Hang` repeated
 roughly every 2s continuously until a manual reboot, worse than the
 first incident's self-recovery.
 
-**Second fix, 2026-09-06** (`infra/home-infra`, `ansible/roles/base`):
+**Second fix, 2026-09-06** ([`home-infra`](https://github.com/KandlerLi/home-infra), `ansible/roles/base`):
 the other two contributors most commonly cited alongside ASPM for this
 exact chipset's bug -- TSO/GSO/GRO offloading and Energy Efficient
 Ethernet -- both disabled via `ethtool` (applied immediately, persisted
@@ -70,4 +70,4 @@ not the same fault.
    reconsidering the `ethtool` offload changes or a driver/firmware
    update, not just restating the same fix.
 
-- Repo: `infra/home-infra` (`ansible/roles/base`)
+- Repo: [`home-infra`](https://github.com/KandlerLi/home-infra) (`ansible/roles/base`)

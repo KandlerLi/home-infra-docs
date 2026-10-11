@@ -2,7 +2,7 @@
 
 Status: **Live, 2026-09-19/20.** Covers `info@jkandler.de`/
 `julian@jkandler.de` (plus the `admin@` service account), built on
-`infra/k3s-apps`' `modules/stalwart` and `modules/bulwark`. This
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/stalwart` and `modules/bulwark`. This
 runbook exists because several real settings live only in Stalwart's
 own runtime database, not in Terraform -- see "Why these aren't in
 Terraform" below.
@@ -16,7 +16,7 @@ Terraform" below.
 - **Bulwark** (`mail.jkandler.de`) is a separate webmail client
   (`ghcr.io/bulwarkmail/webmail`), talking to Stalwart's JMAP endpoint
   directly from the browser.
-- **Outbound mail** relays through Amazon SES (`aws/ses-relay`'s
+- **Outbound mail** relays through Amazon SES ([`ses-relay`](https://github.com/KandlerLi/ses-relay)'s
   domain identity and IAM credential, shared with Alertmanager and
   Authelia), not direct-to-MX delivery from the k3s VM's own
   unproven IP.
@@ -42,7 +42,7 @@ port-25 forward.
 
 **Update 2026-09-25: most of these are now Terraform-managed.** The
 community `tahacodes/stalwart` provider (pinned 0.2.4, in
-`infra/k3s-apps`' `modules/stalwart_config`) talks to Stalwart's
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/stalwart_config`) talks to Stalwart's
 management API, which is the same store the UI writes, so the conflict
 described above doesn't apply. Managed there now: CORS and the allowed
 Pod-network IP (`k3s-apps#81`), the ACME provider and the mail domain
@@ -95,7 +95,7 @@ ever actually sees).
 - **Routes**: a `ses-relay` route, type Relay Host, to
   `email-smtp.eu-central-1.amazonaws.com:587`, SMTP, STARTTLS (not
   implicit TLS). Username: the SES SMTP username (`terraform output
-  -raw smtp_username` in `aws/ses-relay`). Password: "Secret read from
+  -raw smtp_username` in [`ses-relay`](https://github.com/KandlerLi/ses-relay)). Password: "Secret read from
   environment variable", `SES_SMTP_PASSWORD` -- populated by
   `modules/stalwart`'s own `SES_SMTP_USERNAME`/`SES_SMTP_PASSWORD` env
   vars (sourced from Terraform/Secrets Manager, not typed into the UI
@@ -111,7 +111,7 @@ ever actually sees).
   publish anything under "manual DNS management"), and signing twice
   -- once by Stalwart, once by SES's own Easy DKIM -- made SES reject
   the message outright (`554 ... Duplicate header 'DKIM-Signature'`).
-  SES's own Easy DKIM (`aws/ses-relay`'s three DKIM CNAME records)
+  SES's own Easy DKIM ([`ses-relay`](https://github.com/KandlerLi/ses-relay)'s three DKIM CNAME records)
   covers `jkandler.de` DKIM signing; don't re-create a Stalwart-side
   DKIM signature unless SES relaying is removed entirely.
 
@@ -222,7 +222,7 @@ Its own password lives only in Julian's password manager, same as
   log around 2026-09-19/20 for the SES-inbound-backup design if this
   is revisited.
 - **SPF is soft-fail (`~all`)**, deliberately, while outbound is new.
-  Tighten to `-all` in `aws/ses-relay` once outbound has run cleanly
+  Tighten to `-all` in [`ses-relay`](https://github.com/KandlerLi/ses-relay) once outbound has run cleanly
   for a week or two.
 - **SES production access was granted 2026-09-21** (case
   178988954600742: out of the sandbox in eu-central-1, 50,000

@@ -2,20 +2,20 @@
 
 **Retired 2026-08-30, not applicable to the current architecture.**
 This runbook's own deploy step (`ansible/playbooks/nextcloud-tools.yml`
-and `home-agent.yml`) belonged to `infra/home-infra`'s Docker/systemd-based
+and `home-agent.yml`) belonged to [`home-infra`](https://github.com/KandlerLi/home-infra)'s Docker/systemd-based
 `nextcloud-tools` deployment — that whole role and its playbook family
 were deleted outright once `home_agent`/`nextcloud_tools` moved to a
-k3s-native Pod (`infra/k3s-apps`' own `modules/home_agent`). The
+k3s-native Pod ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/home_agent`). The
 commands below this point no longer exist.
 
 The feature this runbook describes (ADR 0014's Shopping List tools,
 add/check/uncheck/remove, executing immediately per ADR 0013) is
 still **implemented in code but not yet deployed** — same status as
 before this retirement, just via a different, current mechanism:
-enabling it now means deploying `infra/k3s-apps`' own
+enabling it now means deploying [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own
 `modules/home_agent` through that repo's normal Terraform apply, not
 these dead Ansible plays. See
-[`current-state.md`](../current-state.md) and `PARKED.md` for the
+[`current-state.md`](../current-state.md) and the private task list for the
 current status.
 
 The two real, still-applicable pieces of this runbook's original

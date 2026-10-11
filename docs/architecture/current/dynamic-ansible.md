@@ -5,7 +5,7 @@
   repo and for the Ansible-managed homeserver
 - **Status:** Current as of 2026-10-11
 
-## CI-applied Terraform repo (e.g. `infra/k3s-apps`)
+## CI-applied Terraform repo (e.g. [`k3s-apps`](https://github.com/KandlerLi/k3s-apps))
 
 ```mermaid
 sequenceDiagram
@@ -27,7 +27,7 @@ sequenceDiagram
     R->>T: terraform apply
 ```
 
-## Ansible (`infra/home-infra`)
+## Ansible ([`home-infra`](https://github.com/KandlerLi/home-infra))
 
 ```mermaid
 sequenceDiagram

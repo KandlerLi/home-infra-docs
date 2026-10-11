@@ -5,7 +5,7 @@
 Follow [`docs/runbooks/update-documentation.md`](docs/runbooks/update-documentation.md):
 which file takes which kind of change, and the checks before a PR. `main` is
 protected; every change is a PR with the gitleaks check. Open work is tracked
-in `/home/julian/projects/PARKED.md`, not here.
+in a private task list, not here.
 
 ## C4 diagram rules
 

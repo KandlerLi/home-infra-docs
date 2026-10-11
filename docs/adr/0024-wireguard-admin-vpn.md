@@ -34,9 +34,9 @@ Options considered:
 ## Decision
 
 Run a **WireGuard server on the homeserver** as the `wireguard` role in
-`infra/home-infra`:
+[`home-infra`](https://github.com/KandlerLi/home-infra):
 
-- Endpoint `vpn.jkandler.de:51820/udp`: a CNAME in `aws/dyndns`, IPv4
+- Endpoint `vpn.jkandler.de:51820/udp`: a CNAME in [`dyndns`](https://github.com/KandlerLi/dyndns), IPv4
   only (public AAAA records stay off-limits, see `decisions.md`). The
   FRITZ!Box forwards UDP 51820 to the homeserver, a manual router
   setting like the existing 80/443/25 forwards.

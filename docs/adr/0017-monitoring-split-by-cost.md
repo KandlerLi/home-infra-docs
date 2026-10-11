@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-08-23
-- Deployment status: `aws/homeserver-health-check` built and locally
+- Deployment status: [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) built and locally
   validated, not yet applied. The homeserver-hosted half is a separate,
   larger follow-up, not yet started.
 
@@ -21,7 +21,7 @@ alerting is the thing that would be down.
 
 **Split by where the check has to run, not by what it checks.** AWS hosts
 exactly one thing: an external reachability check for the home network,
-implemented as `aws/homeserver-health-check` — a Route53 health check
+implemented as [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) — a Route53 health check
 against the bare `jkandler.de` apex (not `www.jkandler.de`, which is
 CloudFront/S3 and would only prove AWS itself is reachable) every 30
 seconds, a CloudWatch alarm on that health check's status, and an SNS
@@ -33,7 +33,7 @@ homeserver itself, for free, as a separate follow-up.
 
 This follows the same repo/Terraform/CI shape every other AWS-deploying
 repo in this workspace uses: its own `infra/` Terraform root, GitHub
-repository and OIDC roles provisioned by `github/repo-infra`, IAM
+repository and OIDC roles provisioned by [`repo-infra`](https://github.com/KandlerLi/repo-infra), IAM
 policies scoped tightly to the three resource types actually touched
 (Route53 health checks, one named CloudWatch alarm, one named SNS topic),
 and a self-hosted-runner CI/CD pipeline applying on merge to `main`
@@ -56,6 +56,6 @@ approval; that reviewer requirement was removed workspace-wide
   AWS side, since redundancy wasn't the goal — cost was.
 - Every other future monitoring capability (dashboards, per-service
   alerts, cert expiry, etc.) is scoped to the homeserver-side follow-up,
-  not to this repo — `aws/homeserver-health-check` is deliberately kept
+  not to this repo — [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) is deliberately kept
   this small and is not expected to grow into a general-purpose AWS
   monitoring stack.

@@ -2,7 +2,7 @@
 
 Status: **outline, never exercised end to end.** The order below follows
 the current setup (2026-10-11). Steps marked *open* have no written
-procedure yet (tracked in `PARKED.md`); do not improvise them under
+procedure yet (tracked in the private task list); do not improvise them under
 pressure without reading the tool's own restore documentation first.
 
 ## Preconditions
@@ -14,7 +14,7 @@ pressure without reading the tool's own restore documentation first.
   every secret from Secrets Manager, so this replaces any local key.
 - The disks: `black-hdd` (live data) and `red-hdd` (backups). If
   `black-hdd` is lost, the data comes back from `red-hdd`; if both are
-  lost, there is no further copy (no off-site backup, see `BACKLOG.md`).
+  lost, there is no further copy (no off-site backup, see the private task list).
 
 ## Safety constraints
 
@@ -29,7 +29,7 @@ pressure without reading the tool's own restore documentation first.
 ## Order
 
 1. Install Debian 13 on the SSD, create user `julian`, enable SSH.
-2. On the laptop: clone `infra/home-infra`, set up its venv as in its
+2. On the laptop: clone [`home-infra`](https://github.com/KandlerLi/home-infra), set up its venv as in its
    README ("First apply"), log in to AWS, check `ansible home_servers -m
    ansible.builtin.ping`.
 3. Apply `site.yml` (`scripts/roll-out.sh`). The `storage` role mounts both
@@ -42,9 +42,9 @@ pressure without reading the tool's own restore documentation first.
 5. Apply `k3s.yml` (`scripts/roll-out-k3s.sh`): both k3s VMs, k3s itself.
    The VM disks live on `black-hdd`; if they survived, the cluster comes
    back with its local-path volumes.
-6. Apply `bootstrap/k3s-bootstrap` locally: PersistentVolumes, RBAC and the
+6. Apply [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) locally: PersistentVolumes, RBAC and the
    CI runners. CI cannot run before this step.
-7. Re-run the `Apply` workflow of `infra/k3s-apps` on `main` (workflow
+7. Re-run the `Apply` workflow of [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) on `main` (workflow
    dispatch) to recreate every workload.
 8. Restore k3s data that lived only in the VMs, if the VM disks were lost
    (*open*: written steps for each):
@@ -53,7 +53,7 @@ pressure without reading the tool's own restore documentation first.
      (Paperless media itself is on `black-hdd`)
    - Open WebUI data and Deluge config live on the host and are in
      `/mnt/red-hdd/aux-backups`
-   - Stalwart mail has no backup outside the VM (`BACKLOG.md`).
+   - Stalwart mail has no backup outside the VM.
 9. Check DNS (the FRITZ!Box keeps updating the apex record), certificates,
    `systemctl --failed`, the Prometheus targets and backup-age alerts in
    Grafana, and the public checks in `docs/operations.md`.

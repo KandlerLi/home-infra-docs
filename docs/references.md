@@ -23,7 +23,7 @@
 ## Local evidence
 
 - Committed infrastructure repository at
-  `/home/julian/projects/infra/home-infra`
+  [`home-infra`](https://github.com/KandlerLi/home-infra)
 - Read-only Ansible and host observations captured on 2026-08-18
 - Human-approved home-agent deployment and live end-to-end verification on
   2026-08-18

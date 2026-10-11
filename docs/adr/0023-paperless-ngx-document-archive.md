@@ -28,7 +28,7 @@ Options considered:
 
 ## Decision
 
-Run **Paperless-ngx on the k3s cluster**, managed in `infra/k3s-apps`
+Run **Paperless-ngx on the k3s cluster**, managed in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)
 like every other workload, reachable at `docs.jkandler.de`.
 
 **Storage.** Documents are live data, so they go on the black HDD (the
@@ -36,7 +36,7 @@ workspace's convention: black for live data, red for backups):
 
 - `media` (originals + OCR'd PDF/A archive versions + thumbnails): NFS
   from `/mnt/black-hdd/paperless-media`, a static PV in
-  `bootstrap/k3s-bootstrap` like Deluge's.
+  [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) like Deluge's.
 - Database: **PostgreSQL**, on a `local-path` PVC via the existing
   `pvc_local_path` module (same pattern as `blocky-postgres`), not
   SQLite. Paperless-ngx's own docs advise against SQLite on network
@@ -92,7 +92,7 @@ into `/mnt/red-hdd/paperless-export` over NFS, the same pattern as
 `authelia-backup`. This covers both the database and the originals in
 one version-independent format. Accidental deletions are covered for 30
 days by Paperless's own trash, not by backup history. Still on the same
-physical server: off-site remains the separate `BACKLOG.md` item, and
+physical server: off-site backup remains a separate open item, and
 it becomes more pressing once tax and contract documents live here.
 
 **Explicitly out of scope:** giving `home_agent` access to Paperless.
@@ -117,16 +117,16 @@ user and token), not an extension of this one.
 
 One repo at a time, each through the usual PR flow:
 
-1. `infra/home-infra`: create `/mnt/black-hdd/paperless-media` and
+1. [`home-infra`](https://github.com/KandlerLi/home-infra): create `/mnt/black-hdd/paperless-media` and
    `/mnt/red-hdd/paperless-export` with the right ownership, add both to
    `nfs_server_exports`.
-2. `aws/secrets-manager`: a `k3s-apps/paperless` container (Postgres
+2. [`secrets-manager`](https://github.com/KandlerLi/secrets-manager): a `k3s-apps/paperless` container (Postgres
    password, `PAPERLESS_SECRET_KEY`, OIDC client secret); the Authelia
    side's client secret hash in `home-infra/authelia`. Values set by
    Julian.
-3. `bootstrap/k3s-bootstrap`: the two static NFS PVs.
-4. `aws/dyndns`: the `docs.jkandler.de` record.
-5. `infra/k3s-apps`: `modules/paperless` (Deployment, Postgres, Redis,
+3. [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap): the two static NFS PVs.
+4. [`dyndns`](https://github.com/KandlerLi/dyndns): the `docs.jkandler.de` record.
+5. [`k3s-apps`](https://github.com/KandlerLi/k3s-apps): `modules/paperless` (Deployment, Postgres, Redis,
    PVCs, Service, ingress route, export CronJob), the Authelia OIDC
    client, a landing-page entry, and a blackbox probe.
 6. Confirm live: SSO web login works and the password form is gone; an

@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-23
 - Deployment status: Built and locally validated in
-  `bootstrap/terraform-state/operator.tf` (see the 2026-08-23 Update
+  [`terraform-state/operator.tf`](https://github.com/KandlerLi/terraform-state/blob/main/operator.tf) (see the 2026-08-23 Update
   below), not yet applied
 
 ## Context
@@ -102,7 +102,7 @@ which `julian` applies routinely. A third such root, on top of
 `terraform-state` and `repo-infra`, was unnecessary overhead for
 something at the same trust level and cadence as one that already exists.
 
-`operator.tf`'s resources moved into `bootstrap/terraform-state`
+`operator.tf`'s resources moved into [`terraform-state`](https://github.com/KandlerLi/terraform-state)
 unchanged in substance, with one tightening: `julian`'s policy no longer
 grants access to `terraform-state/*` state or to bucket management,
 since `julian` never applies `terraform-state` itself — only `repo-infra`.

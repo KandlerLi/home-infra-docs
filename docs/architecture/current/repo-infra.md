@@ -39,7 +39,7 @@ flowchart LR
 | --- | --- | --- |
 | repo-infra | Terraform (GitHub + AWS providers), local only | Every repo's GitHub settings; the account-wide OIDC provider; a read-only plan role (PR subject) and an apply role (`production` environment subject) per AWS-deploying repo |
 | CI-applied repos | Terraform via `gha-common` workflows | Manage their own resources; can never change their own trust or policies |
-| Terraform state | S3 (`bootstrap/terraform-state`) | Isolated state per root; the plan role can only read its own key |
+| Terraform state | S3 ([`terraform-state`](https://github.com/KandlerLi/terraform-state)) | Isolated state per root; the plan role can only read its own key |
 
 Adding a repo: the `onboard-new-repo` skill. Decisions: ADR 0009, 0010,
 0022.

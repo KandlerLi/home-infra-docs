@@ -1,7 +1,7 @@
 # Runbook: Deploy Read-Only Nextcloud Tools — retired
 
 **Retired 2026-08-30, not applicable to the current architecture.**
-This runbook described `infra/home-infra`'s own Docker/systemd-based
+This runbook described [`home-infra`](https://github.com/KandlerLi/home-infra)'s own Docker/systemd-based
 deployment of the `nextcloud-tools` service (`ansible/playbooks/
 nextcloud-tools.yml`, `rotate-nextcloud-tools-token.yml`,
 `disable-nextcloud-tools.yml`) — that whole role and its playbook
@@ -12,17 +12,17 @@ not silently do the wrong thing.
 
 The service itself is still live — it's just deployed differently now:
 `nextcloud_tools_service.py` runs as a vendored sidecar inside
-`infra/k3s-apps`' own `modules/home_agent` Deployment, alongside
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/home_agent` Deployment, alongside
 `home_agent` itself, sharing a Unix socket through an `emptyDir`. It
 reaches Nextcloud AIO's Apache over the k3s VM's isolated network
 (`192.168.101.1:11000`) rather than loopback. There's no dedicated
 deploy runbook for this shape — it's deployed the same way every other
-`infra/k3s-apps` module is, through that repo's own normal Terraform
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps) module is, through that repo's own normal Terraform
 apply (CI on merge to `main`).
 
 See [`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history and current
-architecture, and `infra/k3s-apps`' own `modules/home_agent/` for the
+architecture, and [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/home_agent/` for the
 live Terraform.
 
 The security-boundary reasoning this runbook originally walked through

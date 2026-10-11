@@ -10,16 +10,16 @@ flowchart LR
     julian["Julian<br/>[Person]"]
 
     subgraph local["Applied locally by Julian"]
-        ansible["infra/home-infra<br/>[Container: Ansible]<br/>site.yml: homeserver; k3s.yml: k3s VMs"]
-        tfstate["bootstrap/terraform-state<br/>[Container: Terraform]<br/>State bucket, operator identity, account baseline"]
-        k3sboot["bootstrap/k3s-bootstrap<br/>[Container: Terraform]<br/>CI runners, PVs, privilege-defining RBAC"]
-        repoinfra["github/repo-infra<br/>[Container: Terraform]<br/>GitHub settings, OIDC provider, per-repo CI roles"]
+        ansible["home-infra<br/>[Container: Ansible]<br/>site.yml: homeserver; k3s.yml: k3s VMs"]
+        tfstate["terraform-state<br/>[Container: Terraform]<br/>State bucket, operator identity, account baseline"]
+        k3sboot["k3s-bootstrap<br/>[Container: Terraform]<br/>CI runners, PVs, privilege-defining RBAC"]
+        repoinfra["repo-infra<br/>[Container: Terraform]<br/>GitHub settings, OIDC provider, per-repo CI roles"]
     end
 
     subgraph ci["Applied by CI on merge to main"]
-        k3sapps["infra/k3s-apps<br/>[Container: Terraform]<br/>All app workloads in k3s"]
-        awsrepos["aws/dyndns, website, ses-relay,<br/>aws-budget, homeserver-health-check,<br/>secrets-manager<br/>[Containers: Terraform]"]
-        gha["github/gha-common<br/>[Container: reusable workflows]<br/>Checks, plan, apply, scans"]
+        k3sapps["k3s-apps<br/>[Container: Terraform]<br/>All app workloads in k3s"]
+        awsrepos["dyndns, website, ses-relay,<br/>aws-budget, homeserver-health-check,<br/>secrets-manager<br/>[Containers: Terraform]"]
+        gha["gha-common<br/>[Container: reusable workflows]<br/>Checks, plan, apply, scans"]
     end
 
     homeserver["Homeserver and k3s VMs<br/>[Deployment Nodes]"]
@@ -63,7 +63,6 @@ The local-only roots define the identities and privileges CI itself runs
 with (state bucket, OIDC roles, runner RBAC), so CI must never apply them.
 Ansible needs an interactive become password and stays local too. Everything
 else is applied by CI on merge, with the PR review as the only gate. Details:
-the repo map in `/home/julian/projects/CLAUDE.md` and
 [`repositories.md`](../../repositories.md).
 
 ## Legend

@@ -1,7 +1,7 @@
 # Runbook: Manage Repository Infrastructure
 
 Status: current. Owning repository:
-`/home/julian/projects/github/repo-infra` (public GitHub repo with branch protection, applied only locally,
+[`repo-infra`](https://github.com/KandlerLi/repo-infra) (public GitHub repo with branch protection, applied only locally,
 shared encrypted S3 backend, key `repo-infra/terraform.tfstate`).
 
 ## Scope
@@ -31,7 +31,7 @@ The former `testing` and `whoami` repositories no longer exist.
 ## Standard validation
 
 ```bash
-cd /home/julian/projects/github/repo-infra
+cd repo-infra
 terraform fmt -check -recursive
 terraform validate
 terraform plan

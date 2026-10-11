@@ -1,7 +1,7 @@
 # Runbook: Publish the Home Agent — retired
 
 **Retired 2026-09-01, not applicable to the current architecture.**
-This runbook described bootstrapping `infra/home-infra`'s own
+This runbook described bootstrapping [`home-infra`](https://github.com/KandlerLi/home-infra)'s own
 `shared_ingress` role from scratch -- the homeserver's original,
 Docker-based Traefik reverse proxy fronting Nextcloud, the agent, and
 every other public route. `shared_ingress` was deleted outright once
@@ -14,7 +14,7 @@ along with the whole family of sibling publish/rollback playbooks for
 every other route (`publish-deluge.yml`, `publish-grafana.yml`, etc.).
 
 The public routing this runbook originally set up now lives entirely
-in `infra/k3s-apps`' own `modules/ingress` (deployed through that
+in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/ingress` (deployed through that
 repo's normal Terraform apply), with two real changes since this
 runbook was current:
 

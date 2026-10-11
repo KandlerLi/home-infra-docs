@@ -12,7 +12,7 @@ may be added later as an optional provider, never as a hidden prerequisite.
 
 ## Infrastructure-managed DNS
 
-Stable subdomain CNAMEs belong in `/home/julian/projects/aws/dyndns`, not as manual
+Stable subdomain CNAMEs belong in [`dyndns`](https://github.com/KandlerLi/dyndns), not as manual
 Route 53 console changes. GitHub Actions uses OIDC and protected environments;
 the FRITZ!Box DynDNS secret value is outside Terraform state.
 
@@ -83,7 +83,7 @@ deployment" step this file's own previous entry described as the desired
 workflow is gone now. The same reasoning that removed `owner-approval.yml`
 on 2026-08-21 applies a second time, one layer later — an AI agent may
 commit and open PRs in this workspace, but merging stays a deliberate human
-action the agent never performs (`CLAUDE.md`'s own standing rule), so the
+action the agent never performs (the owner's standing rule), so the
 separate "approve deployment" click was reviewing nothing a second pair of
 eyes hadn't already seen at merge time.
 
@@ -100,31 +100,6 @@ access for all six repos, not just removed a redundant click.
 Current flow: open a PR, review the `Terraform plan` job's speculative plan
 output, merge once `Validate` and `Terraform plan` are green — Terraform
 applies immediately, no separate approval step left.
-
-## Workspace projects are grouped by purpose into three parent folders
-
-All six project directories under `/home/julian/projects` previously sat
-flat at the top level. On 2026-08-21 they were moved one level deeper into
-three parent folders that group them by purpose: `docs/` for
-documentation-only repositories (`home-infra-docs`, `home-infra-ai-context`),
-`bootstrap/` for control-plane/state Terraform roots (`terraform-state`,
-`repo-infra`), and `infra/` for workload repositories (`dyndns`,
-`home-infra`). `/home/julian/projects` itself is not a Git repository, so
-this was a plain filesystem move — every project kept its own Git history,
-and `dyndns`'s GitHub remote was unaffected since remotes are addressed by
-URL, not local path.
-
-The move required rewriting absolute-path references across `home-infra-docs`
-and `home-infra-ai-context` (READMEs, ADRs, runbooks, `context/*.md`,
-handovers) plus a few references each in `terraform-state`, `repo-infra`, and
-`dyndns`. It also fixed one pre-existing stale reference in `dyndns/README.md`
-that still pointed at the deleted `aws-account-bootstrap` directory from
-before the earlier `repo-infra` consolidation. The workspace-discovery
-convention documented in both `home-infra-ai-context` and `home-infra-docs`
-(previously "enumerate every top-level directory") was updated to describe
-the new two-level nesting; the discovery command changed from
-`find /home/julian/projects -mindepth 1 -maxdepth 1` to
-`find /home/julian/projects -mindepth 2 -maxdepth 2`.
 
 ## Self-hosted GitHub Actions runners are opted into via `config.yml`, wired by a generated variable
 
@@ -166,9 +141,9 @@ homelab-scale setup — but now driven from one source of truth instead of two
 independently-maintained lists.
 
 **Update 2026-10-11:** the runner VM and its Ansible role are gone; runners
-are Deployments in `bootstrap/k3s-bootstrap` (since 2026-08-31). The
+are Deployments in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) (since 2026-08-31). The
 decision stands, only the target changed: the same sync script now
-writes `bootstrap/k3s-bootstrap/repositories.auto.tfvars.json`. Adding a
+writes [`k3s-bootstrap/repositories.auto.tfvars.json`](https://github.com/KandlerLi/k3s-bootstrap/blob/main/repositories.auto.tfvars.json). Adding a
 runner-backed repository is now: `runner: true` in `config.yml`, run
 `scripts/sync_github_runner_repositories.py` in `home-infra`, commit the
 regenerated file in `k3s-bootstrap`, and apply `k3s-bootstrap` locally.
@@ -182,7 +157,7 @@ keys), reached through three different consumption mechanisms
 depending on which repo needed which key: Ansible's `community.sops.sops`
 vars plugin (4 keys, direct), `sops -d` piped into `TF_VAR_*` for
 Terraform (the large majority, both local applies and `k3s-apps`' own
-CI), and a separate export path for `bootstrap/k3s-bootstrap`'s
+CI), and a separate export path for [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s
 `github_runner_github_token` (human-apply only). The same audit
 surfaced real drift this design had let accumulate silently: a dead
 variable (`deluge_web_password`, no live consumer left), a broken
@@ -190,9 +165,9 @@ mapping in `sync_secrets_to_pass.py` (referencing an already-deleted
 role file), and a GitHub Actions secret read by `k3s-apps`' CI but
 never declared in `repo-infra/config.yml` at all.
 
-The fix follows `aws/dyndns`'s own existing pattern rather than
+The fix follows [`dyndns`](https://github.com/KandlerLi/dyndns)'s own existing pattern rather than
 inventing a new one: Terraform creates the secret *container* only
-(`bootstrap/terraform-state`'s `secrets_manager.tf`), never its value;
+([`terraform-state`](https://github.com/KandlerLi/terraform-state)'s `secrets_manager.tf`), never its value;
 the value is set out-of-band via `aws secretsmanager put-secret-value`,
 keeping real secret material out of Terraform state the same way SOPS
 kept it out of plaintext git. Secrets are grouped one entry per logical
@@ -208,8 +183,8 @@ Lambda-runtime-only secret.
 
 The cutover shipped in deliberately separated, independently-verified
 phases across all five repos it touched
-(`bootstrap/terraform-state`/`home-infra`/`k3s-apps`/`repo-infra`/
-`bootstrap/k3s-bootstrap`) rather than one large change, after two real
+([`terraform-state`](https://github.com/KandlerLi/terraform-state)/`home-infra`/`k3s-apps`/`repo-infra`/
+[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)) rather than one large change, after two real
 production outages earlier in the same effort (Authelia's own OIDC
 secrets going empty) established the actual failure mode to guard
 against: never bundle "grant new access" with "destroy old access" in
@@ -226,8 +201,8 @@ consumers themselves.
 ## AWS Secrets Manager containers live in their own bootstrap repo
 
 The SOPS-to-Secrets-Manager cutover left all 10 `aws_secretsmanager_secret`
-container resources in `bootstrap/terraform-state/secrets_manager.tf`.
-They are being moved into a dedicated `bootstrap/secrets-manager` root,
+container resources in [`terraform-state/secrets_manager.tf`](https://github.com/KandlerLi/terraform-state/blob/main/secrets_manager.tf).
+They are being moved into a dedicated [`secrets-manager`](https://github.com/KandlerLi/secrets-manager) root,
 one secret at a time, so the secrets concern is separable from the
 state-bucket bootstrap concern and can carry its own per-secret
 documentation and rotation tooling — without `terraform-state` (a
@@ -254,9 +229,9 @@ ARN string (`...:secret:<name>-*`); switching one to the other is an
 in-place policy edit with continuous ARN coverage, so there is no
 access gap. (`k3s-bootstrap-local`'s read grant on
 `home-infra/github-runner` works the same way when that one migrates.)
-Consumers are unaffected: every one (`infra/k3s-apps`'s `secrets.tf`,
-`bootstrap/k3s-bootstrap`'s, `infra/home-infra`'s Ansible,
-`github/repo-infra`'s CI policy) reads secrets by name / ARN pattern,
+Consumers are unaffected: every one ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)'s `secrets.tf`,
+[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s, [`home-infra`](https://github.com/KandlerLi/home-infra)'s Ansible,
+[`repo-infra`](https://github.com/KandlerLi/repo-infra)'s CI policy) reads secrets by name / ARN pattern,
 never by which root owns the container.
 
 Rotation automation was scoped honestly against the network reality:
@@ -270,7 +245,7 @@ self-hosted runner (which already has `kubectl` and runs `terraform
 apply`), not an AWS-native rotation Lambda. Everything else is
 manual-by-design, with per-secret runbooks; where the mechanical
 post-mint steps are worth scripting (e.g.
-`k3s-apps/sankey-export`), the script lives in `infra/k3s-apps`
+`k3s-apps/sankey-export`), the script lives in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)
 alongside the apply it runs, not in `secrets-manager`.
 
 `k3s-apps/sankey-export` was the pilot (migrated and value-rotated
@@ -286,18 +261,18 @@ bundled cleanup: `shared_ingress_auth_password`/`_hash` were retired
 outright rather than migrated — the `shared-auth` Traefik Basic Auth
 rollback they fed had sat unreferenced since the 2026-09-08 Authelia
 forward-auth cutover, and stayed only as a hedge against Authelia's
-own SQLite storage bug (then tracked in `BACKLOG.md`, closed 2026-09-16) recurring; once
+own SQLite storage bug (then tracked in the private task list, closed 2026-09-16) recurring; once
 forward-auth held stable for several more days with no recurrence,
 the rollback stopped earning its keep. `home-infra/authelia` is
 deliberately last.
-`bootstrap/secrets-manager/README.md` carries the live migration-status
+[`secrets-manager/README.md`](https://github.com/KandlerLi/secrets-manager/blob/main/README.md) carries the live migration-status
 table.
 
 `k3s_ingress_acme_dns01_*`'s value was also rotated end-to-end the same
 day — the first real proof that a *Terraform-managed* AWS credential
 (as opposed to the human-typed/API-minted values every other rotation
 this campaign has covered) can be rotated safely here.
-`aws_iam_access_key.acme_dns01` (`aws/dyndns`) has no in-place
+`aws_iam_access_key.acme_dns01` ([`dyndns`](https://github.com/KandlerLi/dyndns)) has no in-place
 rotation, only destroy+recreate; `lifecycle { create_before_destroy =
 true }` makes `terraform apply -replace=aws_iam_access_key.acme_dns01`
 mint the new key before deleting the old one (IAM allows 2 keys per
@@ -311,11 +286,11 @@ had a checksum-annotation fix for) is read once at container start and
 never refreshed at all — the Secret updated correctly but the running
 Traefik Pod kept the just-deleted key in memory until a manual restart,
 fixed with a `checksum/acme-dns01-credentials` annotation
-(`infra/k3s-apps` PR #42, merged).
+([`k3s-apps`](https://github.com/KandlerLi/k3s-apps) PR #42, merged).
 
 `home-infra/monitoring` (2026-09-11) is the one group in this campaign
-with a real dual consumer — `infra/k3s-apps`' Terraform (Alertmanager
-and Authelia both read it) *and* `infra/home-infra`'s own Ansible
+with a real dual consumer — [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' Terraform (Alertmanager
+and Authelia both read it) *and* [`home-infra`](https://github.com/KandlerLi/home-infra)'s own Ansible
 (`site.yml`'s `pre_tasks`, a `lookup('amazon.aws.secretsmanager_secret',
 ...)` call gated on `monitoring_enabled`). Verified both independently
 rather than trusting the Terraform-only pattern every other migration
@@ -326,13 +301,13 @@ needed) against the migrated container.
 Its value was also rotated end-to-end the same day, second proof (after
 the ACME key) that `create_before_destroy` + `terraform apply -replace`
 is the right pattern for any Terraform-managed credential here — this
-one adds a derive-script step (`aws/ses-relay/scripts/
+one adds a derive-script step (`[`ses-relay/scripts`](https://github.com/KandlerLi/ses-relay/blob/main/scripts)
 derive_smtp_password.py`, AWS's own SigV4 SMTP-password algorithm) and
 two consumers (Alertmanager, Authelia) instead of one, both updated by
 a single `terraform apply` once `checksum/config` existed on
 Alertmanager's own Deployment too (added proactively this time, before
 finding the gap live, unlike the ACME rotation). Also corrected a real
-inaccuracy found live: `infra/home-infra`'s `site.yml` doesn't need a
+inaccuracy found live: [`home-infra`](https://github.com/KandlerLi/home-infra)'s `site.yml` doesn't need a
 re-run on rotation — its `pre_tasks` only assert these values are
 non-empty, never template them anywhere (Alertmanager moved to k3s
 outright).
@@ -345,11 +320,11 @@ syntax-check.
 
 Its OIDC pair was also rotated the same day — the third this session
 (after Grafana/Open WebUI) and the first that genuinely needs
-`infra/home-infra`'s Ansible side, confirmed live by reading
+[`home-infra`](https://github.com/KandlerLi/home-infra)'s Ansible side, confirmed live by reading
 `ansible/roles/nextcloud_aio/tasks/oidc.yml` directly (a real `occ
 user_oidc:provider --clientsecret=...` upsert, unlike
 `home-infra/monitoring`'s assert-only SES creds). Rather than have the
-fresh plaintext/hash pair pasted into chat, `infra/k3s-apps/scripts/
+fresh plaintext/hash pair pasted into chat, `[`k3s-apps/scripts`](https://github.com/KandlerLi/k3s-apps/blob/main/scripts)
 rotate-oidc-client-secret.sh` (previously grafana/openwebui only)
 gained `nextcloud` support — same silent-prompt/swap-detection
 mechanics, plus a `site.yml --ask-become-pass` re-run the script now
@@ -360,12 +335,12 @@ secrets in the conversation.
 
 `home-infra/github-runner` (2026-09-12) closed out the last group with
 a non-`julian` grant: `k3s-bootstrap-local` (the scripted,
-non-interactive identity that applies `bootstrap/k3s-bootstrap`) had
+non-interactive identity that applies [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)) had
 its own real resource-reference grant on this secret
 (`ReadGithubRunnerSecret`), which needed the same wildcard-ARN swap as
 `julian`'s own — a second identity to update, not just a second
 statement. Verified as that identity for real (not `julian`'s own
-credentials): `bootstrap/k3s-bootstrap`'s own `scripts/roll-out.sh`,
+credentials): [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s own `scripts/roll-out.sh`,
 which sources `k3s-bootstrap-local`'s credentials from `pass`, showed
 a real `Read complete` on the migrated secret and zero plan diff. Only
 `home-infra/authelia` (deliberately last) and `home-infra/blocky`
@@ -389,15 +364,15 @@ own.
 
 `dyndns/fritzbox` (2026-09-12) extended the campaign beyond its
 original 10-group inventory (requested directly) and beyond
-`bootstrap/terraform-state` as a source root for the first time: this
-container was created directly in `aws/dyndns`, a real CI/PR-gated
+[`terraform-state`](https://github.com/KandlerLi/terraform-state) as a source root for the first time: this
+container was created directly in [`dyndns`](https://github.com/KandlerLi/dyndns), a real CI/PR-gated
 repo. Confirmed live before migrating that `julian` had no explicit
 grant on it at all — every read this session had used root. The
 `removed`/`import` no-destroy handoff generalizes cleanly to a
 non-bootstrap source root; the one real difference is that
 "source relinquishes" needs a normal PR there instead of a direct
 local apply, and that PR's `removed` block then lives in that repo
-permanently rather than in `bootstrap/terraform-state` — it doesn't
+permanently rather than in [`terraform-state`](https://github.com/KandlerLi/terraform-state) — it doesn't
 count toward that repo's own final-sweep condition. Also fixed in the
 same PR: the Lambda's own `CREDENTIALS_SECRET_ID` env var switched
 from an ARN reference to the secret's plain name (boto3's
@@ -441,7 +416,7 @@ rotation script just connects to `blocky-svc:5432` directly over TCP
 -- the exact same in-cluster Service `modules/grafana`'s own datasource
 config already reaches for its own dashboards. Zero new Kubernetes
 RBAC; the only new grant needed was apply-only `secretsmanager:
-PutSecretValue` on `home-infra/blocky-*` (`github/repo-infra`), the
+PutSecretValue` on `home-infra/blocky-*` ([`repo-infra`](https://github.com/KandlerLi/repo-infra)), the
 CI role's first-ever write access to any secret, deliberately its own
 statement so a compromised token's write blast radius stays exactly
 one secret. This is the template for any future "CI needs to touch a
@@ -477,7 +452,7 @@ container (real `1 to add`, no `import` block needed -- this value
 never had its own resource before); (2) copy the *current*,
 still-valid token value into it verbatim, a pure relocation with zero
 functional change since the byte value is identical; (3) rewire both
-Terraform consumers (`infra/k3s-apps`' `secrets.tf` + `main.tf`) to
+Terraform consumers ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `secrets.tf` + `main.tf`) to
 read from the new location; (4) apply, expecting -- and getting -- a
 literal zero diff on both `kubernetes_secret_v1.ghcr_pull` resources,
 confirmed both by the Terraform plan itself and by decoding the live
@@ -490,9 +465,9 @@ longer reads that key at all, not just that the code says so. The
 actual token *rotation* is deliberately a separate, later step against
 the newly-relocated secret, not bundled into this move.
 
-One real gap this surfaced: `github/repo-infra/aws_policies.tf`'s
+One real gap this surfaced: [`repo-infra/aws_policies.tf`](https://github.com/KandlerLi/repo-infra/blob/main/aws_policies.tf)'s
 `k3s_apps_secretsmanager_read_statements` grants read access to every
-Secrets Manager group `infra/k3s-apps`' own Terraform reads directly
+Secrets Manager group [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own Terraform reads directly
 by name -- creating a *new* group there needs a matching new grant
 just as much as migrating an existing one does, and this was missed on
 the first pass. The PR's own `Terraform plan` CI check caught it
@@ -502,7 +477,7 @@ failing silently or producing a wrong plan -- exactly the kind of
 real, CI-enforced check this campaign's `removed`/`import` discipline
 exists to lean on. Fixed by adding the new ARN to that shared
 `locals` list (covering both the plan and apply CI roles at once,
-since `infra/k3s-apps` needs `GetSecretValue` even to compute a plan
+since [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) needs `GetSecretValue` even to compute a plan
 diff) and re-running the check.
 
 `home-infra/authelia` (2026-09-12) closed out the campaign: the last
@@ -517,13 +492,13 @@ in this campaign shows is a benign quirk of the AWS API, which never
 returns that field on read since it only matters at delete time, not
 a real drift), `julian`'s wildcard grant added additively before the
 old resource-reference grant was dropped (no access gap either side),
-and both `bootstrap/secrets-manager` and `bootstrap/terraform-state`
-confirmed clean afterward. `infra/k3s-apps`'s own plan showed zero
+and both [`secrets-manager`](https://github.com/KandlerLi/secrets-manager) and [`terraform-state`](https://github.com/KandlerLi/terraform-state)
+confirmed clean afterward. [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)'s own plan showed zero
 diff throughout, as expected -- Authelia's consumer code never
 referenced which repo owns the container, only the secret's name.
 
 With every group migrated, the final sweep landed the same day:
-`bootstrap/terraform-state/secrets_manager.tf` -- by then containing
+[`terraform-state/secrets_manager.tf`](https://github.com/KandlerLi/terraform-state/blob/main/secrets_manager.tf) -- by then containing
 nothing but ten `removed { destroy = false }` blocks and the `locals`
 entry only those blocks' now-deleted `resource` blocks had ever
 referenced -- was deleted outright, confirmed with a "No changes"
@@ -546,9 +521,9 @@ PAT) -- a GitHub App's own installation tokens would remove that
 manual-rotation chore entirely rather than merely easing it, but
 swapping either PAT for one needs its own investigation first (whether
 an installation token can actually authenticate a GHCR pull or a
-self-hosted runner registration the same way). Moved to `BACKLOG.md`
+self-hosted runner registration the same way). Moved to the private task list
 now that the migration campaign itself has closed out, rather than
-carried forward in `PARKED.md` as active pull. Closed 2026-09-17: GitHub
+carried forward in the private task list as active pull. Closed 2026-09-17: GitHub
 App installation tokens can't authenticate GHCR pulls, see "GHCR image
 pulls stay on a classic PAT" below.
 
@@ -597,10 +572,10 @@ handed Authelia a database it couldn't decrypt -- the schema-info
 verification above exists specifically to make that risk checkable
 rather than assumed away.
 
-`bootstrap/secrets-manager` gained real CI automation 2026-09-13,
+[`secrets-manager`](https://github.com/KandlerLi/secrets-manager) gained real CI automation 2026-09-13,
 correcting a categorization inherited at its creation rather than
 actually justified for it. It was scaffolded alongside
-`bootstrap/terraform-state`/`bootstrap/k3s-bootstrap` as a third
+[`terraform-state`](https://github.com/KandlerLi/terraform-state)/[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) as a third
 "rare, admin-privileged, human-applied-only, never CI" bootstrap root
 -- reasonable at the time, since the original plan for this repo
 considered having it grant `julian`'s own Secrets Manager access
@@ -636,7 +611,7 @@ than found the hard way later:
    signal at most, not a credential leak.
 2. **A fine-grained GitHub PAT's repository access list doesn't update
    itself.** `home-infra/github-runner`'s own `github_runner_github_token`
-   is scoped to an explicit list of repositories (`bootstrap/secrets-manager/secrets/home-infra/github-runner/README.md`
+   is scoped to an explicit list of repositories ([`secrets-manager/secrets/home-infra/github-runner/README.md`](https://github.com/KandlerLi/secrets-manager/blob/main/secrets/home-infra/github-runner/README.md)
    already documented this, for the 7 repos onboarded before this one)
    -- adding `secrets-manager` as an 8th `runner: true` repo in
    `config.yml` doesn't extend that list automatically, since it's a
@@ -655,7 +630,7 @@ Deliberately retired in the same change: `scripts/roll-out.sh`, the
 root-applied local script this repo had before. Once CI covers the
 routine apply path, this workspace's established convention (already
 set by `k3s-apps`, which never had such a script once its own CI
-landed, and by `aws/dyndns`'s own `protect-repository.sh`, deleted
+landed, and by [`dyndns`](https://github.com/KandlerLi/dyndns)'s own `protect-repository.sh`, deleted
 outright rather than kept as a documented manual-exception carve-out)
 is not to keep a maintained script making a now-automated path
 routine to run by hand. A genuine emergency can still fall back to
@@ -690,7 +665,7 @@ after every single job, the same self-healing restart pattern already
 documented for other repos' runners in this workspace. Confirmed
 settled afterward via GitHub's own runner API: `online`, not busy.
 
-`bootstrap/secrets-manager` itself moved to `aws/secrets-manager`
+[`secrets-manager`](https://github.com/KandlerLi/secrets-manager) itself moved to [`secrets-manager`](https://github.com/KandlerLi/secrets-manager)
 2026-09-13, right after the CI automation above landed -- a plain
 local directory move (`mv`, git remote unchanged, no GitHub-side
 rename) rather than a Terraform/GitHub change, requested directly once
@@ -701,13 +676,13 @@ CI-applied, same as `dyndns`/`website`/`aws-budget`/
 "rare, admin-privileged, human-applied-only" one it no longer matched.
 Every path reference across the workspace was swept and updated to
 match -- the repo's own internal self-references (`secrets/*/README.md`,
-12 identical occurrences), `github/repo-infra/aws_policies.tf`,
-`infra/k3s-apps` (`secrets.tf`, `rotate-sankey-export-app-password.sh`),
-`bootstrap/terraform-state` (`operator.tf`, `k3s_bootstrap_local.tf`,
-`README.md`), `aws/dyndns` (`main.tf`, `outputs.tf`, `README.md`),
-`rotate-secrets.md`, `BACKLOG.md`, and `CLAUDE.md`'s own repo map.
+12 identical occurrences), [`repo-infra/aws_policies.tf`](https://github.com/KandlerLi/repo-infra/blob/main/aws_policies.tf),
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (`secrets.tf`, `rotate-sankey-export-app-password.sh`),
+[`terraform-state`](https://github.com/KandlerLi/terraform-state) (`operator.tf`, `k3s_bootstrap_local.tf`,
+`README.md`), [`dyndns`](https://github.com/KandlerLi/dyndns) (`main.tf`, `outputs.tf`, `README.md`),
+`rotate-secrets.md`, the private task list, and the owner's repo map.
 Historical narrative in this file is deliberately left as originally
-written ("migrated to `bootstrap/secrets-manager`" stays accurate to
+written ("migrated to [`secrets-manager`](https://github.com/KandlerLi/secrets-manager)" stays accurate to
 what was true at each of those past moments) rather than rewritten to
 match the current location -- this entry is the fix-forward record of
 the move itself, not a correction of what came before it.
@@ -756,7 +731,7 @@ own platform has changed.
 
 ## A trivy config scan proves the source is clean, not that a live apply succeeded
 
-`github/repo-infra`'s `aws_policies.tf` was missing `logs:AssociateKmsKey`/
+[`repo-infra`](https://github.com/KandlerLi/repo-infra)'s `aws_policies.tf` was missing `logs:AssociateKmsKey`/
 `logs:DisassociateKmsKey` for `dyndns`'s CI role from the moment
 `dyndns#31` first set `kms_key_id` on its own CloudWatch log groups --
 every apply after that had actually been failing with
@@ -772,7 +747,7 @@ change is well-formed, never that it was actually applied live --
 those are two different claims, and only the second one means the
 infrastructure is in the state the code describes.
 
-## Two `github/gha-common` CI gotchas, now fixed for every caller
+## Two [`gha-common`](https://github.com/KandlerLi/gha-common) CI gotchas, now fixed for every caller
 
 **`aws-actions/configure-aws-credentials` can hang for ~15 minutes on
 a self-hosted runner plus container job**, with no real error --

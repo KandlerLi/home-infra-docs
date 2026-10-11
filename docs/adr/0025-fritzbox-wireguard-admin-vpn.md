@@ -48,5 +48,5 @@ Public web services stay on Traefik + Authelia, as before.
 - Clients get the FRITZ!Box as DNS by default. Change it to Blocky
   (`192.168.178.100`) in the client config to keep ad-blocking on the
   road.
-- `vpn.jkandler.de` (`aws/dyndns#42`, built for ADR 0024) stays as a
+- `vpn.jkandler.de` (`[`dyndns`](https://github.com/KandlerLi/dyndns)#42`, built for ADR 0024) stays as a
   readable endpoint alias for `jkandler.de`.
