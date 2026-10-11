@@ -212,22 +212,26 @@ Its own password lives only in Julian's password manager, same as
 
 ## Known limits / not yet done
 
-- **IMAP (993) and submission (465) aren't public.** No certificate
-  strategy chosen for them yet -- needed before Thunderbird/phone
-  clients can connect. Port 25 is the only public mail port today
-  (`home-infra#51`, `k3s-apps#68`/`stalwart-smtp` Service).
+- **Mail clients use IMAP (993) and submission (465)** with an app
+  password, public since `home-infra#53`/`k3s-apps#79`. Stalwart serves
+  its own Let's Encrypt certificate for `stalwart.jkandler.de` on both
+  (`k3s-apps#82`). Receiving and sending from a client confirmed
+  2026-10-11. Under SSO nobody can log into `/account`, so creating an
+  app password means switching the directory to internal briefly.
 - **No backup MX.** A homeserver outage delays inbound mail (senders
   retry for days) but doesn't lose it; short-retry automated senders
   could still be missed. Deliberately not built yet -- see chat/decision
   log around 2026-09-19/20 for the SES-inbound-backup design if this
   is revisited.
-- **SPF is soft-fail (`~all`)**, deliberately, while outbound is new.
-  Tighten to `-all` in [`ses-relay`](https://github.com/KandlerLi/ses-relay) once outbound has run cleanly
-  for a week or two.
+- **SPF hard-fails (`-all`)** since 2026-10-11 ([`ses-relay`](https://github.com/KandlerLi/ses-relay)): only SES
+  and the homeserver may send as `jkandler.de`. A new sending path (another
+  relay, a newsletter service) has to be added to the record first, or its
+  mail fails SPF.
 - **SES production access was granted 2026-09-21** (case
   178988954600742: out of the sandbox in eu-central-1, 50,000
-  messages/day, 14/s). Outbound to arbitrary recipients should now
-  work; not yet confirmed by a real send to a non-verified address.
-  Watch SES bounce/complaint rates -- AWS expects a process for them.
+  messages/day, 14/s). Confirmed 2026-10-11: a mail from a mail client
+  through Stalwart reached an external recipient that is not a verified
+  SES identity. Watch SES bounce/complaint rates -- AWS expects a process
+  for them.
 - **No off-server backup of mail data.** It's on the k3s VM's
   `local-path` PVC only.
