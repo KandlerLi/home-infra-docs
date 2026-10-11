@@ -47,6 +47,7 @@ is the up-to-date architecture summary until they are redrawn.
 
 - [Documentation index](docs/README.md)
 - [Current state](docs/current-state.md)
+- [History](docs/history.md) (build and migration record)
 - [System inventory](docs/inventory.md)
 - [Architecture overview](docs/architecture/overview.md)
 - [C4 architecture index](docs/architecture/README.md)

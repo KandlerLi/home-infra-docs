@@ -28,7 +28,7 @@ runbook was current:
   deliberately does *not* carry Authelia forward-auth since it does
   its own app-level OIDC login instead.
 
-See [`current-state.md`](../current-state.md)'s own "k3s
+See [`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history, and its
 Authelia SSO writeup for the auth-chain details.
 
