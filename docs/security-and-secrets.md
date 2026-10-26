@@ -118,9 +118,20 @@ run` workflow steps keep working completely unmodified, at the real
 cost that a privileged container can escape to its own node. This is
 contained specifically to `k3s-node-2`, which runs nothing else, the
 same isolation principle the old VM's own private NAT network
-provided. Each Pod is ephemeral (one job, then a fresh Pod for the
-next), sidestepping the whole class of cross-job workspace-reuse bug a
-persistent runner needs real logic to handle.
+provided. dind listens only on the Unix socket shared with the runner
+container; until 2026-10-25 the image's entrypoint also opened an
+unauthenticated `tcp://0.0.0.0:2375`, which only the runners'
+NetworkPolicy kept other Pods away from.
+
+Runners are ephemeral per job, not per Pod: after its one job the
+runner process exits and Kubernetes restarts the `runner` container in
+the same Pod, so Pod-lifetime volumes survive from job to job. Since
+2026-10-25 the container's wrapper empties `/work` before every start,
+so no job sees the previous job's checkout, tool cache or downloaded
+actions (`_actions`), and no job can tamper with code the next job in
+the same slot runs. Before that, `/work` carried over unnoticed. The
+Docker and Terraform caches are per-slot `hostPath`s and do carry over,
+on purpose.
 
 Runner registration used a shared, manually-rotated fine-grained PAT
 until 2026-09-16, when it switched to GitHub App installation tokens

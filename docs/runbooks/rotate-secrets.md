@@ -96,7 +96,9 @@ each of these has a real, different cost:
   expects the new one, breaking every existing TOTP registration.
   Authelia ships a dedicated command for this exact case:
   `authelia storage encryption change-key`, run against the live
-  database before rotating the Secrets Manager value to match.
+  database, with the Secrets Manager value updated to match before the
+  Pod restarts. The script below writes Secrets Manager first and then
+  runs `change-key`, so an interrupted run can never lose the new key.
 - **`authelia_reset_password_jwt_secret`** -- low-stakes; only
   invalidates any password-reset email link currently in flight (rare
   in practice). Generate the same way as the session secret.
@@ -112,6 +114,15 @@ For all five: `put-secret-value` on `home-infra/authelia`, then
 `terraform apply` in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) to roll Authelia's own
 Deployment. Plan for the login/re-auth disruption -- there's no way to
 rotate these without one.
+
+The session secret, storage key and issuer key go together through
+[`k3s-apps/scripts/rotate-authelia-internal-secrets.sh`](https://github.com/KandlerLi/k3s-apps/blob/main/scripts/rotate-authelia-internal-secrets.sh)
+(first used 2026-10-25): backup job, values generated in memory,
+Secrets Manager, `change-key`, check, `terraform apply`. It needs
+`aws login` as an identity that can also read `k3s-apps`' state, and
+`kubectl port-forward svc/stalwart-internal 18083:8080` for the local
+apply. Details and the recovery state when it stops after `change-key`:
+[`secrets-manager`](https://github.com/KandlerLi/secrets-manager)'s `runbooks/home-infra/authelia.md`.
 
 ## Category C: Authelia OIDC client secret pairs -- coordinated, two secrets + two redeploys
 
