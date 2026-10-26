@@ -1,9 +1,9 @@
 # Runbook: Rebuild the Homeserver
 
 Status: **outline, never exercised end to end.** The order below follows
-the current setup (2026-10-11). Steps marked *open* have no written
-procedure yet (tracked in the private task list); do not improvise them under
-pressure without reading the tool's own restore documentation first.
+the current setup (2026-10-11). The per-backup restore steps are in
+[`verify-backups.md`](verify-backups.md), whose drill proved every backup
+restorable on 2026-10-26; Stalwart mail still has no backup outside the VM.
 
 ## Preconditions
 
@@ -37,8 +37,8 @@ pressure without reading the tool's own restore documentation first.
    look at the expected top-level directories (`docs/storage.md`).
 4. Nextcloud: if `black-hdd` survived, AIO picks up its data directory and
    volumes; otherwise restore from the Borg repository on
-   `/mnt/red-hdd/borg` through the AIO interface. *Open:* written restore
-   steps, and where the Borg repository's passphrase is kept.
+   `/mnt/red-hdd/borg` through the AIO interface, passphrase in `pass`
+   (`nc/backup`): [`verify-backups.md`](verify-backups.md).
 5. Apply `k3s.yml` (`scripts/roll-out-k3s.sh`): both k3s VMs, k3s itself.
    The VM disks live on `black-hdd`; if they survived, the cluster comes
    back with its local-path volumes.
@@ -47,7 +47,7 @@ pressure without reading the tool's own restore documentation first.
 7. Re-run the `Apply` workflow of [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) on `main` (workflow
    dispatch) to recreate every workload.
 8. Restore k3s data that lived only in the VMs, if the VM disks were lost
-   (*open*: written steps for each):
+   (steps for each: [`verify-backups.md`](verify-backups.md)):
    - Authelia (TOTP/WebAuthn registrations): `/mnt/red-hdd/authelia-backup`
    - Paperless: `document_exporter` output in `/mnt/red-hdd/paperless-export`
      (Paperless media itself is on `black-hdd`)
