@@ -851,3 +851,24 @@ drop-in gives `nfs-server.service` `Before=libvirt-guests.service`
 once. Container scopes inside the VMs still hit systemd's 90 s stop
 timeout; kubelet graceful node shutdown is the next lever if the
 shutdown stays slow.
+
+## The Terraform state bucket stays on SSE-S3
+
+Decided 2026-10-26. `terraform-state`'s bucket uses SSE-S3 (`AES256`),
+not the shared KMS key every other bucket uses, with trivy AWS-0132
+suppressed. A switch was looked at and dropped:
+
+- The bucket is its own server access log target (`access-logs/`), and
+  S3 requires SSE-S3 on an access log target; with SSE-KMS default
+  encryption, delivered logs end up under a key the log delivery can't
+  use. Switching would first need a separate log bucket.
+- SSE-KMS would add a second gate, but every identity that reads or
+  writes state (each repo's CI role, `julian`, the two local bootstrap
+  identities) would need `kms:GenerateDataKey`/`kms:Decrypt` on the
+  shared key anyway, so the gate admits the same set it would be meant
+  to narrow, while widening who can use the shared key. A mistake there
+  breaks every Terraform root at once.
+
+State is already encrypted at rest. Revisit if state access ever needs
+to be narrower than "can read the object", e.g. a role that may list
+but not read state.
