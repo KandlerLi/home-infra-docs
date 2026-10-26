@@ -32,7 +32,9 @@ first incident's self-recovery.
 the other two contributors most commonly cited alongside ASPM for this
 exact chipset's bug -- TSO/GSO/GRO offloading and Energy Efficient
 Ethernet -- both disabled via `ethtool` (applied immediately, persisted
-via an `ifupdown` post-up hook). Plus a safety net regardless of
+via an `ifupdown` pre-up hook; until 2026-10-26 it was post-up,
+whose EEE change reset the link ~3 s after every boot's `ifup`). Plus
+a safety net regardless of
 whether that actually eliminates the trigger:
 `e1000e-watchdog-recovery.service`, a small systemd unit watching the
 kernel log for a `NETDEV WATCHDOG` event and forcing a full PCI-level
