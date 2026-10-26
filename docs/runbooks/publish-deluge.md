@@ -27,11 +27,12 @@ Two pieces of this runbook's original content are still genuinely
 relevant, unrelated to which deployment mechanism serves the route:
 
 - **Inbound peer connectivity** (the old section 5): BitTorrent peer
-  connections still can't be proxied through Traefik -- they're a raw
-  TCP/UDP protocol. Whatever port Deluge's own k3s Service exposes for
-  peer traffic needs the same FRITZ!Box port-forward this runbook
-  originally described, still manual/out-of-band, not Ansible- or
-  Terraform-managed.
+  connections can't be proxied through Traefik -- they're a raw TCP/UDP
+  protocol. There is deliberately **no** FRITZ!Box forward for Deluge's
+  peer port (decided 2026-10-12): Deluge works with outbound peer
+  connections only. Should inbound peers ever be wanted, the forward goes
+  into `KandlerLi/fritzbox` as a `fritzbox_port_forward`, not into the
+  FRITZ!Box UI.
 - **This data still isn't covered by AIO's built-in Nextcloud
   backup** -- see `docs/storage.md` and [`home-infra`](https://github.com/KandlerLi/home-infra)'s own
   `aux_backup` role (added 2026-09-16), which now covers

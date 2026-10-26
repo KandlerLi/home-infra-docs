@@ -67,11 +67,15 @@ both): `/mnt/black-hdd/downloads`, `/mnt/black-hdd/deluge-config`,
 
 ## Network and public entry
 
-The FRITZ!Box forwards to the homeserver's LAN IP; `k3s_ingress_forward`
-DNATs these ports on to the k3s VM (`192.168.101.10`): TCP 80/443 (Traefik),
-TCP+UDP 53 (Blocky), TCP 25/465/993 (Stalwart). Deluge's BitTorrent port is
-a k3s `LoadBalancer` Service on the VM. The k3s network
-`192.168.101.0/24` is reachable only from the homeserver.
+The FRITZ!Box forwards TCP 80, 443, 25, 465 and 993 to the homeserver's LAN
+IP (Terraform in `KandlerLi/fritzbox`, local apply only, not on GitHub
+yet). `k3s_ingress_forward` DNATs those on to the k3s VM
+(`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart. It also
+DNATs TCP+UDP 53 to Blocky, which only LAN clients reach: the FRITZ!Box
+doesn't forward 53, so there is no public DNS resolver. Deluge's
+BitTorrent port is a k3s `LoadBalancer` Service on the VM with no FRITZ!Box
+forward (outbound peers only, enough for Deluge; decided 2026-10-12). The
+k3s network `192.168.101.0/24` is reachable only from the homeserver.
 
 Admin VPN: the FRITZ!Box's built-in WireGuard (ADR 0025,
 `runbooks/fritzbox-wireguard-vpn.md`).
