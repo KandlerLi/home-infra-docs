@@ -8,10 +8,11 @@ need Julian's review; prefer read-only checks first.
 
 | Runbook | Use when |
 | --- | --- |
-| [Rebuild the homeserver](rebuild-homeserver.md) | Disaster recovery (outline, parts still open) |
+| [Rebuild the homeserver](rebuild-homeserver.md) | Disaster recovery (outline; restore steps in Verify and restore backups) |
 | [Operate Nextcloud AIO](nextcloud-aio.md) | Borg backup setup, AIO quirks, planned hardware shutdown |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
 | [Rotate secrets](rotate-secrets.md) | Rotating or adding a Secrets Manager value |
+| [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless, Deluge, Open WebUI |
 | [Manage repository infrastructure](manage-repo-infra.md) | Adding a repo to `repo-infra`, importing existing settings |
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
 | [FRITZ!Box WireGuard VPN](fritzbox-wireguard-vpn.md) | Adding, checking or removing a VPN device (ADR 0025) |

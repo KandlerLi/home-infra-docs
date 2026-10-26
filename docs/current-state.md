@@ -175,8 +175,10 @@ Workloads are Terraform-managed, never `kubectl apply`:
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |
 
-Backup age is alerted on via `backup-freshness` + Prometheus. Everything is
-on the same homeserver; there is no off-site copy.
+Backup age is alerted on via `backup-freshness` + Prometheus. Restorability
+is checked by `home-infra`'s `scripts/verify-backups.sh` (all checks passed
+2026-10-26; `runbooks/verify-backups.md`). Everything is on the same
+homeserver; there is no off-site copy.
 
 ## Monitoring and alerting
 
