@@ -80,6 +80,15 @@ as a command-line argument. Commands and rotation steps:
 [`runbooks/rotate-secrets.md`](runbooks/rotate-secrets.md) and
 [`secrets-manager`](https://github.com/KandlerLi/secrets-manager)'s `rotation-schedule.md`.
 
+## Plain reboot
+
+`sudo reboot` on the homeserver takes the k3s VMs down with it. Expect
+SSH back after several minutes (most of it is the VMs' shutdown), then
+~15 minutes until the public services answer and ~13 until all CI
+runners are online: both VMs cold-start from the black HDD (measured
+2026-10-25). Nextcloud AIO comes back by itself. The "GitHub Runners"
+Grafana dashboard shows the runners recovering.
+
 ## Planned shutdown (hardware maintenance)
 
 Copy [`home-infra/scripts/shutdown-homeserver-for-maintenance.sh`](https://github.com/KandlerLi/home-infra/blob/main/scripts/shutdown-homeserver-for-maintenance.sh)

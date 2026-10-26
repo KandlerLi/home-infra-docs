@@ -39,6 +39,9 @@ k3s.
   (`127.0.0.1:9090`, plus `192.168.101.1:9090` for k3s Grafana),
   node_exporter, cAdvisor (`8081`), blackbox_exporter. Grafana and
   Alertmanager run in k3s (below).
+- **Docker DNS**: `daemon.json` pins `dns: [192.168.178.1]` (the
+  FRITZ!Box), so containers restored at boot never start without an
+  upstream resolver (checked 2026-10-25).
 - **systemd services**: `blocky-ipv6-relay` (`[::]:53` → Blocky in k3s),
   `home-tools` (host facts for `home_agent`, `192.168.101.1:8095`),
   `ntfy-relay` (Alertmanager → ntfy), NFS server, libvirt.
@@ -47,6 +50,13 @@ k3s.
 - **Stopped leftovers, not deleted**: `shared-ingress`, `blocky`,
   `blocky-postgres` (their roles are gone; the containers stay stopped as a
   manual rollback path).
+
+### Host shutdown order (checked 2026-10-25)
+
+`libvirt-guests` shuts both k3s VMs down in parallel
+(`PARALLEL_SHUTDOWN=2`), and `nfs-server` stops only after it
+(`Before=libvirt-guests.service` drop-in), so `k3s-node-1` unmounts its
+NFS volumes cleanly instead of hanging until SIGKILL.
 
 ### NFS exports to the k3s VM
 
@@ -124,7 +134,10 @@ Workloads are Terraform-managed, never `kubectl apply`:
   GitHub App registration, NetworkPolicy: no inbound, outbound only DNS
   and the public internet, plus the Kubernetes and Stalwart APIs for the
   `k3s-apps` runner), cluster-scoped PersistentVolumes and privilege-
-  defining RBAC.
+  defining RBAC. Per runner slot: the runner install is a `hostPath`
+  seeded once per image (not per Pod), dind listens only on its Unix
+  socket and retries dockerd in place, the runner registers with GitHub
+  only once dind answers, and `/work` is emptied before every job.
 
 ## Applications
 
@@ -168,7 +181,10 @@ and blackbox probes of the public hostnames (HTTPS probes also cover
 certificate expiry). Alerts go to Alertmanager in k3s
 (`192.168.101.10:9093`), which notifies ntfy (via `ntfy-relay`) and email
 (SES). Grafana (`grafana.jkandler.de`) reads Prometheus and Blocky's
-query-log Postgres. Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
+query-log Postgres; its "GitHub Runners" dashboard shows runner Pod
+readiness, waiting containers, seeding, restarts and the IO load on
+`k3s-node-2` and the HDDs (no GitHub-side online/busy state, no per-Pod
+CPU/memory: neither is scraped). Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
 health check + CloudWatch + SNS) alerts when the homeserver is unreachable
 from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts on cost.
 
@@ -193,4 +209,7 @@ from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts
 
 Open work is tracked privately. Notable standing gaps: no off-site backup; Stalwart
 mail not backed up off the VM; the hardware watchdog did
-not fire during the 2026-09-24 silent freeze.
+not fire during the 2026-09-24 silent freeze; after a homeserver reboot
+the public services are down for ~15 minutes and CI for ~13, because
+both k3s VMs cold-start from the black HDD at once (measured
+2026-10-25, HDD 94–99 % busy for 15 minutes).

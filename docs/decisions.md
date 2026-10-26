@@ -798,3 +798,56 @@ runs once and never notices drift, the same failure as the deleted
 `protect-repository.sh`. Move to a real provider resource once
 upstream issue #3198 lands.
 
+
+## Homeserver Docker gets a fixed DNS server instead of waiting for resolv.conf
+
+Decided 2026-10-24. After reboots, the Nextcloud AIO containers that
+Docker restores at boot came up with no DNS at all (`DNS resolver has
+no external nameservers`): a container fixes its upstream servers when
+it starts, and Docker restored them in the seconds when dhcpcd had no
+nameserver in `/etc/resolv.conf` (a link flap right after `ifup` wipes
+it again). That broke Nextcloud's OIDC login until a manual restart. A
+`docker.service` drop-in waiting for a `nameserver` line didn't hold:
+it passed on the IPv6 servers from the first Router Advertisement, which
+the flap then removed. `daemon.json` now pins `dns: [192.168.178.1]`
+(KandlerLi/home-infra#87), which takes the timing out of the picture;
+the cost is a hard-coded router address. Proven on the 2026-10-24 22:57 reboot.
+
+## CI runners: seed once per image, retry dind in place, fresh `/work` per job
+
+Decided 2026-10-25, all in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s `modules/github_runner`. After
+a homeserver reboot CI was down for 40+ minutes and the I/O also took
+the public services down for ~15. Three runner-specific causes, each
+fixed where it sat rather than by staggering or fewer runners:
+
+- Every new Pod copied the runner install (678 MB, ~11,400 files) into
+  an `emptyDir`, all 16 at once on the HDD-backed VM disk. Now a
+  per-slot `hostPath`, re-seeded only when the image changes
+  (KandlerLi/k3s-bootstrap#21).
+- dind crash-looped: dockerd slept 15 s to warn about its
+  unauthenticated TCP listener, then gave up on containerd after 15 s
+  under I/O load, and Kubernetes restarted it with growing backoff.
+  dind now listens only on its Unix socket and retries dockerd in a
+  shell loop; the runner waits for dind, without a limit, before
+  registering (KandlerLi/k3s-bootstrap#22,
+  KandlerLi/k3s-bootstrap#24).
+- "One job per Pod" was never true: the runner container restarts in
+  the same Pod, so `/work` (checkouts, `_actions`) carried over between
+  jobs. The wrapper now empties it before every start
+  (KandlerLi/k3s-bootstrap#23).
+
+Result on the 2026-10-25 21:43 reboot: runners online after ~13 minutes
+instead of ~40; what remains is the plain HDD cold start of both VMs.
+
+## The NFS server outlives the k3s VMs at shutdown
+
+Decided 2026-10-25. `nfs-server` and `libvirt-guests` had no ordering,
+so a reboot stopped the NFS server first; `k3s-node-1`, whose Pods
+mount its exports, then hung unmounting until `libvirt-guests` SIGKILLed
+it after 300 s. Every reboot hard-killed the control-plane VM. A
+drop-in gives `nfs-server.service` `Before=libvirt-guests.service`
+(KandlerLi/home-infra#90), so at shutdown the VMs go first;
+`PARALLEL_SHUTDOWN=2` (KandlerLi/home-infra#91) stops both VMs at
+once. Container scopes inside the VMs still hit systemd's 90 s stop
+timeout; kubelet graceful node shutdown is the next lever if the
+shutdown stays slow.
