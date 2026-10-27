@@ -135,12 +135,26 @@ Workloads are Terraform-managed, never `kubectl apply`:
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (one Deployment per repo, on `k3s-node-2`,
   GitHub App registration, NetworkPolicy: no inbound, outbound only DNS
-  and the public internet, plus the Kubernetes and Stalwart APIs for the
-  `k3s-apps` runner), cluster-scoped PersistentVolumes and privilege-
+  and the public internet, plus the Kubernetes and Stalwart APIs and
+  Blocky/Grafana for the `k3s-apps` runner), namespaces with their Pod
+  Security labels, cluster-scoped PersistentVolumes and privilege-
   defining RBAC. Per runner slot: the runner install is a `hostPath`
   seeded once per image (not per Pod), dind listens only on its Unix
   socket and retries dockerd in place, the runner registers with GitHub
   only once dind answers, and `/work` is emptied before every job.
+
+Namespaces (tracker #32), each with its Pod Security Admission level:
+
+| Namespace | PSA `enforce` | Holds |
+| --- | --- | --- |
+| `ci` | privileged | the GitHub Actions runners (dind) |
+| `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
+| `monitoring` | baseline (`warn: restricted`) | Grafana, Alertmanager, kube-state-metrics |
+| `auth` | baseline (`warn: restricted`) | Authelia |
+| `default` | baseline | everything else |
+
+`k3s-apps-ci` has a Role per namespace with only the kinds that
+namespace's modules create; it reaches nothing in `ci`.
 
 ## Applications
 

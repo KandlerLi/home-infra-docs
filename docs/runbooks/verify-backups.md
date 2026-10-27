@@ -66,20 +66,24 @@ lost). AIO's own restore flow does the work:
 
 ## Restore: Authelia (TOTP, WebAuthn, consent)
 
-The database lives in the PVC `authelia-data` (local-path on
-`k3s-node-1`); the Pod mounts it at `/data/db.sqlite3`.
+The database lives in the PVC `authelia-data` in namespace `auth`
+(local-path on `k3s-node-1`); the Pod mounts it at `/data/db.sqlite3`.
+Steps 2 to 4 ran for real on 2026-10-27, when Authelia moved from
+`default` to `auth` (tracker #32), with a copy of the live file instead
+of a backup: TOTP login worked afterwards.
 
 1. Pick the backup in `/mnt/red-hdd/authelia-backup`
    (`authelia-db-<YYYYmmdd-HHMMSS>.sqlite3.gz`). If it predates the last
    storage key rotation, set the Secrets Manager value back to the key
    from that time first, or re-encrypt the restored file with `authelia
    storage encryption change-key` afterwards.
-2. Stop Authelia: `kubectl scale deployment authelia --replicas=0`
+2. Stop Authelia: `kubectl scale -n auth deployment authelia --replicas=0`
    (Terraform sets it back to 1 on the next `k3s-apps` apply).
 3. On `k3s-node-1`, `gunzip -c` the backup over
-   `/var/lib/rancher/k3s/storage/<authelia-data volume>_default_authelia-data/db.sqlite3`
-   (volume name: `kubectl get pvc authelia-data`), keeping the file's
-   owner and mode.
+   `/var/lib/rancher/k3s/storage/<authelia-data volume>_auth_authelia-data/db.sqlite3`
+   (volume name: `kubectl get pvc -n auth authelia-data`), keeping the
+   file's owner and mode (`nobody:nogroup`, `0644`). Remove any
+   `db.sqlite3-wal`/`-shm` next to it first.
 4. Start Authelia again (`kubectl scale ... --replicas=1` or re-run the
    `k3s-apps` apply) and check `authelia storage encryption check
    --config /config/configuration.yml` in the Pod reports `SUCCESS`, then
