@@ -151,10 +151,15 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
 | `monitoring` | baseline (`warn: restricted`) | Grafana, Alertmanager, kube-state-metrics |
 | `auth` | baseline (`warn: restricted`) | Authelia |
-| `default` | baseline | everything else |
+| `apps` | baseline (`warn: restricted`) | every other `k3s-apps` workload, Traefik included |
+| `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
 `k3s-apps-ci` has a Role per namespace with only the kinds that
-namespace's modules create; it reaches nothing in `ci`.
+namespace's modules create; it reaches nothing in `ci`. Volumes on
+`k3s-node-1` are static `Retain` PVs under `/var/lib/k3s-apps-data`
+(Blocky and Paperless Postgres, Paperless data, Bulwark, Traefik's ACME
+store, Stalwart's mail); only Authelia still uses dynamic local-path
+claims.
 
 ## Applications
 

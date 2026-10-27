@@ -58,11 +58,11 @@ login-form runbook).
 
 ```bash
 # 1. back up first
-sudo k3s kubectl exec deploy/open-webui -- cp \
+sudo k3s kubectl -n apps exec deploy/open-webui -- cp \
   /app/backend/data/webui.db /app/backend/data/webui.db.bak-<date>
 
 # 2. the actual write -- touches only these two rows
-sudo k3s kubectl exec deploy/open-webui -- python3 -c '
+sudo k3s kubectl -n apps exec deploy/open-webui -- python3 -c '
 import sqlite3, time
 con = sqlite3.connect("/app/backend/data/webui.db")
 now = int(time.time())
@@ -76,8 +76,8 @@ print("rows changed:", con.total_changes)
 # expect: rows changed: 2
 
 # 3. restart so the running process re-reads config on boot
-sudo k3s kubectl rollout restart deployment/open-webui
-sudo k3s kubectl rollout status deployment/open-webui
+sudo k3s kubectl -n apps rollout restart deployment/open-webui
+sudo k3s kubectl -n apps rollout status deployment/open-webui
 ```
 
 Verified for real, not just a clean apply: from inside Open WebUI's own

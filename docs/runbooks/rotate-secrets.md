@@ -69,7 +69,7 @@ itself also needs the change -- Postgres won't accept the new value
 just because Secrets Manager has it:
 
 ```bash
-kubectl exec -it deploy/blocky -c postgres -- psql -U blocky -c \
+kubectl -n apps exec -it deploy/blocky -c postgres -- psql -U blocky -c \
   "ALTER USER blocky WITH PASSWORD '<new-password>';"
 ```
 
@@ -120,7 +120,7 @@ The session secret, storage key and issuer key go together through
 (first used 2026-10-25): backup job, values generated in memory,
 Secrets Manager, `change-key`, check, `terraform apply`. It needs
 `aws login` as an identity that can also read `k3s-apps`' state, and
-`kubectl port-forward svc/stalwart-internal 18083:8080` for the local
+`kubectl -n apps port-forward svc/stalwart-internal 18083:8080` for the local
 apply. Details and the recovery state when it stops after `change-key`:
 [`secrets-manager`](https://github.com/KandlerLi/secrets-manager)'s `runbooks/home-infra/authelia.md`.
 
