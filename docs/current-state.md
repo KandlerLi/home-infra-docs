@@ -68,8 +68,7 @@ both): `/mnt/black-hdd/downloads`, `/mnt/black-hdd/deluge-config`,
 ## Network and public entry
 
 The FRITZ!Box forwards TCP 80, 443, 25, 465 and 993 to the homeserver's LAN
-IP (Terraform in `KandlerLi/fritzbox`, local apply only, not on GitHub
-yet). `k3s_ingress_forward` DNATs those on to the k3s VM
+IP (Terraform in `KandlerLi/fritzbox`, private, local apply only). `k3s_ingress_forward` DNATs those on to the k3s VM
 (`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart. It also
 DNATs TCP+UDP 53 to Blocky, which only LAN clients reach: the FRITZ!Box
 doesn't forward 53, so there is no public DNS resolver. Deluge's

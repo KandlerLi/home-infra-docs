@@ -22,7 +22,7 @@ k3s-node-2 192.168.101.11    reachable only from the homeserver)
 - The FRITZ!Box's IPv4 port forwards (TCP 25, 80, 443, 465, 993, all to
   the homeserver) are Terraform-managed in `KandlerLi/fritzbox` through
   `KandlerLi/terraform-provider-fritzbox`, applied locally only (no runner
-  can reach the FRITZ!Box); both repos are not on GitHub yet. Port 53 is
+  can reach the FRITZ!Box); `fritzbox` is private. Port 53 is
   not forwarded: there is no public DNS resolver, and
   `k3s_ingress_forward`'s port-53 DNAT only serves LAN clients.
 - `k3s_ingress_forward` is a packet-level relay below TLS, so ACME and
