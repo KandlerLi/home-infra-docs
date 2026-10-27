@@ -253,8 +253,8 @@ settings management (see ADR 0010 in `home-infra-docs`).
 Terraform state uses an encrypted S3 backend with native S3 lock files. IAM is
 scoped to the repository's exact state and lock object keys.
 
-The shared bucket is currently defined by the local
-[`terraform-state`](https://github.com/KandlerLi/terraform-state) Git repository. It has no remote yet.
+The shared bucket is currently defined by the
+[`terraform-state`](https://github.com/KandlerLi/terraform-state) repository, applied only locally.
 Its ignored local state backup and backend metadata must be treated as
 sensitive; do not inspect, copy, publish, delete, or migrate them as part of
 routine documentation work. Before publishing it or using this pattern for
