@@ -84,7 +84,7 @@ of a backup: TOTP login worked afterwards.
    (volume name: `kubectl get pvc -n auth authelia-data`), keeping the
    file's owner and mode (`nobody:nogroup`, `0644`). Remove any
    `db.sqlite3-wal`/`-shm` next to it first.
-4. Start Authelia again (`kubectl scale ... --replicas=1` or re-run the
+4. Start Authelia again (`kubectl scale -n auth ... --replicas=1` or re-run the
    `k3s-apps` apply) and check `authelia storage encryption check
    --config /config/configuration.yml` in the Pod reports `SUCCESS`, then
    log in with TOTP.

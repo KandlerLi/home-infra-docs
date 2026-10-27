@@ -63,7 +63,7 @@ until the Pod is restarted:
 
 ```bash
 export KUBECONFIG=~/.kube/k3s-node-1.yaml
-kubectl delete pod -l app=stalwart
+kubectl -n apps delete pod -l app=stalwart
 ```
 
 This is a plain restart, not a config change -- mail data and
@@ -147,7 +147,7 @@ administer Stalwart while SSO stays on:
 export KUBECONFIG=~/.kube/k3s-node-1.yaml
 # open the SSH tunnel to the k3s apiserver if it isn't already
 ssh -f -N -L 6443:192.168.101.10:6443 julian@192.168.178.100
-kubectl port-forward svc/stalwart-internal 18083:8080 &
+kubectl -n apps port-forward svc/stalwart-internal 18083:8080 &
 
 apikey=$(pass show mail/admin/api)   # or wherever it's kept
 curl -s -X POST http://127.0.0.1:18083/jmap/ \
@@ -182,7 +182,7 @@ SSO active you have no session to flip it from; use the API key):
    `directoryId` (it was `jftufl1kaaqc` on 2026-09-21).
 2. Switch to internal: `x:Authentication/set` with
    `{"update":{"singleton":{"directoryId":null}}}`, then
-   `kubectl delete pod -l app=stalwart` (settings only load at start).
+   `kubectl -n apps delete pod -l app=stalwart` (settings only load at start).
 3. Log into `/admin` with `admin@`'s own Stalwart password, do the
    change.
 4. Switch back: the same `set` with

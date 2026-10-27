@@ -82,7 +82,7 @@ Then, on the node:
 
 ```bash
 # 1. confirm the actual persisted value first -- don't guess the key name
-sudo k3s kubectl exec deploy/open-webui -- python3 -c '
+sudo k3s kubectl -n apps exec deploy/open-webui -- python3 -c '
 import sqlite3
 con = sqlite3.connect("/app/backend/data/webui.db")
 for row in con.execute("SELECT * FROM config WHERE key LIKE \"ui.enable%\""):
@@ -92,11 +92,11 @@ for row in con.execute("SELECT * FROM config WHERE key LIKE \"ui.enable%\""):
 # Python instead, via python3 -c.)
 
 # 2. back up the live db before writing anything
-sudo k3s kubectl exec deploy/open-webui -- cp \
+sudo k3s kubectl -n apps exec deploy/open-webui -- cp \
   /app/backend/data/webui.db /app/backend/data/webui.db.bak-<date>
 
 # 3. the actual write -- touches only this one row
-sudo k3s kubectl exec deploy/open-webui -- python3 -c '
+sudo k3s kubectl -n apps exec deploy/open-webui -- python3 -c '
 import sqlite3, time
 con = sqlite3.connect("/app/backend/data/webui.db")
 con.execute("UPDATE config SET value = ?, updated_at = ? WHERE key = ?",
@@ -109,7 +109,7 @@ print("rows changed:", con.total_changes)
 # 4. restart so the running process re-reads config on boot
 #    (PersistentConfig values are cached in memory -- a raw SQL edit is
 #    invisible to the already-running process until it restarts)
-sudo k3s kubectl rollout restart deployment/open-webui
+sudo k3s kubectl -n apps rollout restart deployment/open-webui
 sudo k3s kubectl rollout status deployment/open-webui
 ```
 
