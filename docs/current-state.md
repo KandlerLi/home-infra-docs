@@ -17,7 +17,7 @@ on a single fact.
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 51 GB SSD |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, Deluge downloads, k3s VM disks, Paperless media) |
-| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/` |
+| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `storage`, `authelia_backup`,

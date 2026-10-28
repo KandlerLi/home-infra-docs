@@ -5,7 +5,8 @@ Every backup lives on `/mnt/red-hdd` on the homeserver (`current-state.md`,
 backups are restorable without touching production, and the **restore**
 procedures per backup for when they are needed.
 
-Status: the drill passed on 2026-10-26 for all six checks. The restore
+Status: the drill passed on 2026-10-26 for all six checks then; the
+`stalwart` check was added on 2026-10-28. The restore
 procedures below have **not** been exercised end to end; each one restores
 into production, so read it fully before starting.
 
@@ -30,6 +31,7 @@ PASS/FAIL line per check:
 | `authelia` | the newest backup decompresses to a sound SQLite database |
 | `authelia-key` | the **current** storage encryption key decrypts it |
 | `paperless` | every exported original exists and matches the checksum in `manifest.json` |
+| `stalwart` | the newest tarball extracts and holds RocksDB's `CURRENT` and the generated config |
 | `borg` | the passphrase opens AIO's Borg repository and a file comes back intact from the newest archive |
 
 Secrets (Borg passphrase, Authelia key, sudo password) go to the homeserver
@@ -88,6 +90,30 @@ of a backup: TOTP login worked afterwards.
    `k3s-apps` apply) and check `authelia storage encryption check
    --config /config/configuration.yml` in the Pod reports `SUCCESS`, then
    log in with TOTP.
+
+## Restore: Stalwart (mail)
+
+`stalwart-backup` (`k3s-apps`, `modules/stalwart/backup.tf`) runs at
+03:15: it scales Stalwart to 0, tars its whole volume (`etc/` with the
+generated config, `data/` with the RocksDB store) to
+`/mnt/red-hdd/stalwart-backup/stalwart-<YYYYmmdd-HHMMSS>.tar.gz` and
+scales it back to 1. 14 days are kept. If it ever fails before scaling
+up, `StalwartDown` fires after 15 minutes:
+`kubectl -n apps scale deploy/stalwart --replicas=1`.
+
+Restore into the live volume (`/var/lib/k3s-apps-data/stalwart` on
+`k3s-node-1`, a static PV from `k3s-bootstrap`):
+
+1. `kubectl -n apps scale deploy/stalwart --replicas=0` and wait until
+   its Pod is gone.
+2. Copy the tarball to `k3s-node-1` (from the homeserver: `sudo cat`
+   it into `ssh ... 'sudo tee /root/stalwart.tar.gz'`).
+3. On `k3s-node-1`: move the current `etc` and `data` aside, then
+   `tar -xzf /root/stalwart.tar.gz -C /tmp/s` and copy
+   `/tmp/s/stalwart/.` into `/var/lib/k3s-apps-data/stalwart/` with
+   `cp -a`. The files belong to uid/gid 2000.
+4. `kubectl -n apps scale deploy/stalwart --replicas=1`, then log in to
+   Bulwark and check the newest mail is there.
 
 ## Restore: Paperless
 
