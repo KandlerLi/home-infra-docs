@@ -52,7 +52,22 @@ write into an empty `/mnt/red-hdd` on the system disk.
    Nextcloud AIO cleanly and powers off.
 2. Unplug the red HDD (`WDC WD20EFRX`), connect the new SSD to its port
    and cable. Boot the live stick.
-3. Identify the disks and write the names down:
+3. Switch to SSH, so the rest runs from the laptop. At the console
+   only: boot menu (F12/F11/F8, depends on the board) → the stick →
+   "Try Demo Mode", open a terminal:
+   ```bash
+   sudo apt update && sudo apt install -y openssh-server tmux smartmontools
+   passwd                       # temporary password for the live user pop-os
+   ip -4 addr show | grep inet
+   ```
+   Then from the laptop, with a separate known_hosts so the live
+   system's host key stays out of the normal one:
+   ```bash
+   ssh-copy-id -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/live-known-hosts pop-os@<IP>
+   ssh -o UserKnownHostsFile=/tmp/live-known-hosts pop-os@<IP>
+   tmux                         # dd keeps running if SSH drops
+   ```
+4. Identify the disks and write the names down:
    ```bash
    lsblk -o NAME,SIZE,MODEL,TRAN
    ```
@@ -61,18 +76,18 @@ write into an empty `/mnt/red-hdd` on the system disk.
    OLD and NEW destroys the system**: check twice. `MOUNTPOINTS` must be
    empty for both; a desktop live session may have mounted a partition
    on a click, then `sudo umount` it first.
-4. SMART of the new SSD:
+5. SMART of the new SSD:
    ```bash
-   sudo smartctl -a /dev/NEW     # if missing: sudo apt update && sudo apt install smartmontools
+   sudo smartctl -a /dev/NEW
    ```
    Expect `PASSED`, 0 reallocated/pending sectors, near-zero power-on
    hours. If not: power off, reconnect the red HDD, boot normally; the
    system is unchanged.
-5. Clone (~56 GB, a few minutes over SATA):
+6. Clone (~56 GB, a few minutes over SATA):
    ```bash
    sudo dd if=/dev/OLD of=/dev/NEW bs=16M conv=fsync status=progress
    ```
-6. Grow root. The swap partition sits behind root, so it is recreated at
+7. Grow root. The swap partition sits behind root, so it is recreated at
    the end of the disk **with its old UUID** (fstab stays as is):
    ```bash
    sudo parted /dev/NEW print            # answer "Fix" to move the backup GPT to the end
@@ -84,7 +99,7 @@ write into an empty `/mnt/red-hdd` on the system disk.
    sudo mkswap -U 43175eab-35f9-44c2-8af7-a7a97675c9e1 /dev/NEW3
    lsblk -o NAME,SIZE,FSTYPE,UUID /dev/NEW   # UUIDs as in the table above, root ~235 G
    ```
-7. Power off and recable: the OCZ out, the new SSD on the OCZ's port and
+8. Power off and recable: the OCZ out, the new SSD on the OCZ's port and
    cable, the red HDD back on its own. **Never boot the installed system
    with both SSDs attached**: same UUIDs and partition GUIDs, it could
    mount parts of either. Label the OCZ and keep it unchanged.
