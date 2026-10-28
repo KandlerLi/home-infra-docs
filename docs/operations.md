@@ -41,7 +41,7 @@ and [`runbooks/homeserver-silent-freeze.md`](runbooks/homeserver-silent-freeze.m
 
 ## k3s cluster
 
-The Kubernetes Dashboard is at `k8s.jkandler.de` (forward-auth). For
+Headlamp, the read-only cluster UI, is at `k8s.jkandler.de` (forward-auth). For
 `kubectl`, SSH to `k3s-node-1` through the homeserver (the VM network is
 not reachable from the LAN). Workloads change only through
 [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) or [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap), never `kubectl apply`.

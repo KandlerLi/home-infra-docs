@@ -95,7 +95,7 @@ All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), 
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
 | `torrent.jkandler.de` | Deluge | forward-auth, then Deluge's own password |
-| `k8s.jkandler.de` | Kubernetes Dashboard | forward-auth |
+| `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
 | `mail.jkandler.de` | Bulwark webmail | forward-auth; Authelia SSO into the mailbox |
 | `stalwart.jkandler.de` | Stalwart | protocol paths (JMAP, CalDAV/CardDAV): none, Stalwart's own auth; `/admin`, `/account` and the management API: forward-auth |
 | `docs.jkandler.de` | Paperless-ngx | none; its own Authelia OIDC login, API by token |
@@ -129,7 +129,7 @@ Workloads are Terraform-managed, never `kubectl apply`:
   provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), `open_webui`,
   `grafana`, `alertmanager`, `node_exporter`, `deluge`, `landing_page`,
-  `kubernetes_dashboard`, `sankey_export` (CronJob), `stalwart`,
+  `headlamp`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
   `paperless`.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
