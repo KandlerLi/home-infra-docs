@@ -8,6 +8,7 @@ need Julian's review; prefer read-only checks first.
 
 | Runbook | Use when |
 | --- | --- |
+| [Move to the 256 GB SSD](migrate-to-ssd.md) | Clone the system disk, grow root, move the k3s VM disks off the HDD (#40) |
 | [Rebuild the homeserver](rebuild-homeserver.md) | Disaster recovery (outline; restore steps in Verify and restore backups) |
 | [Operate Nextcloud AIO](nextcloud-aio.md) | Borg backup setup, AIO quirks, planned hardware shutdown |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
