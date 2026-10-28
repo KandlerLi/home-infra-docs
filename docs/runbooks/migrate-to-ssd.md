@@ -26,33 +26,48 @@ and `WDC WD20EFRX` (red, 1.8 T).
 
 ## Phase 0: before the downtime
 
-1. **SMART of the new SSD**, attached over the USB-SATA adapter (to the
-   laptop is fine): `sudo smartctl -a -d sat /dev/sdX`. Expect `PASSED`,
-   0 reallocated/pending sectors, near-zero power-on hours.
-2. **Live USB stick**: Debian 13 live (standard, no desktop needed). It
-   has `dd`, `parted`, `e2fsprogs` and `util-linux` (`mkswap`).
-3. `home-infra#104` merged (VM disk move support in `k3s_node`) and
+1. **Live USB stick**: Debian 13 live (standard, no desktop needed). It
+   has `dd`, `parted`, `e2fsprogs` and `util-linux` (`mkswap`);
+   `smartmontools` may need an `apt install` (with network).
+2. `home-infra#104` merged (VM disk move support in `k3s_node`) and
    `scripts/roll-out-k3s.sh dry-run` showing no changes.
-4. **Right before the downtime:** `scripts/verify-backups.sh` with all
+3. **Right before the downtime:** `scripts/verify-backups.sh` with all
    checks `PASS` (see `verify-backups.md`).
 
-## Phase 1: clone (downtime, at the homeserver)
+## Phase 1: SMART and clone (downtime, at the homeserver, one live boot)
+
+There's no free SATA port or cable, so the new SSD temporarily takes the
+**red (backup) HDD's** port. Only the live stick boots in that state:
+the installed system must never boot without the red HDD. Its fstab
+entry has no `nofail` (the boot ends in emergency mode), and even with
+it, `nfs-server` would fail on the missing export directories and take
+k3s' NFS volumes on the black HDD down with it, and backup jobs could
+write into an empty `/mnt/red-hdd` on the system disk.
 
 1. From the laptop: `scripts/shutdown-homeserver-for-maintenance.sh`
    (README, "Hardware maintenance shutdown"). It stops the VMs and
    Nextcloud AIO cleanly and powers off.
-2. Attach the new SSD via the USB-SATA adapter, boot the live stick.
-3. Identify both disks and write the names down:
+2. Unplug the red HDD (`WDC WD20EFRX`), connect the new SSD to its port
+   and cable. Boot the live stick.
+3. Identify the disks and write the names down:
    ```bash
    lsblk -o NAME,SIZE,MODEL,TRAN
    ```
-   `OLD` = the `OCZ-VERTEX3`, `NEW` = the 256 GB disk on `usb`. **A swap
-   of the two destroys the system**: check twice.
-4. Clone (~56 GB, a few minutes over USB 3):
+   `OLD` = the `OCZ-VERTEX3` (55.9 G), `NEW` = the new 256 GB SSD, and
+   the black HDD (`WDC WD1003FZEX`, 931 G) stays untouched. **Mixing up
+   OLD and NEW destroys the system**: check twice.
+4. SMART of the new SSD:
+   ```bash
+   sudo smartctl -a /dev/NEW     # if missing: sudo apt update && sudo apt install smartmontools
+   ```
+   Expect `PASSED`, 0 reallocated/pending sectors, near-zero power-on
+   hours. If not: power off, reconnect the red HDD, boot normally; the
+   system is unchanged.
+5. Clone (~56 GB, a few minutes over SATA):
    ```bash
    sudo dd if=/dev/OLD of=/dev/NEW bs=16M conv=fsync status=progress
    ```
-5. Grow root. The swap partition sits behind root, so it is recreated at
+6. Grow root. The swap partition sits behind root, so it is recreated at
    the end of the disk **with its old UUID** (fstab stays as is):
    ```bash
    sudo parted /dev/NEW print            # answer "Fix" to move the backup GPT to the end
@@ -64,10 +79,10 @@ and `WDC WD20EFRX` (red, 1.8 T).
    sudo mkswap -U 43175eab-35f9-44c2-8af7-a7a97675c9e1 /dev/NEW3
    lsblk -o NAME,SIZE,FSTYPE,UUID /dev/NEW   # UUIDs as in the table above, root ~235 G
    ```
-6. Power off. Swap the disks inside: the new SSD on the OCZ's SATA port,
-   the OCZ out. **Never boot with both attached**: same UUIDs and
-   partition GUIDs, the system could mount parts of either. Label the
-   OCZ and keep it unchanged.
+7. Power off and recable: the OCZ out, the new SSD on the OCZ's port and
+   cable, the red HDD back on its own. **Never boot the installed system
+   with both SSDs attached**: same UUIDs and partition GUIDs, it could
+   mount parts of either. Label the OCZ and keep it unchanged.
 
 ## Phase 2: first boot
 
@@ -122,5 +137,21 @@ get deleted by hand and `k3s_node_vm_previous_disk_path` is removed.
   is redefined on it: the node comes back with its state from before the
   move.
 
-Disposing of the OCZ later: it holds every credential of the old system
-unencrypted, so **ATA Secure Erase** first.
+## Wiping the OCZ (after 1-2 weeks without problems)
+
+It holds every credential of the old system unencrypted. Attach it in
+place of the red HDD again and **boot the live stick only**: the
+installed system must not see both SSDs (same UUIDs). Then, with `OLD`
+identified by model as above:
+
+```bash
+sudo hdparm -I /dev/OLD | grep -i frozen     # must say "not frozen"
+sudo hdparm --user-master u --security-set-pass wipe /dev/OLD
+sudo hdparm --user-master u --security-erase wipe /dev/OLD
+```
+
+If the drive reports `frozen` (the firmware locks it at boot), suspend
+the live system and wake it again (`sudo systemctl suspend`), which
+usually unfreezes it. Otherwise `sudo blkdiscard --force /dev/OLD`
+trims the whole drive as a fallback. Recable the red HDD before booting
+normally.
