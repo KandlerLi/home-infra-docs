@@ -27,7 +27,7 @@ flowchart TB
         bulwark["Bulwark<br/>[Container]<br/>Webmail"]
         paperless["Paperless-ngx<br/>[Container]<br/>Document archive with OCR"]
         paperlessdb[("Paperless DB<br/>[Container: PostgreSQL + Redis]")]
-        other["Deluge, landing page,<br/>Kubernetes Dashboard, sankey_export<br/>[Containers]"]
+        other["Deluge, landing page,<br/>Headlamp, sankey_export<br/>[Containers]"]
     end
 
     subgraph host["Homeserver (Debian)"]
