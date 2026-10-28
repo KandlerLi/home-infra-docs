@@ -26,9 +26,12 @@ and `WDC WD20EFRX` (red, 1.8 T).
 
 ## Phase 0: before the downtime
 
-1. **Live USB stick**: Debian 13 live (standard, no desktop needed). It
-   has `dd`, `parted`, `e2fsprogs` and `util-linux` (`mkswap`);
-   `smartmontools` may need an `apt install` (with network).
+1. **Live USB stick**: Julian's Pop!_OS 24.04 live stick ("Try Demo
+   Mode"), or a Debian 13 live. Both have `dd`, `parted`, `e2fsprogs`,
+   `util-linux` (`mkswap`) and `hdparm`; `smartmontools` needs an
+   `apt install` (with network; the Pop stick's `writable` partition
+   keeps it across boots). The homeserver has no Secure Boot, so Pop!_OS
+   boots as is.
 2. `home-infra#104` merged (VM disk move support in `k3s_node`) and
    `scripts/roll-out-k3s.sh dry-run` showing no changes.
 3. **Right before the downtime:** `scripts/verify-backups.sh` with all
@@ -55,7 +58,9 @@ write into an empty `/mnt/red-hdd` on the system disk.
    ```
    `OLD` = the `OCZ-VERTEX3` (55.9 G), `NEW` = the new 256 GB SSD, and
    the black HDD (`WDC WD1003FZEX`, 931 G) stays untouched. **Mixing up
-   OLD and NEW destroys the system**: check twice.
+   OLD and NEW destroys the system**: check twice. `MOUNTPOINTS` must be
+   empty for both; a desktop live session may have mounted a partition
+   on a click, then `sudo umount` it first.
 4. SMART of the new SSD:
    ```bash
    sudo smartctl -a /dev/NEW     # if missing: sudo apt update && sudo apt install smartmontools
