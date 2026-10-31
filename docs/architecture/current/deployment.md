@@ -52,7 +52,7 @@ flowchart TB
 
 ## Notes
 
-- The k3s VMs' disks are qcow2 files on `black-hdd`. VM sizes and
+- The k3s VMs' disks are qcow2 files on the system SSD (`/var/lib/libvirt/k3s/`). VM sizes and
   networking are set in [`home-infra`](https://github.com/KandlerLi/home-infra) `ansible/playbooks/k3s.yml`.
 - Nothing on the LAN can route to `192.168.101.0/24`; inbound traffic
   enters the cluster only through the DNAT relay.
