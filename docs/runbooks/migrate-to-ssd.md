@@ -6,6 +6,11 @@ black HDD and saturate it on every boot (#12: ~17 min until the apps
 answer after a reboot). No encryption in this move (decision in #40,
 encryption is #41).
 
+**Done 2026-10-31** (Samsung PM851 256 GB, bought used). After a reboot
+the apps answered after 4:37 min from SSH going away (before: 17–21 min).
+Open: removing the HDD VM disks and wiping the OCZ (#47). The steps below
+include what had to differ on that run.
+
 The method is a **block-level clone** of the OCZ, then growing root into
 the larger disk. The clone keeps every UUID and partition GUID, so
 `/etc/fstab` and the UEFI boot entry stay valid without edits. The OCZ
@@ -47,16 +52,36 @@ it, `nfs-server` would fail on the missing export directories and take
 k3s' NFS volumes on the black HDD down with it, and backup jobs could
 write into an empty `/mnt/red-hdd` on the system disk.
 
-1. From the laptop: `scripts/shutdown-homeserver-for-maintenance.sh`
-   (README, "Hardware maintenance shutdown"). It stops the VMs and
-   Nextcloud AIO cleanly and powers off.
-2. Unplug the red HDD (`WDC WD20EFRX`), connect the new SSD to its port
-   and cable. Boot the live stick.
-3. Switch to SSH, so the rest runs from the laptop. At the console
-   only: boot menu (F12/F11/F8, depends on the board) → the stick →
-   "Try Demo Mode", open a terminal:
+1. **Point the firmware at the stick first.** A DisplayPort monitor
+   hangs POST on this machine (#49): no picture, no F12 menu. Boot
+   without a monitor and choose the stick via `efibootmgr` instead. With
+   the stick plugged into the running system, boot once (the firmware
+   then creates its own `UEFI: <stick>` entry; a hand-made
+   `efibootmgr --create` entry did not boot, the firmware numbers the
+   ISO's ESP differently), then put that entry first:
+   ```bash
+   efibootmgr                      # find "UEFI: <stick name>", e.g. Boot000B
+   sudo efibootmgr -o 000B,0000,…  # rest of the old BootOrder after it
+   ```
+   The entry is tied to that USB port. Without the stick, the firmware
+   falls back to `debian` and drops the entry again by itself.
+2. Shut down: the script runs **on the homeserver**, and `/tmp` is
+   emptied by every reboot, so copy it each time:
+   ```bash
+   scp scripts/shutdown-homeserver-for-maintenance.sh julian@192.168.178.100:/tmp/
+   ssh -t julian@192.168.178.100 'sudo bash /tmp/shutdown-homeserver-for-maintenance.sh'
+   ```
+   It stops the VMs and Nextcloud AIO cleanly and powers off. Stand by
+   the machine: once (2026-10-31) the poweroff came back as a restart
+   (#49). Pull the plug as soon as it is dark.
+3. Unplug the red HDD (`WDC WD20EFRX`), connect the new SSD to its port
+   and cable. Power on without a monitor; the stick boots. Plug the
+   monitor and keyboard in once it is up, then at the console
+   ("Try Demo Mode" if asked; Pop!_OS 24.04 is COSMIC, terminal Super+T,
+   or a text console with Ctrl+Alt+F3):
    ```bash
    sudo apt update && sudo apt install -y openssh-server tmux smartmontools
+   sudo systemctl enable --now ssh   # not started by the install alone
    passwd                       # temporary password for the live user pop-os
    ip -4 addr show | grep inet
    ```
@@ -80,11 +105,18 @@ write into an empty `/mnt/red-hdd` on the system disk.
    ```bash
    sudo smartctl -a /dev/NEW
    ```
-   Expect `PASSED`, 0 reallocated/pending sectors, near-zero power-on
-   hours. If not: power off, reconnect the red HDD, boot normally; the
-   system is unchanged.
-6. Clone (~56 GB, a few minutes over SATA):
+   Expect `PASSED`, 0 reallocated/pending sectors and no logged errors;
+   a short self-test (`smartctl -t short`, 2 min) should pass. Power-on
+   hours near zero only for a new drive: the 2026-10-31 one was bought
+   used (33,736 h, ~16.8 TB written, wear 95 %). If not: power off,
+   reconnect the red HDD, boot normally; the system is unchanged.
+   Old partitions on a used drive are overwritten by the clone.
+6. Clone (~56 GB, 4:40 min at ~215 MB/s on 2026-10-31). The live system
+   activates the OCZ's swap partition on its own: switch it off first,
+   so the source stays unchanged. Use the `/dev/disk/by-id/` names
+   (model and serial) for `OLD` and `NEW`, not `sdX`:
    ```bash
+   sudo swapoff /dev/OLD3
    sudo dd if=/dev/OLD of=/dev/NEW bs=16M conv=fsync status=progress
    ```
 7. Grow root. The swap partition sits behind root, so it is recreated at
@@ -92,15 +124,19 @@ write into an empty `/mnt/red-hdd` on the system disk.
    ```bash
    sudo parted /dev/NEW print            # answer "Fix" to move the backup GPT to the end
    sudo parted /dev/NEW rm 3
-   sudo parted /dev/NEW resizepart 2 -3GiB
-   sudo parted /dev/NEW mkpart swap linux-swap -3GiB 100%
+   # Swap start on a 1 MiB boundary; "-3GiB" alone left it misaligned.
+   S=$(( ($(sudo blockdev --getsz /dev/NEW) - 6291456) / 2048 * 2048 ))
+   sudo parted /dev/NEW resizepart 2 $((S - 1))s   # interactive: confirm "Yes"
+   sudo parted /dev/NEW mkpart swap linux-swap ${S}s 100%
+   sudo parted /dev/NEW align-check optimal 3
    sudo e2fsck -f /dev/NEW2
    sudo resize2fs /dev/NEW2
    sudo mkswap -U 43175eab-35f9-44c2-8af7-a7a97675c9e1 /dev/NEW3
    lsblk -o NAME,SIZE,FSTYPE,UUID /dev/NEW   # UUIDs as in the table above, root ~235 G
    ```
 8. Power off and recable: the OCZ out, the new SSD on the OCZ's port and
-   cable, the red HDD back on its own. **Never boot the installed system
+   cable, the red HDD back on its own, the stick out (it is first in the
+   BootOrder). **Never boot the installed system
    with both SSDs attached**: same UUIDs and partition GUIDs, it could
    mount parts of either. Label the OCZ and keep it unchanged.
 
@@ -130,9 +166,16 @@ k3s_node_vm_disk_path: /var/lib/libvirt/k3s/<node>.qcow2
 k3s_node_vm_previous_disk_path: /mnt/black-hdd/k3s/<node>.qcow2
 ```
 
-Then `scripts/roll-out-k3s.sh` (dry-run first). Per node, the role stops
+Then `scripts/roll-out-k3s.sh` (dry-run first). The dry-run fails at
+"Validate VM and disk recovery state" because check mode skips the copy;
+up to there it shows only the stop and the new directory (#48). Per node, the role stops
 the VM, copies the disk sparse (node-1 ~23 G, node-2 ~44 G), redefines
-the domain and starts it. Expect a few minutes per node. Space: the OS
+the domain and starts it. Expect a few minutes per node. Watch the copy
+with `ssh -t julian@192.168.178.100 'sudo TERM=xterm-256color watch -n 5
+"du -h /var/lib/libvirt/k3s/*"'`. On 2026-10-31 Ansible lost the result
+of node-2's copy and waited on, though the `.partial` was complete (full
+size, source mtime): interrupt and rerun the apply; it redoes the copy
+and finishes (#48). Space: the OS
 uses ~23 G, the VM disks ~67 G today and at most 140 G at their virtual
 sizes, all inside ~235 G.
 
@@ -160,7 +203,8 @@ get deleted by hand and `k3s_node_vm_previous_disk_path` is removed.
 ## Wiping the OCZ (after 1-2 weeks without problems)
 
 It holds every credential of the old system unencrypted. Attach it in
-place of the red HDD again and **boot the live stick only**: the
+place of the red HDD again and **boot the live stick only** (via
+`efibootmgr` as in phase 1, no monitor at power-on): the
 installed system must not see both SSDs (same UUIDs). Then, with `OLD`
 identified by model as above:
 
