@@ -166,16 +166,17 @@ k3s_node_vm_disk_path: /var/lib/libvirt/k3s/<node>.qcow2
 k3s_node_vm_previous_disk_path: /mnt/black-hdd/k3s/<node>.qcow2
 ```
 
-Then `scripts/roll-out-k3s.sh` (dry-run first). The dry-run fails at
-"Validate VM and disk recovery state" because check mode skips the copy;
-up to there it shows only the stop and the new directory (#48). Per node, the role stops
+Then `scripts/roll-out-k3s.sh` (dry-run first). With a move pending, the
+dry-run shows the stop and the new directory for each node and then ends
+the role there, skipping that node's guest plays (home-infra#119). Per node, the role stops
 the VM, copies the disk sparse (node-1 ~23 G, node-2 ~44 G), redefines
 the domain and starts it. Expect a few minutes per node. Watch the copy
 with `ssh -t julian@192.168.178.100 'sudo TERM=xterm-256color watch -n 5
-"du -h /var/lib/libvirt/k3s/*"'`. On 2026-10-31 Ansible lost the result
-of node-2's copy and waited on, though the `.partial` was complete (full
-size, source mtime): interrupt and rerun the apply; it redoes the copy
-and finishes (#48). Space: the OS
+"du -h /var/lib/libvirt/k3s/*"'`. The copy runs as a polled async job
+(home-infra#119); before that, on 2026-10-31, Ansible lost the result of
+node-2's copy on its SSH channel. If an apply ever hangs with a complete
+`.partial` (full size, source mtime), interrupt and rerun: it redoes the
+copy and finishes. Space: the OS
 uses ~23 G, the VM disks ~67 G today and at most 140 G at their virtual
 sizes, all inside ~235 G.
 
