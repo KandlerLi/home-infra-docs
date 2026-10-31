@@ -58,6 +58,20 @@ k3s.
 (`Before=libvirt-guests.service` drop-in), so `k3s-node-1` unmounts its
 NFS volumes cleanly instead of hanging until SIGKILL.
 
+### Firmware quirks (known, accepted; seen 2026-10-31)
+
+- **A DisplayPort monitor hangs POST**: fans and LED come on, but no
+  picture and no boot until the monitor is unplugged. Plugged in after
+  Linux is up, it works. So there is no F2 setup or F12 boot menu with
+  it attached: boot headless and choose a one-off boot device with
+  `efibootmgr` ([SSD move runbook](runbooks/migrate-to-ssd.md), Phase 1).
+  Not pursued: a DVI cable, a BIOS update, another monitor.
+- **Wake-on-LAN powers the host back on** about 40–50 s after a
+  `poweroff` (onboard NIC `enp0s25` armed for wake; likely the FRITZ!Box
+  waking it for its port forwards). Kept on deliberately for remote
+  power-on. For hardware work, pull the plug right after the poweroff;
+  `shutdown-homeserver-for-maintenance.sh` prints that reminder.
+
 ### NFS exports to the k3s VM
 
 All to `192.168.101.10` only, all `root_squash` (`nfs_server` asserts
@@ -233,7 +247,4 @@ from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts
 
 Open work is tracked privately. Notable standing gaps: no off-site backup; Stalwart
 mail not backed up off the VM; the hardware watchdog did
-not fire during the 2026-09-24 silent freeze; after a homeserver reboot
-the public services are down for ~15 minutes and CI for ~13, because
-both k3s VMs cold-start from the black HDD at once (measured
-2026-10-25, HDD 94–99 % busy for 15 minutes).
+not fire during the 2026-09-24 silent freeze.
