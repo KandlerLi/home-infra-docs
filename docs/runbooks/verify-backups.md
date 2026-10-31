@@ -129,15 +129,15 @@ media), per Paperless-ngx's `document_importer` documentation:
 3. Check: document count matches the drill's count, open a few documents,
    search works.
 
-## Restore: Deluge config and Open WebUI data
+## Restore: torrent client config and Open WebUI data
 
 Dated tarballs in `/mnt/red-hdd/aux-backups`
 (`deluge-config-<date>.tar.gz`, `open-webui-<date>.tar.gz`), each holding
 the directory itself. Both directories are NFS-exported to the k3s Pods.
 
-1. Scale the Deployment to 0 (`deluge` or `open-webui`).
+1. Scale the Deployment to 0 (`qbittorrent` or `open-webui`).
 2. As root on the homeserver, move the current directory aside and extract
    the tarball into its parent: `/mnt/black-hdd` for `deluge-config`
    (owner `deluge:deluge`), `/var/lib` for `open-webui` (owner
    `open-webui-container:root`). `tar` as root keeps owners and modes.
-3. Scale back to 1 and check the UI (Deluge torrents, Open WebUI chats).
+3. Scale back to 1 and check the UI (qBittorrent torrents, Open WebUI chats).

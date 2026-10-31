@@ -35,3 +35,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0023](0023-paperless-ngx-document-archive.md) | Proposed | Paperless-ngx on k3s as the personal document archive |
 | [0024](0024-wireguard-admin-vpn.md) | Superseded by 0025 | WireGuard on the homeserver for admin access from outside |
 | [0025](0025-fritzbox-wireguard-admin-vpn.md) | Accepted | FRITZ!Box built-in WireGuard for admin access from outside |
+| [0026](0026-qbittorrent-replaces-deluge.md) | Accepted | qBittorrent replaces Deluge, so `apps` can enforce PodSecurity `restricted` |
