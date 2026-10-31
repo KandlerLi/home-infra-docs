@@ -9,8 +9,8 @@ status: [`current-state.md`](current-state.md).
 /                      system SSD, ext4, 231 GB
 /mnt/black-hdd         ext4, 916 GB, live data      www-data:www-data 2770
 ├── nextcloud/         Nextcloud AIO data directory (NEXTCLOUD_DATADIR)
-├── downloads/         Deluge downloads; NFS to k3s; mounted into Nextcloud
-├── deluge-config/     Deluge state; NFS to k3s
+├── downloads/         qBittorrent downloads; NFS to k3s; mounted into Nextcloud
+├── deluge-config/     qBittorrent state (qBittorrent/), old Deluge files; NFS to k3s
 ├── paperless-media/   Paperless documents; NFS to k3s
 ├── k3s/               previous k3s VM disks, rollback until removed (tracker #47)
 └── blocky/            leftover data of the stopped Docker Blocky
@@ -39,8 +39,12 @@ The tree shows managed paths only. Live data on `black-hdd`, backups on
   cleanup; prove what owns it first.
 - NFS exports go to one client IP each, with `root_squash` (the
   `nfs_server` role asserts this). A k3s workload writing to an export
-  runs as the uid/gid that owns the directory on the host (Deluge
-  993/986, Paperless 983/978).
+  runs as the uid/gid that owns the directory on the host (qBittorrent
+  993/986 via the `deluge` account, Paperless 983/978).
+- k3s hostPath PV directories on node-1 whose workload runs as non-root
+  are created by `home-infra`'s `k3s_node_host_path_dirs` with that
+  workload's uid/gid (sankey-export 10010, both Postgres 70), since a
+  Pod under PodSecurity `restricted` can't chown its own volume.
 - `downloads/` is visible in Nextcloud as an external storage, but it is
   not part of the Nextcloud Borg backup and has no backup of its own
   (deliberately: large, re-downloadable).

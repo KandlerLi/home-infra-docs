@@ -16,7 +16,7 @@ on a single fact.
 | OS | Debian 13 (`trixie`), kernel 6.12 (checked 2026-10-11) |
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
-| Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, Deluge downloads, Paperless media) |
+| Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, torrent downloads, Paperless media) |
 | Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
@@ -45,7 +45,7 @@ k3s.
 - **systemd services**: `blocky-ipv6-relay` (`[::]:53` → Blocky in k3s),
   `home-tools` (host facts for `home_agent`, `192.168.101.1:8095`),
   `ntfy-relay` (Alertmanager → ntfy), NFS server, libvirt.
-- **Timers**: `aux-backup` (Deluge config, Open WebUI data → `red-hdd`),
+- **Timers**: `aux-backup` (torrent client config, Open WebUI data → `red-hdd`),
   `backup-freshness` (feeds the backup-age alerts).
 - **Stopped leftovers, not deleted**: `shared-ingress`, `blocky`,
   `blocky-postgres` (their roles are gone; the containers stay stopped as a
@@ -85,9 +85,9 @@ The FRITZ!Box forwards TCP 80, 443, 25, 465 and 993 to the homeserver's LAN
 IP (Terraform in `KandlerLi/fritzbox`, private, local apply only). `k3s_ingress_forward` DNATs those on to the k3s VM
 (`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart. It also
 DNATs TCP+UDP 53 to Blocky, which only LAN clients reach: the FRITZ!Box
-doesn't forward 53, so there is no public DNS resolver. Deluge's
-BitTorrent port is a k3s `LoadBalancer` Service on the VM with no FRITZ!Box
-forward (outbound peers only, enough for Deluge; decided 2026-10-12). The
+doesn't forward 53, so there is no public DNS resolver. qBittorrent's
+BitTorrent port (6881) is a k3s `LoadBalancer` Service on the VM with no FRITZ!Box
+forward (outbound peers only; decided 2026-10-12 for Deluge, unchanged). The
 k3s network `192.168.101.0/24` is reachable only from the homeserver.
 
 Admin VPN: the FRITZ!Box's built-in WireGuard (ADR 0025,
@@ -108,7 +108,7 @@ All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), 
 | `ai.jkandler.de` (rest) | Open WebUI | none; its own Authelia OIDC login, password login and signup disabled |
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
-| `torrent.jkandler.de` | Deluge | forward-auth, then Deluge's own password |
+| `torrent.jkandler.de` | qBittorrent (replaced Deluge 2026-10-31) | forward-auth; qBittorrent's own login is skipped for the pod CIDR, and a NetworkPolicy admits only Traefik to its Web UI |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
 | `mail.jkandler.de` | Bulwark webmail | forward-auth; Authelia SSO into the mailbox |
 | `stalwart.jkandler.de` | Stalwart | protocol paths (JMAP, CalDAV/CardDAV): none, Stalwart's own auth; `/admin`, `/account` and the management API: forward-auth |
@@ -142,7 +142,7 @@ Workloads are Terraform-managed, never `kubectl apply`:
 - **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)** (CI-applied on merge): `ingress` (Traefik, file
   provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), `open_webui`,
-  `grafana`, `alertmanager`, `node_exporter`, `deluge`, `landing_page`,
+  `grafana`, `alertmanager`, `node_exporter`, `qbittorrent`, `landing_page`,
   `headlamp`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
   `paperless`.
@@ -163,9 +163,9 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | --- | --- | --- |
 | `ci` | privileged | the GitHub Actions runners (dind) |
 | `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
-| `monitoring` | baseline (`warn: restricted`) | Grafana, Alertmanager, kube-state-metrics |
-| `auth` | baseline (`warn: restricted`) | Authelia |
-| `apps` | baseline (`warn: restricted`) | every other `k3s-apps` workload, Traefik included |
+| `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics |
+| `auth` | restricted | Authelia |
+| `apps` | restricted (from k3s-bootstrap#44) | every other `k3s-apps` workload, Traefik included |
 | `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
 `k3s-apps-ci` has a Role per namespace with only the kinds that
@@ -202,7 +202,7 @@ claims.
 | What | How | Where |
 | --- | --- | --- |
 | Nextcloud (files + database) | AIO's built-in Borg, nightly (AIO schedule) | `/mnt/red-hdd/borg` |
-| Deluge config, Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
+| torrent client config (`deluge-config`), Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |

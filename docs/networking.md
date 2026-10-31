@@ -35,7 +35,7 @@ k3s-node-2 192.168.101.11    reachable only from the homeserver)
 - k3s Pods reach homeserver services on `192.168.101.1` (Nextcloud AIO
   `:11000`, Prometheus `:9090`, `home-tools` `:8095`); those binds are
   additive to the loopback ones.
-- Raw-protocol ports (SMTP/IMAP to Stalwart, DNS to Blocky, Deluge's
+- Raw-protocol ports (SMTP/IMAP to Stalwart, DNS to Blocky, qBittorrent's
   BitTorrent port) are the only traffic that bypasses Traefik.
 
 ## LAN DNS
