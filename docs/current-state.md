@@ -147,21 +147,23 @@ Workloads are Terraform-managed, never `kubectl apply`:
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
   `paperless`.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
-  GitHub Actions runners (one Deployment per repo, on `k3s-node-2`,
-  GitHub App registration, NetworkPolicy: no inbound, outbound only DNS
-  and the public internet, plus the Kubernetes and Stalwart APIs and
+  GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
+  controller and one listener per repo in `arc-system`, one fresh runner
+  Pod per job in `ci` on `k3s-node-2`, none at idle; GitHub App
+  registration; NetworkPolicy: no inbound, outbound only DNS and the
+  public internet, plus the Kubernetes and Stalwart APIs and
   Blocky/Grafana for the `k3s-apps` runner), namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
-  defining RBAC. Per runner slot: the runner install is a `hostPath`
-  seeded once per image (not per Pod), dind listens only on its Unix
-  socket and retries dockerd in place, the runner registers with GitHub
-  only once dind answers, and `/work` is emptied before every job.
+  defining RBAC. In each runner Pod, dind is a native sidecar that
+  listens only on its Unix socket and retries dockerd in place, and the
+  runner starts only once dind answers.
 
 Namespaces (tracker #32), each with its Pod Security Admission level:
 
 | Namespace | PSA `enforce` | Holds |
 | --- | --- | --- |
-| `ci` | privileged | the GitHub Actions runners (dind) |
+| `ci` | privileged | the GitHub Actions runner Pods (dind) |
+| `arc-system` | restricted | the ARC controller and its listeners |
 | `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
 | `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics |
 | `auth` | restricted | Authelia |
@@ -219,10 +221,10 @@ and blackbox probes of the public hostnames (HTTPS probes also cover
 certificate expiry). Alerts go to Alertmanager in k3s
 (`192.168.101.10:9093`), which notifies ntfy (via `ntfy-relay`) and email
 (SES). Grafana (`grafana.jkandler.de`) reads Prometheus and Blocky's
-query-log Postgres; its "GitHub Runners" dashboard shows runner Pod
-readiness, waiting containers, seeding, restarts and the IO load on
-`k3s-node-2` and the HDDs (no GitHub-side online/busy state, no per-Pod
-CPU/memory: neither is scraped). Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
+query-log Postgres; its "GitHub Runners" dashboard shows runner Pods
+ready and pending, ARC listeners, waiting containers, restarts, jobs per
+hour, per-container CPU/memory, GitHub's own online/busy view and the IO
+load on `k3s-node-2` and the HDDs. Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
 health check + CloudWatch + SNS) alerts when the homeserver is unreachable
 from outside, and [`aws-budget`](https://github.com/KandlerLi/aws-budget) alerts on cost.
 

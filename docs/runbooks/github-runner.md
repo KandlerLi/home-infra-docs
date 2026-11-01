@@ -21,6 +21,11 @@ community image, now running in k3s instead of a VM) mints its own
 short-lived registration token internally. See the private task list's
 "GitHub App installation tokens" entry for that history.
 
+**Since 2026-11-01 the runners are ARC scale sets**, one per repository
+with one Pod per job ([ADR 0027](../adr/0027-ci-runners-autoscale-with-arc.md),
+`k3s-bootstrap`'s README, "Runner design"); the per-repository
+Deployments described above are gone.
+
 There's no dedicated operate/apply runbook for the current shape —
 it's applied the same way [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s other rare
 changes are, a local `terraform apply` with the k3s node's own
@@ -48,9 +53,10 @@ VM-based role; Terraform is its only remaining consumer):
    nothing needs to reference it explicitly). Review the diff there
    and commit it in `k3s-bootstrap`, not `home-infra`.
 4. Apply [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) (human-apply-only, never CI).
-5. Confirm the new runner is online in the repository settings.
+5. Confirm the new scale set's listener is running
+   (`kubectl get pods -n arc-system`) and the scale set shows under the
+   repository's runner settings. No runner is listed until a job runs.
 
-Removing configuration does not automatically unregister or delete a
-runner. Decommission it explicitly first (scale its Deployment to
-zero or remove its `for_each` entry), then remove `runner: true` from
-`config.yml` and re-run the sync script.
+To remove a repository: remove `runner: true` from `config.yml`, re-run
+the sync script and apply `k3s-bootstrap`. Its Helm release is
+destroyed and ARC deletes the scale set from GitHub.

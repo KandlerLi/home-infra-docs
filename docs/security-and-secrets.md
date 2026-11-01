@@ -102,44 +102,41 @@ not be extended to unrelated containers.
 
 ### Self-hosted GitHub Actions runners
 
-**Rewritten 2026-09-16: this section previously described a single,
-dedicated libvirt VM.** That VM was decommissioned 2026-08-31 in favor
-of one k3s Deployment per repository ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s own
-`modules/github_runner`), pinned to a dedicated, tainted node
-(`k3s-node-2`, `ci=github-runner:NoSchedule`) so CI workloads never
-compete with or endanger anything on `k3s-node-1`. Every repository in
-[`repo-infra/config.yml`](https://github.com/KandlerLi/repo-infra/blob/main/config.yml)'s `runner: true` list gets its own
-runner Pod, not just one shared VM serving a single repository.
+**Updated 2026-11-01 for ARC ([ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)).**
+The runners run in k3s ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s own
+`modules/github_runner`) on a dedicated, tainted node (`k3s-node-2`,
+`ci=github-runner:NoSchedule`), so CI workloads never compete with or
+endanger anything on `k3s-node-1`. Every repository in
+[`repo-infra/config.yml`](https://github.com/KandlerLi/repo-infra/blob/main/config.yml)'s `runner: true` list has its own ARC
+runner scale set. ARC creates one Pod per job and deletes it afterwards.
+The controller (`arc-system`, `enforce: restricted`) only has Roles in
+`ci`.
 
-Each Pod runs the community `myoung34/github-runner` image with a
-privileged `docker:dind` sidecar — a deliberate trade-off, not an
-oversight: it lets every repository's existing `docker build`/`docker
-run` workflow steps keep working completely unmodified, at the real
-cost that a privileged container can escape to its own node. This is
-contained specifically to `k3s-node-2`, which runs nothing else, the
-same isolation principle the old VM's own private NAT network
-provided. dind listens only on the Unix socket shared with the runner
-container; until 2026-10-25 the image's entrypoint also opened an
-unauthenticated `tcp://0.0.0.0:2375`, which only the runners'
-NetworkPolicy kept other Pods away from.
+Each runner Pod runs the community `myoung34/github-runner` image with a
+privileged `docker:dind` sidecar. That is a deliberate trade-off, not an
+oversight: every repository's existing `docker build`/`docker run`
+workflow steps keep working unmodified, at the real cost that a
+privileged container can escape to its own node. It is contained to
+`k3s-node-2`, which runs nothing else. Jobs of different repositories
+can run on that node at the same time, so an escape from one job could
+reach another repository's concurrently running job. dind listens only
+on the Unix socket shared with the runner container. Until 2026-10-25
+the image's entrypoint also opened an unauthenticated `tcp://0.0.0.0:2375`,
+which only the runners' NetworkPolicy kept other Pods away from.
 
-Runners are ephemeral per job, not per Pod: after its one job the
-runner process exits and Kubernetes restarts the `runner` container in
-the same Pod, so Pod-lifetime volumes survive from job to job. Since
-2026-10-25 the container's wrapper empties `/work` before every start,
-so no job sees the previous job's checkout, tool cache or downloaded
-actions (`_actions`), and no job can tamper with code the next job in
-the same slot runs. Before that, `/work` carried over unnoticed. The
-Docker and Terraform caches are per-slot `hostPath`s and do carry over,
-on purpose.
+Runners are ephemeral per Pod: every job starts in a fresh Pod with only
+`emptyDir` volumes, so no job sees another job's checkout, tool cache,
+Docker images or Terraform providers, and no job can tamper with what
+the next one runs. Until 2026-11-01 the slot Pods restarted the runner
+in place and kept per-slot Docker and Terraform caches on `hostPath`.
 
 Runner registration used a shared, manually-rotated fine-grained PAT
 until 2026-09-16, when it switched to GitHub App installation tokens
 (`kandlerli-home-infra-runner`, `Administration: write`, installed on
-every runner-enabled repository) — the runner image mints its own
-short-lived registration token internally at container start, rather
-than a durable credential sitting in AWS Secrets Manager waiting to be
-manually rotated.
+every runner-enabled repository). Since 2026-11-01 the ARC controller
+and listeners use the App (Kubernetes Secret `arc-github-app` in `ci`) to
+get a one-time JIT registration for each runner Pod. The runner Pods
+never see the App key.
 
 ### Deployed AI boundary
 

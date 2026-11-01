@@ -815,7 +815,7 @@ the cost is a hard-coded router address. Proven on the 2026-10-24 22:57 reboot.
 
 ## CI runners: seed once per image, retry dind in place, fresh `/work` per job
 
-Decided 2026-10-25, all in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s `modules/github_runner`. After
+Superseded 2026-11-01 by ARC ([ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)): no slots, seeding or `/work` reuse any more; the dind retry loop stayed. Decided 2026-10-25, all in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s `modules/github_runner`. After
 a homeserver reboot CI was down for 40+ minutes and the I/O also took
 the public services down for ~15. Three runner-specific causes, each
 fixed where it sat rather than by staggering or fewer runners:
@@ -872,3 +872,27 @@ suppressed. A switch was looked at and dropped:
 State is already encrypted at rest. Revisit if state access ever needs
 to be narrower than "can read the object", e.g. a role that may list
 but not read state.
+
+## ARC runners: myoung34 image, explicit `self-hosted`, anonymous Helm pulls
+
+Decided 2026-11-01 while moving the runners to ARC
+([ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)), all in
+[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap):
+
+- **Runner image.** ARC's default `actions/actions-runner` (Ubuntu
+  24.04) passed every `container:` job but broke host-run ones:
+  `k3s-apps`' Validate failed with `/usr/bin/env: 'node': No such file
+  or directory` (`setup-terraform`'s wrapper), and the image has no AWS
+  CLI (`rotate-blocky-postgres`; `check-secret-rotation`'s
+  `apt-get install awscli` has no candidate on 24.04). The runners went
+  back to the slots' `myoung34/github-runner`, started with `run.sh` so
+  ARC's JIT config registers it (KandlerLi/k3s-bootstrap#48). Lesson:
+  an image change needs a host-run job in the probe, not only
+  `container:` jobs.
+- **Labels.** `self-hosted` is not implicit on scale sets: a probe job
+  with `[self-hosted, <label>]` never started. Every scale set lists
+  `self-hosted, home, debian` explicitly.
+- **Helm pulls.** Helm uses `~/.docker/config.json` even when given its
+  own registry config, and ghcr.io answered the laptop's stale `ghcr.io`
+  login with 403, even for the public ARC charts. `roll-out.sh` points
+  `DOCKER_CONFIG` at an empty directory (KandlerLi/k3s-bootstrap#46).
