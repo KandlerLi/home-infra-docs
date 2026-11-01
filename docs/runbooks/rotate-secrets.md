@@ -227,8 +227,8 @@ Fine-grained GitHub PAT with `Administration: write` on every
 self-hosted-runner repository. Generate a new one in GitHub's own PAT
 settings (same scope as the current one), `put-secret-value` on
 `home-infra/github-runner`, then an actual [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)
-apply -- all 7 repos' runner Deployments share one Kubernetes Secret
-(`modules/github_runner`), so one apply rolls every runner at once.
+apply. (Retired: since 2026-09-16 the runners use the GitHub App
+instead, since 2026-11-01 through ARC's `arc-github-app` Secret.)
 Revoke the old PAT in GitHub only after confirming at least one
 runner re-registered successfully post-apply.
 

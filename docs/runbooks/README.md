@@ -34,8 +34,8 @@ need Julian's review; prefer read-only checks first.
 Kept because code comments or ADRs point at them; the setups they
 describe no longer exist. Each file says where the thing lives now.
 
-- [GitHub runner VM](github-runner.md): runners are k3s Deployments in
-  [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) since 2026-08-31
+- [GitHub runner VM](github-runner.md): runners are in k3s since
+  2026-08-31, ARC scale sets in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) since 2026-11-01
 - [Publish the home-agent](publish-home-agent.md),
   [Deploy and publish Open WebUI](publish-open-webui.md),
   [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md),
