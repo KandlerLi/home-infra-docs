@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-01
-- Deployment status: applied 2026-11-01 (`k3s-bootstrap#45`–`#48`), checks and `k3s-apps` plan green on ARC; host-run AWS CLI jobs not yet run (tracker #39). Phase 2 (one global pool in a GitHub organization) open
+- Deployment status: live since 2026-11-01 (`k3s-bootstrap#45`–`#48`): PR checks, `k3s-apps` plan/apply and host-run AWS CLI jobs green on ARC (tracker #39). Phase 2 (one global pool in a GitHub organization) open
 
 ## Context
 
