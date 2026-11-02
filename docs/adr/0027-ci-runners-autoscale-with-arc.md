@@ -40,7 +40,7 @@ queue. Labels stay `self-hosted, home, debian`, so no workflow changed.
 Runner Pods start empty (no caches); measure before adding one.
 
 Phase 2 is still the goal: one global scale set in an organization
-(`jkandler`), plus a dedicated one for `k3s-apps`, the only repository
+(`jkandlerde`), plus a dedicated one for `k3s-apps`, the only repository
 whose runner holds a Kubernetes ServiceAccount token. AWS rights don't
 argue against sharing: they are bound to the repository by the OIDC
 subject, not to the runner.
