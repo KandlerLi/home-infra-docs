@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-01
-- Deployment status: applied 2026-11-01 (`k3s-bootstrap#45`–`#48`), checks and `k3s-apps` plan green on ARC; host-run AWS CLI jobs not yet run (tracker #39). Phase 2 (one global pool in a GitHub organization) open
+- Deployment status: live since 2026-11-01 (`k3s-bootstrap#45`–`#48`): PR checks, `k3s-apps` plan/apply and host-run AWS CLI jobs green on ARC (tracker #39). Phase 2 (one global pool in a GitHub organization) open
 
 ## Context
 
@@ -40,7 +40,7 @@ queue. Labels stay `self-hosted, home, debian`, so no workflow changed.
 Runner Pods start empty (no caches); measure before adding one.
 
 Phase 2 is still the goal: one global scale set in an organization
-(`jkandler`), plus a dedicated one for `k3s-apps`, the only repository
+(`jkandlerde`), plus a dedicated one for `k3s-apps`, the only repository
 whose runner holds a Kubernetes ServiceAccount token. AWS rights don't
 argue against sharing: they are bound to the repository by the OIDC
 subject, not to the runner.
