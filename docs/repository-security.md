@@ -175,6 +175,9 @@ That `if:` condition is a convenience, not a security boundary: for
 a fork PR can delete the condition. What actually keeps untrusted code off
 the self-hosted runners is that only collaborators can open PRs and that
 fork-PR workflows need owner approval (both enforced by `pr_policy.tf`).
+So never approve a fork PR's workflows on these repositories: approving runs
+the PR's own workflow files on the self-hosted runners. Review an outside
+contribution as a diff, and bring it over on a branch of the repository.
 
 It receives `contents: read` and `id-token: write`, assumes a dedicated
 read-only AWS role, initializes the real backend, and runs:
