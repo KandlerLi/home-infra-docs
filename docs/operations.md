@@ -63,6 +63,10 @@ flow.
 - **Ansible** ([`home-infra`](https://github.com/KandlerLi/home-infra)): `scripts/roll-out.sh` (homeserver,
   `site.yml`) and `scripts/roll-out-k3s.sh` (k3s VMs, `k3s.yml`) run the
   tests, a dry run and the real apply with `--ask-become-pass`.
+- **After merging a PR** in those repos or [`fritzbox`](https://github.com/KandlerLi/fritzbox):
+  `scripts/update.sh` switches to a fresh `main` and runs the roll-out script
+  (`plan`/`apply`; in `home-infra` `dry-run`/`apply` plus the venv and
+  collections, `apply k3s` for `k3s.yml`).
 
 ## DNS
 
