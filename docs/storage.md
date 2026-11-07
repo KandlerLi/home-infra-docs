@@ -12,7 +12,6 @@ status: [`current-state.md`](current-state.md).
 ├── downloads/         qBittorrent downloads; NFS to k3s; mounted into Nextcloud
 ├── deluge-config/     qBittorrent state (qBittorrent/), old Deluge files; NFS to k3s
 ├── paperless-media/   Paperless documents; NFS to k3s
-├── k3s/               previous k3s VM disks, rollback until removed (tracker #47)
 └── blocky/            leftover data of the stopped Docker Blocky
 /mnt/red-hdd           ext4, 1.8 TB, backups only   root:root 0755
 ├── borg/              Nextcloud AIO Borg repository
