@@ -37,3 +37,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0025](0025-fritzbox-wireguard-admin-vpn.md) | Accepted | FRITZ!Box built-in WireGuard for admin access from outside |
 | [0026](0026-qbittorrent-replaces-deluge.md) | Accepted | qBittorrent replaces Deluge, so `apps` can enforce PodSecurity `restricted` |
 | [0027](0027-ci-runners-autoscale-with-arc.md) | Accepted | CI runners autoscale with ARC runner scale sets |
+| [0028](0028-vaultwarden-public-without-forward-auth.md) | Proposed | Vaultwarden on k3s, its client API public without Authelia forward-auth |
