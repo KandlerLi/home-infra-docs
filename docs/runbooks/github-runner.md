@@ -23,7 +23,7 @@ short-lived registration token internally. See the private task list's
 
 **Since 2026-11-01 the runners are ARC scale sets**, one per repository
 with one Pod per job ([ADR 0027](../adr/0027-ci-runners-autoscale-with-arc.md),
-`k3s-bootstrap`'s README, "Runner design"); the per-repository
+[`k3s-bootstrap`'s docs](https://github.com/KandlerLi/k3s-bootstrap/blob/main/docs/README.md), "Runner design"); the per-repository
 Deployments described above are gone.
 
 There's no dedicated operate/apply runbook for the current shape —
