@@ -27,6 +27,7 @@ flowchart TB
         bulwark["Bulwark<br/>[Container]<br/>Webmail"]
         paperless["Paperless-ngx<br/>[Container]<br/>Document archive with OCR"]
         paperlessdb[("Paperless DB<br/>[Container: PostgreSQL + Redis]")]
+        vaultwarden["Vaultwarden<br/>[Container]<br/>Password manager, SQLite"]
         other["qBittorrent, landing page,<br/>Headlamp, sankey_export<br/>[Containers]"]
     end
 
@@ -42,7 +43,7 @@ flowchart TB
     julian -->|"HTTPS"| traefik
     julian -->|"SMTP/IMAP"| stalwart
     traefik -->|"Forward-auth check"| authelia
-    traefik --> owui & agent & grafana & bulwark & paperless & other & aio & stalwart
+    traefik --> owui & agent & grafana & bulwark & paperless & vaultwarden & other & aio & stalwart
     owui -->|"OpenAI-compatible chat"| agent
     agent -->|"Unix socket"| nctools
     agent -->|"HTTP 192.168.101.1:8095"| hometools
@@ -51,6 +52,7 @@ flowchart TB
     bulwark -->|"JMAP"| stalwart
     stalwart -->|"Outbound relay"| ses
     owui & grafana & paperless & bulwark -->|"OIDC login"| authelia
+    vaultwarden -->|"OIDC via Traefik ClusterIP"| traefik
     blocky --> blockydb
     paperless --> paperlessdb
     prometheus -->|"Alerts"| alertmanager
@@ -66,7 +68,7 @@ flowchart TB
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class julian person
     class anthropic,ses external
-    class traefik,authelia,owui,agent,nctools,grafana,alertmanager,blocky,stalwart,bulwark,paperless,other,aio,hometools,prometheus,ntfy container
+    class traefik,authelia,owui,agent,nctools,grafana,alertmanager,blocky,stalwart,bulwark,paperless,vaultwarden,other,aio,hometools,prometheus,ntfy container
     class blockydb,paperlessdb,black,red datastore
 ```
 

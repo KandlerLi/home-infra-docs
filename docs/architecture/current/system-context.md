@@ -7,7 +7,7 @@
 ```mermaid
 flowchart LR
     julian["Julian<br/>[Person]<br/>Uses the services, operates and changes the infrastructure"]
-    clients["Remote clients<br/>[External Software System]<br/>Browsers, Nextcloud/mail/Paperless apps, WebDAV"]
+    clients["Remote clients<br/>[External Software System]<br/>Browsers, Nextcloud/mail/Paperless/Bitwarden apps, WebDAV"]
     mailers["Other mail servers<br/>[External Software System]<br/>Deliver mail to jkandler.de"]
 
     home["Home Infrastructure<br/>[Software System]<br/>Private cloud, mail, documents, AI assistant, DNS filtering, monitoring"]

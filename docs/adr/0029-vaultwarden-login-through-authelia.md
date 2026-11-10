@@ -1,9 +1,9 @@
 # ADR 0029: Vaultwarden logs in through Authelia only (SSO)
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-10
 - Amends: [ADR 0028](0028-vaultwarden-public-without-forward-auth.md)
-- Deployment status: not deployed (`k3s-apps#161`, secret container `secrets-manager#47`)
+- Deployment status: live since 2026-11-10 (`k3s-apps#161`, secret container `secrets-manager#47`, CI and operator read access `repo-infra#66`, `terraform-state#31`); verified from outside: a password grant is rejected with "SSO sign-in is required"
 
 ## Context
 
