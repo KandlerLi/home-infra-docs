@@ -38,3 +38,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0026](0026-qbittorrent-replaces-deluge.md) | Accepted | qBittorrent replaces Deluge, so `apps` can enforce PodSecurity `restricted` |
 | [0027](0027-ci-runners-autoscale-with-arc.md) | Accepted | CI runners autoscale with ARC runner scale sets |
 | [0028](0028-vaultwarden-public-without-forward-auth.md) | Proposed | Vaultwarden on k3s, its client API public without Authelia forward-auth |
+| [0029](0029-vaultwarden-login-through-authelia.md) | Proposed | Vaultwarden logs in through Authelia only (SSO), amends 0028 |
