@@ -197,7 +197,7 @@ outright once `nextcloud_tools` moved to a k3s-native replacement — see
 **generated**, not hand-edited: `scripts/sync_github_runner_repositories.py`
 reads `repo-infra`'s `config.yml` and writes it from every repository entry
 with `runner: true`. Regenerate it after changing `config.yml`, review the
-diff, and commit — see `repo-infra/README.md`'s "Adding a repository with a
+diff, and commit — see [`repo-infra/docs/README.md`](https://github.com/KandlerLi/repo-infra/blob/main/docs/README.md)'s "Adding a repository with a
 self-hosted GitHub Actions runner" section.
 
 Important paths (verified against the repo 2026-09-16 -- the

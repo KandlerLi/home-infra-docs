@@ -265,7 +265,7 @@ own SQLite storage bug (then tracked in the private task list, closed 2026-09-16
 forward-auth held stable for several more days with no recurrence,
 the rollback stopped earning its keep. `home-infra/authelia` is
 deliberately last.
-[`secrets-manager/README.md`](https://github.com/KandlerLi/secrets-manager/blob/main/README.md) carries the live migration-status
+[`secrets-manager/docs/README.md`](https://github.com/KandlerLi/secrets-manager/blob/main/docs/README.md) carries the live migration-status
 table.
 
 `k3s_ingress_acme_dns01_*`'s value was also rotated end-to-end the same
@@ -582,7 +582,7 @@ considered having it grant `julian`'s own Secrets Manager access
 directly, which would have shared those two roots' genuine
 self-escalation risk. That plan changed before anything was built:
 `julian`'s grant stayed in `terraform-state/operator.tf` instead (this
-repo's own README, "IAM grants live in terraform-state, not here"),
+repo's [own docs](https://github.com/KandlerLi/secrets-manager/blob/main/docs/README.md), "IAM grants live in terraform-state, not here"),
 but the "never CI" categorization never got revisited once the reason
 for it no longer applied. Asked directly whether the same automation
 `k3s-apps` has could extend here, the actual risk turned out to be

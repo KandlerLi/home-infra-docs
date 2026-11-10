@@ -6,9 +6,9 @@ writeups). Every `aws_secretsmanager_secret` container resource has
 since migrated out of [`terraform-state`](https://github.com/KandlerLi/terraform-state) (that root's own
 `secrets_manager.tf` is deleted, the campaign closed out 2026-09-12)
 into `[`secrets-manager`](https://github.com/KandlerLi/secrets-manager)/` (a self-contained module dir per
-secret, `secrets/<repo>/<service>/`) — see that repo's own README for
+secret, `secrets/<repo>/<service>/`) — see [that repo's docs](https://github.com/KandlerLi/secrets-manager/blob/main/docs/README.md) for
 the migration-status table; each secret's own `README.md` there
-documents its keys, consumers, and rotation procedure. [`home-infra`](https://github.com/KandlerLi/home-infra)'s own README.md ("First apply" section)
+documents its keys, consumers, and rotation procedure. [`home-infra`'s docs](https://github.com/KandlerLi/home-infra/blob/main/docs/README.md) ("Usage" section)
 covers a plain *edit* -- this covers what rotating each kind of value
 actually involves, and whether a given secret still belongs in Secrets
 Manager at all. (`security-and-secrets.md` is not a reliable companion
@@ -288,7 +288,7 @@ unattended" problem the rest of this section covers below. Rotation
 itself still stays manual; this only makes staleness visible instead
 of silent. Only lists secrets with a genuine calendar-driven deadline
 (right now: `k3s-apps/ghcr-pull-token`'s own GitHub-enforced 90-day
-classic-PAT expiry) -- see that repo's own README.md for the full
+classic-PAT expiry) -- see [that repo's docs](https://github.com/KandlerLi/secrets-manager/blob/main/docs/README.md) for the full
 mechanism and how to add another secret to the list.
 
 ## Automated rotation -- reality check before building it

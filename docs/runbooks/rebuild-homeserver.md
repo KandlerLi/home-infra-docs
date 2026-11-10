@@ -30,7 +30,7 @@ restorable on 2026-10-26; Stalwart mail still has no backup outside the VM.
 
 1. Install Debian 13 on the SSD, create user `julian`, enable SSH.
 2. On the laptop: clone [`home-infra`](https://github.com/KandlerLi/home-infra), set up its venv as in its
-   README ("First apply"), log in to AWS, check `ansible home_servers -m
+   [docs](https://github.com/KandlerLi/home-infra/blob/main/docs/README.md) ("Prerequisites"), log in to AWS, check `ansible home_servers -m
    ansible.builtin.ping`.
 3. Apply `site.yml` (`scripts/roll-out.sh`). The `storage` role mounts both
    disks by UUID; verify with `findmnt /mnt/black-hdd /mnt/red-hdd` and a
