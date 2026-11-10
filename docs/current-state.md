@@ -97,6 +97,9 @@ Admin VPN: the FRITZ!Box's built-in WireGuard (ADR 0025,
 
 All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), each app module's
 `ingress_routes`). "Forward-auth" = Authelia, MFA-gated, before the app.
+Traefik sees real client IPs since 2026-11-09 (`ingress-svc` with
+`externalTrafficPolicy: Local`, `k3s-apps#157`), so rate limits are per
+client. It relies on Traefik staying on `k3s-node-1`, the DNAT target.
 
 | Hostname | Service | Auth at the edge |
 | --- | --- | --- |
@@ -113,12 +116,14 @@ All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), 
 | `mail.jkandler.de` | Bulwark webmail | forward-auth; Authelia SSO into the mailbox |
 | `stalwart.jkandler.de` | Stalwart | protocol paths (JMAP, CalDAV/CardDAV): none, Stalwart's own auth; `/admin`, `/account` and the management API: forward-auth |
 | `docs.jkandler.de` | Paperless-ngx | none; its own Authelia OIDC login, API by token |
+| `vault.jkandler.de` `/api/`, `/identity/`, `/notifications/hub` | Vaultwarden client API (ADR 0028, 0029) | none; login only through Authelia OIDC (`SSO_ONLY`, `julian_only`), password grant rejected |
+| `vault.jkandler.de` (rest) | Vaultwarden web vault | forward-auth; `/admin` unrouted (404) |
 
 ### DNS (Route 53)
 
 - [`dyndns`](https://github.com/KandlerLi/dyndns): the apex `jkandler.de` A record (dynamic, updated from the
   homeserver) and CNAMEs to it for `ai`, `auth`, `docs`, `grafana`,
-  `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vpn`.
+  `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vault`, `vpn`.
 - [`website`](https://github.com/KandlerLi/website): `www` alias A/AAAA to CloudFront, the only AAAA record.
 - [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`-all`), DMARC and the SES DKIM records.
 - Public IP values are never recorded in Git.
@@ -145,7 +150,7 @@ Workloads are Terraform-managed, never `kubectl apply`:
   `grafana`, `alertmanager`, `node_exporter`, `qbittorrent`, `landing_page`,
   `headlamp`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
-  `paperless`.
+  `paperless`, `vaultwarden`.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
   controller and one listener per repo in `arc-system`, one fresh runner
@@ -174,7 +179,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 namespace's modules create; it reaches nothing in `ci`. Volumes on
 `k3s-node-1` are static `Retain` PVs under `/var/lib/k3s-apps-data`
 (Blocky and Paperless Postgres, Paperless data, Bulwark, Traefik's ACME
-store, Stalwart's mail); only Authelia still uses dynamic local-path
+store, Stalwart's mail); Authelia and Vaultwarden use dynamic local-path
 claims.
 
 ## Applications
@@ -195,6 +200,12 @@ claims.
   set to Authelia OIDC). Runbook: `runbooks/stalwart-mail-server.md`.
 - **Paperless-ngx** (ADR 0023): media on `black-hdd`, nightly
   `document_exporter` to `red-hdd`, phone upload via the API with a token.
+- **Vaultwarden** (ADR 0028, 0029; live 2026-11-10): password manager for
+  website logins, test accounts only so far. Login only through Authelia
+  OIDC, master password decrypts client-side. Orgs, Sends, attachments,
+  icon downloads and push are off; NetworkPolicy allows only Traefik in,
+  and out only DNS and Traefik (`auth.jkandler.de` is pinned to Traefik's
+  ClusterIP). Infrastructure secrets stay in `pass`.
 - **Sankey export** (ADR 0015): k3s CronJob, every minute, renders the
   Finanzfluss workbook to a PNG in Nextcloud via the `sankey-export`
   account.
@@ -208,6 +219,7 @@ claims.
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |
+| Vaultwarden | none yet; required before real accounts move in | — |
 
 Backup age is alerted on via `backup-freshness` + Prometheus. Restorability
 is checked by `home-infra`'s `scripts/verify-backups.sh` (all checks passed

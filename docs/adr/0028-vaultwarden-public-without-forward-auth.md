@@ -1,8 +1,8 @@
 # ADR 0028: Vaultwarden on k3s, its client API public without Authelia forward-auth
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-10
-- Deployment status: not deployed. Prerequisite live: the ingress keeps the client IP (`k3s-apps#157`, confirmed 2026-11-10 with real public client addresses in Traefik's access log)
+- Deployment status: live since 2026-11-10 (`k3s-apps#160`, client API opened in `k3s-apps#162`); login changed by [ADR 0029](0029-vaultwarden-login-through-authelia.md). Prerequisite: the ingress keeps the client IP (`k3s-apps#157`, confirmed 2026-11-10 with real public client addresses in Traefik's access log)
 
 ## Context
 
