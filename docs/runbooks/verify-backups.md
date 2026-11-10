@@ -32,6 +32,7 @@ PASS/FAIL line per check:
 | `authelia-key` | the **current** storage encryption key decrypts it |
 | `paperless` | every exported original exists and matches the checksum in `manifest.json` |
 | `stalwart` | the newest tarball extracts and holds RocksDB's `CURRENT` and the generated config |
+| `vaultwarden` | the newest snapshot passes `PRAGMA integrity_check` and holds at least one user |
 | `borg` | the passphrase opens AIO's Borg repository and a file comes back intact from the newest archive |
 
 Secrets (Borg passphrase, Authelia key, sudo password) go to the homeserver

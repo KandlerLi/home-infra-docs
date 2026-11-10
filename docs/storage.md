@@ -17,7 +17,9 @@ status: [`current-state.md`](current-state.md).
 ├── borg/              Nextcloud AIO Borg repository
 ├── aux-backups/       aux-backup tarballs (Deluge config, Open WebUI data)
 ├── authelia-backup/   Authelia CronJob output; NFS to k3s
-└── paperless-export/  Paperless document_exporter output; NFS to k3s
+├── paperless-export/  Paperless document_exporter output; NFS to k3s
+├── stalwart-backup/   Stalwart CronJob tarballs; NFS to k3s
+└── vaultwarden-backup/ Vaultwarden CronJob SQLite snapshots; NFS to k3s
 /var/lib/open-webui    Open WebUI data (SQLite); NFS to k3s
 /var/lib/libvirt/k3s   qcow2 disks of k3s-node-1 and k3s-node-2 (system SSD)
 ```
