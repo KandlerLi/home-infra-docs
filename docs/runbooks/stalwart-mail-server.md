@@ -174,6 +174,13 @@ works against `/api/...` (provisioning/config); it does not grant
 mail-protocol login (IMAP/JMAP mail/SMTP) or the visual `/admin` UI
 itself.
 
+Stalwart holds exactly two API keys, both without expiry: `emergency`
+(this one) and `terraform` (AWS `k3s-apps/stalwart`, used by
+`k3s-apps`' Stalwart provider). Check with `x:ApiKey/get`
+(`"ids": null`); any other key has no known owner, so destroy it with
+`x:ApiKey/set` (`"destroy": ["<id>"]`), as was done with an unused
+`admin backup key` on 2026-11-11.
+
 **Getting the visual UI back while SSO is on** (only for settings
 that genuinely need it -- the toggle lives *inside* the UI, so with
 SSO active you have no session to flip it from; use the API key):
