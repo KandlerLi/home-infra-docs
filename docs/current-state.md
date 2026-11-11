@@ -17,7 +17,7 @@ on a single fact.
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, torrent downloads, Paperless media) |
-| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/` |
+| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `storage`, `authelia_backup`,
@@ -201,7 +201,7 @@ claims.
 - **Paperless-ngx** (ADR 0023): media on `black-hdd`, nightly
   `document_exporter` to `red-hdd`, phone upload via the API with a token.
 - **Vaultwarden** (ADR 0028, 0029; live 2026-11-10): password manager for
-  website logins, test accounts only so far. Login only through Authelia
+  website logins, test accounts only so far; nightly backup since 2026-11-10. Login only through Authelia
   OIDC, master password decrypts client-side. Orgs, Sends, attachments,
   icon downloads and push are off; NetworkPolicy allows only Traefik in,
   and out only DNS and Traefik (`auth.jkandler.de` is pinned to Traefik's
@@ -219,7 +219,7 @@ claims.
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |
-| Vaultwarden | none yet; required before real accounts move in | — |
+| Vaultwarden (database only) | k3s CronJob 04:15, online SQLite snapshot over NFS, 14-day retention | `/mnt/red-hdd/vaultwarden-backup` |
 
 Backup age is alerted on via `backup-freshness` + Prometheus. Restorability
 is checked by `home-infra`'s `scripts/verify-backups.sh` (all checks passed
