@@ -39,3 +39,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0027](0027-ci-runners-autoscale-with-arc.md) | Accepted | CI runners autoscale with ARC runner scale sets |
 | [0028](0028-vaultwarden-public-without-forward-auth.md) | Accepted | Vaultwarden on k3s, its client API public without Authelia forward-auth |
 | [0029](0029-vaultwarden-login-through-authelia.md) | Accepted | Vaultwarden logs in through Authelia only (SSO), amends 0028 |
+| [0030](0030-credentials-outside-secrets-manager.md) | Accepted | Credentials that can't live in Secrets Manager go into `pass` or onto paper |
