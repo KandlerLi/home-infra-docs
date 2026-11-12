@@ -15,7 +15,7 @@ status: [`current-state.md`](current-state.md).
 └── blocky/            leftover data of the stopped Docker Blocky
 /mnt/red-hdd           ext4, 1.8 TB, backups only   root:root 0755
 ├── borg/              Nextcloud AIO Borg repository
-├── aux-backups/       aux-backup tarballs (Deluge config, Open WebUI data)
+├── aux-backups/       aux-backup tarballs (qBittorrent config, Open WebUI data)
 ├── authelia-backup/   Authelia CronJob output; NFS to k3s
 ├── paperless-export/  Paperless document_exporter output; NFS to k3s
 ├── stalwart-backup/   Stalwart CronJob tarballs; NFS to k3s
