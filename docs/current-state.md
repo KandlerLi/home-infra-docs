@@ -215,7 +215,7 @@ claims.
 | What | How | Where |
 | --- | --- | --- |
 | Nextcloud (files + database) | AIO's built-in Borg, nightly (AIO schedule) | `/mnt/red-hdd/borg` |
-| torrent client config (`deluge-config`), Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
+| qBittorrent config (`deluge-config` directory), Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |
