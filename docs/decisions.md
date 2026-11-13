@@ -899,6 +899,9 @@ Decided 2026-11-01 while moving the runners to ARC
 
 ## Argo CD trial: core mode, one app
 
+Core mode was replaced by a public UI behind Authelia in
+[ADR 0031](adr/0031-argocd-ui-behind-authelia.md); the rest still holds.
+
 Julian wanted to try GitOps on one real workload without changing how
 the rest of `k3s-apps` is deployed. The landing page is stateless, has
 no secret and serves a real route, so it is the test case.

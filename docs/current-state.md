@@ -113,6 +113,7 @@ client. It relies on Traefik staying on `k3s-node-1`, the DNAT target.
 | `home.jkandler.de` | landing page | forward-auth |
 | `torrent.jkandler.de` | qBittorrent (replaced Deluge 2026-10-31) | forward-auth; qBittorrent's own login is skipped for the pod CIDR, and a NetworkPolicy admits only Traefik to its Web UI |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
+| `argo.jkandler.de` | Argo CD (ADR 0031) | forward-auth for `user:julian` only, then Argo CD's own OIDC login (`julian_only`) |
 | `mail.jkandler.de` | Bulwark webmail | forward-auth; Authelia SSO into the mailbox |
 | `stalwart.jkandler.de` | Stalwart | protocol paths (JMAP, CalDAV/CardDAV): none, Stalwart's own auth; `/admin`, `/account` and the management API: forward-auth |
 | `docs.jkandler.de` | Paperless-ngx | none; its own Authelia OIDC login, API by token |
@@ -122,7 +123,7 @@ client. It relies on Traefik staying on `k3s-node-1`, the DNAT target.
 ### DNS (Route 53)
 
 - [`dyndns`](https://github.com/KandlerLi/dyndns): the apex `jkandler.de` A record (dynamic, updated from the
-  homeserver) and CNAMEs to it for `ai`, `auth`, `docs`, `grafana`,
+  homeserver) and CNAMEs to it for `ai`, `argo`, `auth`, `docs`, `grafana`,
   `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vault`, `vpn`.
 - [`website`](https://github.com/KandlerLi/website): `www` alias A/AAAA to CloudFront, the only AAAA record.
 - [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`-all`), DMARC and the SES DKIM records.
@@ -163,7 +164,7 @@ landing page, which Argo CD deploys as a trial (see below):
   Blocky/Grafana for the `k3s-apps` runner), namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
   defining RBAC, and Argo CD (`argocd.tf`, see
-  [decisions](decisions.md#argo-cd-trial-core-mode-one-app)). In each runner Pod, dind is a native sidecar that
+  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). In each runner Pod, dind is a native sidecar that
   listens only on its Unix socket and retries dockerd in place, and the
   runner starts only once dind answers.
 
@@ -177,7 +178,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics |
 | `auth` | restricted | Authelia |
 | `apps` | restricted (from k3s-bootstrap#44) | every other `k3s-apps` workload, Traefik included |
-| `argocd` | restricted | Argo CD (core mode: controller, repo-server, Redis) |
+| `argocd` | restricted | Argo CD: controller, repo-server, server, Redis |
 | `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
 `k3s-apps-ci` has a Role per namespace with only the kinds that

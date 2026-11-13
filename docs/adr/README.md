@@ -40,3 +40,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0028](0028-vaultwarden-public-without-forward-auth.md) | Accepted | Vaultwarden on k3s, its client API public without Authelia forward-auth |
 | [0029](0029-vaultwarden-login-through-authelia.md) | Accepted | Vaultwarden logs in through Authelia only (SSO), amends 0028 |
 | [0030](0030-credentials-outside-secrets-manager.md) | Accepted | Credentials that can't live in Secrets Manager go into `pass` or onto paper |
+| [0031](0031-argocd-ui-behind-authelia.md) | Accepted | Argo CD's UI public on `argo.jkandler.de`, behind Authelia forward-auth and OIDC |
