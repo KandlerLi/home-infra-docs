@@ -28,7 +28,7 @@ flowchart TB
         paperless["Paperless-ngx<br/>[Container]<br/>Document archive with OCR"]
         paperlessdb[("Paperless DB<br/>[Container: PostgreSQL + Redis]")]
         vaultwarden["Vaultwarden<br/>[Container]<br/>Password manager, SQLite"]
-        other["qBittorrent, landing page,<br/>Headlamp, sankey_export<br/>[Containers]"]
+        other["qBittorrent, landing page,<br/>Headlamp, Argo CD, sankey_export<br/>[Containers]"]
     end
 
     subgraph host["Homeserver (Debian)"]

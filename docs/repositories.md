@@ -251,10 +251,12 @@ Ansible-managed production services — services are cut over to it one
 at a time, each proven live first, matching the user's explicit
 "not all at once" goal.
 
-- `landing_page.tf` — ConfigMap/Deployment/Service/Ingress serving
+- `argocd/landing-page/` — ConfigMap/Deployment/Service serving
   `home.jkandler.de`, replacing the now fully-deleted `home-infra`
   `landing_page` role. **Cut over and confirmed live** 2026-08-29 (real
-  domain, real TLS, real auth, checked in the browser).
+  domain, real TLS, real auth, checked in the browser). Deployed by
+  Argo CD since the trial in
+  [decisions](decisions.md#argo-cd-trial-core-mode-one-app); its route stays in Terraform.
 - `deluge_storage.tf`/`deluge_secret.tf`/`deluge.tf` — two PV/PVC pairs
   bound to `nfs_server`'s NFS exports, a Secret seeding Deluge's own
   `web.conf` login (hardcoded blank/no password now -- `deluge_web_password`
