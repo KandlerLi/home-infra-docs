@@ -142,15 +142,18 @@ from a checksum-verified release binary:
 | `k3s-node-1` | `192.168.101.10` | 3 vCPU, 10 GiB | control plane, all app workloads |
 | `k3s-node-2` | `192.168.101.11` | 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
 
-Workloads are Terraform-managed, never `kubectl apply`:
+Workloads are Terraform-managed, never `kubectl apply`, except the
+landing page, which Argo CD deploys as a trial (see below):
 
 - **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)** (CI-applied on merge): `ingress` (Traefik, file
   provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), `open_webui`,
-  `grafana`, `alertmanager`, `node_exporter`, `qbittorrent`, `landing_page`,
+  `grafana`, `alertmanager`, `node_exporter`, `qbittorrent`,
   `headlamp`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
-  `paperless`, `vaultwarden`.
+  `paperless`, `vaultwarden`. Its `argocd/landing-page` holds the
+  landing page's Kustomize manifests, which Argo CD syncs from `main`;
+  the `home.jkandler.de` route stays in Terraform.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
   controller and one listener per repo in `arc-system`, one fresh runner
@@ -159,7 +162,8 @@ Workloads are Terraform-managed, never `kubectl apply`:
   public internet, plus the Kubernetes and Stalwart APIs and
   Blocky/Grafana for the `k3s-apps` runner), namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
-  defining RBAC. In each runner Pod, dind is a native sidecar that
+  defining RBAC, and Argo CD (`argocd.tf`, see
+  [decisions](decisions.md#argo-cd-trial-core-mode-one-app)). In each runner Pod, dind is a native sidecar that
   listens only on its Unix socket and retries dockerd in place, and the
   runner starts only once dind answers.
 
@@ -173,6 +177,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics |
 | `auth` | restricted | Authelia |
 | `apps` | restricted (from k3s-bootstrap#44) | every other `k3s-apps` workload, Traefik included |
+| `argocd` | restricted | Argo CD (core mode: controller, repo-server, Redis) |
 | `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
 `k3s-apps-ci` has a Role per namespace with only the kinds that

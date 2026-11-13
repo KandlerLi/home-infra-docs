@@ -896,3 +896,28 @@ Decided 2026-11-01 while moving the runners to ARC
   own registry config, and ghcr.io answered the laptop's stale `ghcr.io`
   login with 403, even for the public ARC charts. `roll-out.sh` points
   `DOCKER_CONFIG` at an empty directory (KandlerLi/k3s-bootstrap#46).
+
+## Argo CD trial: core mode, one app
+
+Julian wanted to try GitOps on one real workload without changing how
+the rest of `k3s-apps` is deployed. The landing page is stateless, has
+no secret and serves a real route, so it is the test case.
+
+- **Core mode in `k3s-bootstrap`:** no API server, Dex or local admin,
+  so there is no login, password or public route; the UI runs on the
+  laptop through the kubeconfig (`argocd admin dashboard`). Installing
+  Argo CD grants RBAC, which only `k3s-bootstrap` may do.
+- **Narrow scope:** no ClusterRoles; the controller sees only `apps`, only
+  ConfigMaps, Services and Deployments, and may change or delete only
+  the landing page's three objects by name. A new app means widening
+  that Role in `k3s-bootstrap` first.
+- **Same gate:** Argo CD syncs `main` of the public `k3s-apps`
+  repository automatically, so the reviewed merge stays the only gate,
+  as with CI's Terraform apply, and no repository credential exists.
+- **Adoption, not recreation:** a `removed { destroy = false }` block
+  took the module out of Terraform state, and Argo CD adopted the live
+  objects with the same names.
+- **Not taken over:** secrets, the ingress route and stateful apps stay
+  in Terraform. Moving more would need the Secrets Manager values in the
+  cluster (External Secrets Operator) and a second tool for the Stalwart
+  settings, which is the cost that kept the rest on Terraform.
