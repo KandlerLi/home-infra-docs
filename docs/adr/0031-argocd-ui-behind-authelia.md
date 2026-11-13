@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-13
-- Deployment status: not deployed yet; supersedes the "core mode" part of
+- Deployment status: live since 2026-11-13 (`k3s-bootstrap#55`, `k3s-apps#165`); supersedes the "core mode" part of
   [decisions](../decisions.md#argo-cd-trial-core-mode-one-app)
 
 ## Context

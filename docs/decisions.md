@@ -901,6 +901,13 @@ Decided 2026-11-01 while moving the runners to ARC
 
 Core mode was replaced by a public UI behind Authelia in
 [ADR 0031](adr/0031-argocd-ui-behind-authelia.md); the rest still holds.
+On 2026-11-13 Headlamp and qBittorrent followed: the only other modules
+without a secret. qBittorrent is the first with state, so its two NFS
+PVCs carry `Prune=false,Delete=false` and Argo CD's Role grants no
+`create` or `delete` on PVCs at all. node_exporter stays on Terraform:
+write access in its privileged namespace would let Argo CD start
+privileged Pods. Apps with secrets would first need the Secrets Manager
+values in the cluster.
 
 Julian wanted to try GitOps on one real workload without changing how
 the rest of `k3s-apps` is deployed. The landing page is stateless, has
