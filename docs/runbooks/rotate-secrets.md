@@ -267,7 +267,7 @@ material to regenerate.
 
 Grafana's native login form *and* HTTP Basic Auth are both disabled at
 the protocol level (`GF_AUTH_DISABLE_LOGIN_FORM` +
-`GF_AUTH_BASIC_ENABLED=false` in [`k3s-apps/modules/grafana`](https://github.com/KandlerLi/k3s-apps/blob/main/modules/grafana)) --
+`GF_AUTH_BASIC_ENABLED=false` in [`k3s-apps/argocd/grafana`](https://github.com/KandlerLi/k3s-apps/blob/main/argocd/grafana)) --
 Authelia OIDC is the only way in -- so this value could not be rotated
 into a *working* credential; there was no login path left that accepts
 it. It was **removed** from the `home-infra/grafana` group's JSON:

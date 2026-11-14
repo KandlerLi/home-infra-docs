@@ -94,7 +94,7 @@ of a backup: TOTP login worked afterwards.
 
 ## Restore: Stalwart (mail)
 
-`stalwart-backup` (`k3s-apps`, `modules/stalwart/backup.tf`) runs at
+`stalwart-backup` (`k3s-apps`, `argocd/stalwart/backup-cronjob.yaml`) runs at
 03:15: it scales Stalwart to 0, tars its whole volume (`etc/` with the
 generated config, `data/` with the RocksDB store) to
 `/mnt/red-hdd/stalwart-backup/stalwart-<YYYYmmdd-HHMMSS>.tar.gz` and
