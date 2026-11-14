@@ -12,18 +12,18 @@ not silently do the wrong thing.
 
 The service itself is still live — it's just deployed differently now:
 `nextcloud_tools_service.py` runs as a vendored sidecar inside
-[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/home_agent` Deployment, alongside
+[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `argocd/home-agent` Deployment (deployed by Argo CD), alongside
 `home_agent` itself, sharing a Unix socket through an `emptyDir`. It
 reaches Nextcloud AIO's Apache over the k3s VM's isolated network
 (`192.168.101.1:11000`) rather than loopback. There's no dedicated
-deploy runbook for this shape — it's deployed the same way every other
-[`k3s-apps`](https://github.com/KandlerLi/k3s-apps) module is, through that repo's own normal Terraform
-apply (CI on merge to `main`).
+deploy runbook for this shape — a merge to `k3s-apps`' `main` deploys it:
+Argo CD syncs the Deployment and the source ConfigMap, and CI's Terraform
+apply keeps the Secrets in `modules/home_agent`.
 
 See [`history.md`](../history.md)'s own "k3s
 learning cluster" section for the full cutover history and current
-architecture, and [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' own `modules/home_agent/` for the
-live Terraform.
+architecture, and [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `argocd/home-agent/` (workload) and
+`modules/home_agent/` (Secrets) for the live configuration.
 
 The security-boundary reasoning this runbook originally walked through
 (ADR 0008's own scope, the dedicated Nextcloud account/share model)
