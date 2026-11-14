@@ -12,7 +12,7 @@ on a single fact.
 | Item | State |
 | --- | --- |
 | Host | `homeserver`, `192.168.178.100` (Ansible inventory `home.yml`, user `julian`) |
-| Hardware | Fujitsu ESPRIMO P900, Intel Core i5-2400 (4 cores/4 threads), no GPU |
+| Hardware | Fujitsu ESPRIMO P900, Intel Core i7-2600 (4 cores/8 threads, since 2026-11-14, tracker #57; i5-2400 before), no GPU |
 | OS | Debian 13 (`trixie`), kernel 6.12 (checked 2026-10-11) |
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
@@ -141,7 +141,7 @@ from a checksum-verified release binary:
 | Node | Address | Size | Role |
 | --- | --- | --- | --- |
 | `k3s-node-1` | `192.168.101.10` | 3 vCPU, 10 GiB | control plane, all app workloads |
-| `k3s-node-2` | `192.168.101.11` | 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
+| `k3s-node-2` | `192.168.101.11` | 4 vCPU, 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
 
 Workloads are declared in Git, never `kubectl apply` by hand:
 
