@@ -8,7 +8,8 @@ local-apply control-plane roots, and the homeserver/k3s workloads.
 | Project | Group | Git status | Responsibility |
 | --- | --- | --- | --- |
 | [`home-infra`](https://github.com/KandlerLi/home-infra) | workloads | Git, `main`, public, standard branch protection (2026-09-13) | Ansible and homeserver services |
-| [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) | workloads | Git, `main`, aligned with `origin/main` | Terraform (`kubernetes` provider) workloads for the personal k3s learning cluster |
+| [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) | workloads | Git, `main`, aligned with `origin/main` | The k3s cluster's workloads: manifests under `argocd/` for Argo CD, plus Terraform for their Secrets |
+| [`stalwart-config`](https://github.com/KandlerLi/stalwart-config) | workloads | Git, `main`, public, standard branch protection (2026-11-14), CI applied on its in-cluster runner | Stalwart's runtime settings through its management API (Terraform, `tahacodes/stalwart`), split out of `k3s-apps` |
 | [`dyndns`](https://github.com/KandlerLi/dyndns) | AWS | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
 | [`website`](https://github.com/KandlerLi/website) | AWS | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
 | [`aws-budget`](https://github.com/KandlerLi/aws-budget) | AWS | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
