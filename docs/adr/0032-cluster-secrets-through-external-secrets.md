@@ -1,8 +1,8 @@
 # ADR 0032: Cluster Secrets through the External Secrets Operator, authenticated by OIDC federation
 
-- Status: Proposed
+- Status: Accepted (2026-11-14)
 - Date: 2026-11-14
-- Deployment status: not deployed
+- Deployment status: in progress; federation in `terraform-state` first
 
 ## Context
 
@@ -129,9 +129,13 @@ the leftover Stalwart provider all go.
 - **A rebuilt cluster** depends on the federation: k3s must come up with
   the public issuer before ESO can fetch anything.
 
-## Open points for review
+## Decided in review (2026-11-14)
 
-- Issuer on the default `*.cloudfront.net` name (proposed) or a
-  dedicated subdomain with its own certificate.
-- Refresh interval for ExternalSecrets (proposed: 1 h, plus a forced
-  refresh after every rotation).
+- **Issuer on the default `*.cloudfront.net` name.** CloudFront costs
+  nothing at this volume (the always-free tier covers it). A dedicated
+  subdomain would still need CloudFront in front of the private bucket, so
+  it has the same outage behaviour, plus a certificate and a DNS record in
+  the trust root. If CloudFront is unreachable and AWS has no cached keys,
+  ESO can't refresh; existing Kubernetes Secrets stay and Pods keep
+  running, only a rotation in that window waits.
+- **Refresh interval 1 h**, plus a forced refresh after every rotation.
