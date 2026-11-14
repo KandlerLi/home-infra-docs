@@ -144,7 +144,8 @@ from a checksum-verified release binary:
 | `k3s-node-2` | `192.168.101.11` | 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
 
 Workloads are Terraform-managed, never `kubectl apply`, except the
-landing page, Headlamp and qBittorrent, which Argo CD deploys (see below):
+workloads Argo CD deploys: the landing page, Headlamp, qBittorrent and
+Bulwark (see below):
 
 - **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)** (CI-applied on merge): `ingress` (Traefik, file
   provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
@@ -152,8 +153,9 @@ landing page, Headlamp and qBittorrent, which Argo CD deploys (see below):
   `grafana`, `alertmanager`, `node_exporter`, `sankey_export` (CronJob), `stalwart`,
   `stalwart_config` (Stalwart settings via its API), `bulwark`,
   `paperless`, `vaultwarden`. Its `argocd/` holds Kustomize manifests
-  for the landing page, Headlamp and qBittorrent, which Argo CD syncs
-  from `main`; their routes stay in Terraform.
+  for the landing page, Headlamp, qBittorrent and Bulwark, which Argo CD
+  syncs from `main`; their routes stay in Terraform, and so do Bulwark's
+  Secrets and PVC.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
   controller and one listener per repo in `arc-system`, one fresh runner
