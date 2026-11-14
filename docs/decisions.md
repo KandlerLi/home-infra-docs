@@ -906,8 +906,18 @@ without a secret. qBittorrent is the first with state, so its two NFS
 PVCs carry `Prune=false,Delete=false` and Argo CD's Role grants no
 `create` or `delete` on PVCs at all. node_exporter stays on Terraform:
 write access in its privileged namespace would let Argo CD start
-privileged Pods. Apps with secrets would first need the Secrets Manager
-values in the cluster.
+privileged Pods.
+
+From Bulwark on (2026-11-14), apps with Secrets move one at a time, and
+**Terraform keeps their Secrets and PVCs**: Argo CD gets the Deployment,
+Service and ConfigMaps only. Terraform also keeps restarting the Pod on
+a rotation, by setting the `checksum/*` Pod-template annotations on the
+Argo CD-managed Deployment through `kubernetes_annotations` with its own
+field manager; Argo CD's manifests leave those fields out. Chosen over
+the External Secrets Operator, which would need a new trust path from
+the cluster to AWS (OIDC federation) plus Reloader reading every Secret
+in `apps`. Authelia, the ingress, Blocky, `stalwart_config` and
+node_exporter stay on Terraform entirely.
 
 Julian wanted to try GitOps on one real workload without changing how
 the rest of `k3s-apps` is deployed. The landing page is stateless, has
