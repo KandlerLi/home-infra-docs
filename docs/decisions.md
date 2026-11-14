@@ -917,7 +917,9 @@ field manager; Argo CD's manifests leave those fields out. Chosen over
 the External Secrets Operator, which would need a new trust path from
 the cluster to AWS (OIDC federation) plus Reloader reading every Secret
 in `apps`. Authelia, the ingress, Blocky, `stalwart_config` and
-node_exporter stay on Terraform entirely.
+node_exporter stay on Terraform entirely. Stalwart's manifest has no
+`replicas` field, so self-heal never undoes the nightly backup's scale
+to 0.
 
 Julian wanted to try GitOps on one real workload without changing how
 the rest of `k3s-apps` is deployed. The landing page is stateless, has

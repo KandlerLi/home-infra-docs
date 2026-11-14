@@ -5,7 +5,7 @@ not a Terraform change — see "Why this isn't in Terraform" below for why, and
 re-read this runbook if it ever needs to be redone.
 
 Applies to the current k3s deployment of Open WebUI
-([`k3s-apps/modules/open_webui`](https://github.com/KandlerLi/k3s-apps/blob/main/modules/open_webui), `kubernetes_deployment_v1.open_webui`,
+([`k3s-apps/argocd/open-webui`](https://github.com/KandlerLi/k3s-apps/blob/main/argocd/open-webui), the `open-webui` Deployment Argo CD deploys,
 pod label `app=open-webui`) — not the older homeserver-Docker deployment
 described in `publish-open-webui.md`, which this cluster deployment
 superseded.
@@ -17,7 +17,7 @@ session (MFA required to get one). Once past it, Open WebUI's own native
 email/password login was a second, completely independent credential path
 that skipped MFA entirely — a real bypass, not a theoretical one.
 
-`modules/open_webui/main.tf` sets three env vars meant to close this:
+`argocd/open-webui/deployment.yaml` sets three env vars meant to close this:
 `ENABLE_LOGIN_FORM=False` (hide the UI), `ENABLE_PASSWORD_AUTH=False` (the
 actual protocol-level switch — blocks password auth at the backend
 regardless of UI), `ENABLE_SIGNUP=False` (blocks new native accounts). These
