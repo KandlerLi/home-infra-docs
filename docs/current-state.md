@@ -143,29 +143,29 @@ from a checksum-verified release binary:
 | `k3s-node-1` | `192.168.101.10` | 3 vCPU, 10 GiB | control plane, all app workloads |
 | `k3s-node-2` | `192.168.101.11` | 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
 
-Workloads are Terraform-managed, never `kubectl apply`, except the
-workloads Argo CD deploys: every app except Authelia, the ingress,
-Blocky, `stalwart_config` and node_exporter (see below):
+Workloads are declared in Git, never `kubectl apply` by hand:
 
-- **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)** (CI-applied on merge): `ingress` (Traefik, file
-  provider only, ACME via DNS-01), `authelia`, `blocky` (+ query-log
-  Postgres), `home_agent` (+ `nextcloud_tools` sidecar), `open_webui`,
-  `grafana`, `alertmanager`, `node_exporter`, `sankey_export` (CronJob), `stalwart`,
-  `stalwart_config` (Stalwart settings via its API), `bulwark`,
-  `paperless`, `vaultwarden`. Its `argocd/` holds Kustomize manifests
-  for every other app (Open WebUI, sankey_export, Alertmanager, Grafana,
-  Vaultwarden, Paperless and Stalwart included), which Argo CD syncs
-  from `main` into `apps` and `monitoring`; their routes, Secrets and
-  PVCs stay in Terraform.
+- **[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)**: every app's manifests under `argocd/`, which Argo
+  CD syncs from `main` into `apps`, `auth` and `monitoring` (2026-11-14):
+  the ingress (Traefik as a small Helm chart, every route in its
+  `values.yaml`, ACME via DNS-01), Authelia, Blocky (+ query-log
+  Postgres), `home_agent` (+ `nextcloud_tools` sidecar), Open WebUI,
+  Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
+  Stalwart, Bulwark, Paperless, Vaultwarden, qBittorrent, Headlamp and
+  the landing page, PVCs included. Its Terraform (CI-applied on merge)
+  keeps only the Secrets and the Pods' `checksum/*` annotations.
+- **[`stalwart-config`](https://github.com/KandlerLi/stalwart-config)** (CI-applied on merge, on its in-cluster
+  runner): Stalwart's runtime settings through its management API.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
   GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
   controller and one listener per repo in `arc-system`, one fresh runner
   Pod per job in `ci` on `k3s-node-2`, none at idle; GitHub App
   registration; NetworkPolicy: no inbound, outbound only DNS and the
   public internet, plus the Kubernetes and Stalwart APIs and
-  Blocky/Grafana for the `k3s-apps` runner), namespaces with their Pod
+  Blocky/Grafana for the `k3s-apps` runner, and only the Stalwart API
+  for the `stalwart-config` runner), namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
-  defining RBAC, and Argo CD (`argocd.tf`, see
+  defining RBAC, the privileged node-exporter DaemonSet, and Argo CD (`argocd.tf`, see
   [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). In each runner Pod, dind is a native sidecar that
   listens only on its Unix socket and retries dockerd in place, and the
   runner starts only once dind answers.
@@ -204,7 +204,7 @@ claims.
 - **Mail**: Stalwart for `info@`/`julian@jkandler.de`; inbound on 25,
   outbound relayed through SES (eu-central-1, production access),
   IMAP 993 / submission 465 with app passwords. Settings are code in
-  `modules/stalwart_config` except the authentication directory (manual,
+  the `stalwart-config` repo except the authentication directory (manual,
   set to Authelia OIDC). Runbook: `runbooks/stalwart-mail-server.md`.
 - **Paperless-ngx** (ADR 0023): media on `black-hdd`, nightly
   `document_exporter` to `red-hdd`, phone upload via the API with a token.
