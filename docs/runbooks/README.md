@@ -20,6 +20,7 @@ need Julian's review; prefer read-only checks first.
 | [Open WebUI voice transcription](enable-openai-voice-transcription.md) | The Admin Panel audio settings (deploy part is historical) |
 | [Harden Open WebUI login](harden-open-webui-login.md) | Native login form reappears despite OIDC-only settings |
 | [Fix Open WebUI's stale backend URL](fix-open-webui-stale-backend-url.md) | No model selectable in Open WebUI |
+| [Retire a k3s app](retire-k3s-app.md) | Removing an Argo CD-deployed app everywhere, optionally with its data |
 | [Update this documentation](update-documentation.md) | After any change that alters what these docs say |
 
 ## Known issues
