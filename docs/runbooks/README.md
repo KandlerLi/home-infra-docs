@@ -18,6 +18,7 @@ need Julian's review; prefer read-only checks first.
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
 | [FRITZ!Box WireGuard VPN](fritzbox-wireguard-vpn.md) | Adding, checking or removing a VPN device (ADR 0025) |
 | [Open WebUI voice transcription](enable-openai-voice-transcription.md) | Speech-to-text setup, per-user language, live check |
+| [Retire a k3s app](retire-k3s-app.md) | Removing an Argo CD-deployed app everywhere, optionally with its data |
 | [Update this documentation](update-documentation.md) | After any change that alters what these docs say |
 
 ## Known issues

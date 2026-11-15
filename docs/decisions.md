@@ -981,6 +981,8 @@ for the image build. The state object stays in the bucket as an archive.
 
 ## qBittorrent retired
 
+The procedure, generalised: [Retire a k3s app](runbooks/retire-k3s-app.md).
+
 On 2026-11-15 qBittorrent went away completely (Julian's choice: never
 used), with its data: the downloads directory, its config and its
 `aux-backup` tarballs. The Nextcloud `Downloads` external storage went
@@ -992,15 +994,21 @@ are gone.
 - **Order matters.** Argo CD prunes only while the Application exists and
   its Role still names the objects, and automated sync won't prune an app
   down to nothing (`allowEmpty`). So `k3s-apps#201` removed everything
-  but the PVCs first; `k3s-bootstrap#83` then removes the Application
-  and the Role's names. Only then are the two PVCs deleted by hand (Argo
+  but the PVCs first; `k3s-bootstrap#83` then removed the Application
+  and the Role's names. Only then were the two PVCs deleted by hand (Argo
   CD never deletes PVCs, by design, and selfHeal would recreate them
-  while the Application exists), and a follow-up `k3s-bootstrap` PR
-  removes the NFS PVs, whose destroy would otherwise hang on
-  `pv-protection`. A last `k3s-apps` PR removes the leftover directory.
+  while the Application exists), and `k3s-bootstrap#84` removed the NFS
+  PVs, whose destroy would otherwise hang on `pv-protection`.
+  `k3s-apps#203` removed the leftover directory.
 - **Ansible doesn't undo what it created.** The `deluge` account, the two
   directories, Nextcloud's external-storage entry and the old tarballs
-  are removed by hand once, after `home-infra#153`.
+  were removed by hand once, after `home-infra#153`.
+- **AIO remembers `NEXTCLOUD_MOUNT`.** Dropping the variable from the
+  mastercontainer left the Nextcloud container bind-mounting the
+  downloads directory: AIO keeps the last value in its
+  `configuration.json` and overwrites it only when the variable is set.
+  `home-infra#154` sets it to `""` for good. Deleting the directory
+  before that would have kept Docker from starting the container.
 
 ## Open WebUI takes its settings from env only
 
