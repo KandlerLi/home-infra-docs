@@ -51,7 +51,7 @@ restorable on 2026-10-26; Stalwart mail still has no backup outside the VM.
    - Authelia (TOTP/WebAuthn registrations): `/mnt/red-hdd/authelia-backup`
    - Paperless: `document_exporter` output in `/mnt/red-hdd/paperless-export`
      (Paperless media itself is on `black-hdd`)
-   - Open WebUI data and Deluge config live on the host and are in
+   - Open WebUI data lives on the host and is in
      `/mnt/red-hdd/aux-backups`
    - Stalwart mail has no backup outside the VM.
 9. Check DNS (the FRITZ!Box keeps updating the apex record), certificates,

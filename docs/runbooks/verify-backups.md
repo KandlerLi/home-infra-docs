@@ -26,7 +26,6 @@ PASS/FAIL line per check:
 
 | Check | Proves |
 | --- | --- |
-| `qbittorrent-config` | the newest tarball extracts and `torrents.db` passes `PRAGMA integrity_check` |
 | `open-webui` | the newest tarball extracts and `webui.db` passes `PRAGMA integrity_check` |
 | `authelia` | the newest backup decompresses to a sound SQLite database |
 | `authelia-key` | the **current** storage encryption key decrypts it |
@@ -130,19 +129,15 @@ media), per Paperless-ngx's `document_importer` documentation:
 3. Check: document count matches the drill's count, open a few documents,
    search works.
 
-## Restore: torrent client config and Open WebUI data
+## Restore: Open WebUI data
 
-Dated tarballs in `/mnt/red-hdd/aux-backups`
-(`qbittorrent-config-<date>.tar.gz`, `open-webui-<date>.tar.gz`; before
-2026-11-12 `deluge-config-<date>.tar.gz`), each holding the directory
-itself. `torrents.db` and `webui.db` are SQLite online-backup snapshots;
-qBittorrent's `lockfile` and `ipc-socket` are left out. Both directories are NFS-exported to the k3s Pods.
+Dated tarballs `open-webui-<date>.tar.gz` in `/mnt/red-hdd/aux-backups`,
+each holding the directory itself. `webui.db` is an SQLite online-backup
+snapshot. The directory is NFS-exported to the k3s Pod.
 
-1. Scale the Deployment to 0 (`qbittorrent` or `open-webui`).
-2. As root on the homeserver, move the current directory aside and extract
-   the tarball into its parent: `/mnt/black-hdd` for `deluge-config`
-   (owner `deluge:deluge`), `/var/lib` for `open-webui` (owner
-   `open-webui-container:root`). `tar` as root keeps owners and modes,
-   except the SQLite snapshots, which the backup wrote as root: `chown`
-   `torrents.db` and `webui.db` back to the directory's owner.
-3. Scale back to 1 and check the UI (qBittorrent torrents, Open WebUI chats).
+1. Scale the `open-webui` Deployment to 0.
+2. As root on the homeserver, move `/var/lib/open-webui` aside and extract
+   the tarball into `/var/lib` (owner `open-webui-container:root`). `tar`
+   as root keeps owners and modes, except the SQLite snapshot, which the
+   backup wrote as root: `chown` `webui.db` back to the directory's owner.
+3. Scale back to 1 and check the chats in the UI.

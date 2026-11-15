@@ -21,9 +21,9 @@ on a single fact.
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `storage`, `authelia_backup`,
-`paperless_storage`, `nfs_server`, `docker`, `deluge`, `nextcloud_aio`,
+`paperless_storage`, `nfs_server`, `docker`, `nextcloud_aio`,
 `home_agent`, `open_webui`, `monitoring`, `blocky_ipv6_relay`,
-`aux_backup`. Several of them (`deluge`, `home_agent`, `open_webui`,
+`aux_backup`. Several of them (`home_agent`, `open_webui`,
 `authelia_backup`, `paperless_storage`) only keep host prerequisites
 (service accounts, NFS-exported directories) for workloads that run in
 k3s.
@@ -75,8 +75,7 @@ NFS volumes cleanly instead of hanging until SIGKILL.
 ### NFS exports to the k3s VM
 
 All to `192.168.101.10` only, all `root_squash` (`nfs_server` asserts
-both): `/mnt/black-hdd/downloads`, `/mnt/black-hdd/deluge-config`,
-`/var/lib/open-webui`, `/mnt/red-hdd/authelia-backup`,
+both): `/var/lib/open-webui`, `/mnt/red-hdd/authelia-backup`,
 `/mnt/black-hdd/paperless-media`, `/mnt/red-hdd/paperless-export`.
 
 ## Network and public entry
@@ -85,9 +84,7 @@ The FRITZ!Box forwards TCP 80, 443, 25, 465 and 993 to the homeserver's LAN
 IP (Terraform in `KandlerLi/fritzbox`, private, local apply only). `k3s_ingress_forward` DNATs those on to the k3s VM
 (`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart. It also
 DNATs TCP+UDP 53 to Blocky, which only LAN clients reach: the FRITZ!Box
-doesn't forward 53, so there is no public DNS resolver. qBittorrent's
-BitTorrent port (6881) is a k3s `LoadBalancer` Service on the VM with no FRITZ!Box
-forward (outbound peers only; decided 2026-10-12 for Deluge, unchanged). The
+doesn't forward 53, so there is no public DNS resolver. The
 k3s network `192.168.101.0/24` is reachable only from the homeserver.
 
 Admin VPN: the FRITZ!Box's built-in WireGuard (ADR 0025,
@@ -111,7 +108,6 @@ client. It relies on Traefik staying on `k3s-node-1`, the DNAT target.
 | `ai.jkandler.de` (rest) | Open WebUI | none; its own Authelia OIDC login, password login and signup disabled |
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
-| `torrent.jkandler.de` | qBittorrent (replaced Deluge 2026-10-31) | forward-auth; qBittorrent's own login is skipped for the pod CIDR, and a NetworkPolicy admits only Traefik to its Web UI |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
 | `argo.jkandler.de` | Argo CD (ADR 0031) | forward-auth for `user:julian` only, then Argo CD's own OIDC login (`julian_only`) |
 | `mail.jkandler.de` | Bulwark webmail | forward-auth; Authelia SSO into the mailbox |
@@ -151,7 +147,7 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   `values.yaml`, ACME via DNS-01), Authelia, Blocky (+ query-log
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), Open WebUI,
   Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
-  Stalwart, Bulwark, Paperless, Vaultwarden, qBittorrent, Headlamp and
+  Stalwart, Bulwark, Paperless, Vaultwarden, Headlamp and
   the landing page, PVCs included, and per app the ExternalSecrets that
   ESO turns into its Secrets from AWS Secrets Manager (ADR 0032, since
   2026-11-15); Reloader restarts a Pod when its Secret changes. No
@@ -227,7 +223,7 @@ claims.
 | What | How | Where |
 | --- | --- | --- |
 | Nextcloud (files + database) | AIO's built-in Borg, nightly (AIO schedule) | `/mnt/red-hdd/borg` |
-| qBittorrent config (`deluge-config` directory), Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
+| Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |

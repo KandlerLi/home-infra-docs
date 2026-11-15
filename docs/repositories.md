@@ -157,20 +157,19 @@ homeserver rather than an isolated sandbox copy.
 
 Cluster workloads themselves live in a separate, Terraform-managed
 sibling repository, [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) — see its own project section
-below. **Applied and live**: `home.jkandler.de` (2026-08-29) and
-`torrent.jkandler.de` (2026-08-29/30) both now serve from there instead
-of a homeserver Docker container; see `history.md`'s "k3s
-learning cluster" section for the full cutover history, including why
-`landing_page` was deleted outright while `deluge` was reshaped down to
-host prerequisites instead.
+below. **Applied and live**: `home.jkandler.de` (2026-08-29) serves from
+there instead of a homeserver Docker container. `torrent.jkandler.de`
+did too (2026-08-29/30) until qBittorrent was retired with its data on
+2026-11-15 (see [decisions](decisions.md#qbittorrent-retired)); see
+`history.md`'s "k3s learning cluster" section for the cutover history.
 
 ### `aux_backup` role
 
 Opt-in (`aux_backup_enabled`, default `false`), added 2026-09-16. Daily
 `tar.gz` backup, via a systemd timer, of the small host directories
-Nextcloud AIO's own Borg backup was never going to cover: Deluge's
-config and Open WebUI's real data (both `nfs_server` exports, see
-above) -- not another Borg repository, these sources are small enough
+Nextcloud AIO's own Borg backup was never going to cover: Open WebUI's
+real data (an `nfs_server` export, see above; the torrent client's
+config until 2026-11-15) -- not another Borg repository, these sources are small enough
 that Borg's own dedup/compression/encryption machinery would be
 disproportionate. Runs as root (reads across several different
 dedicated-host-uid directories in one pass; every hardening directive
@@ -258,7 +257,8 @@ at a time, each proven live first, matching the user's explicit
   domain, real TLS, real auth, checked in the browser). Deployed by
   Argo CD since the trial in
   [decisions](decisions.md#argo-cd-trial-core-mode-one-app); its route stays in Terraform.
-- `deluge_storage.tf`/`deluge_secret.tf`/`deluge.tf` — two PV/PVC pairs
+- *Retired 2026-11-15, see [decisions](decisions.md#qbittorrent-retired):*
+  `deluge_storage.tf`/`deluge_secret.tf`/`deluge.tf` — two PV/PVC pairs
   bound to `nfs_server`'s NFS exports, a Secret seeding Deluge's own
   `web.conf` login (hardcoded blank/no password now -- `deluge_web_password`
   had no live consumer left anywhere by the time of the 2026-09-09
