@@ -13,7 +13,7 @@ need Julian's review; prefer read-only checks first.
 | [Operate Nextcloud AIO](nextcloud-aio.md) | Borg backup setup, AIO quirks, planned hardware shutdown |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
 | [Rotate secrets](rotate-secrets.md) | Rotating or adding a Secrets Manager value |
-| [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless, Deluge, Open WebUI |
+| [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless, Open WebUI |
 | [Manage repository infrastructure](manage-repo-infra.md) | Adding a repo to `repo-infra`, importing existing settings |
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
 | [FRITZ!Box WireGuard VPN](fritzbox-wireguard-vpn.md) | Adding, checking or removing a VPN device (ADR 0025) |
@@ -41,7 +41,6 @@ describe no longer exist. Each file says where the thing lives now.
   [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md),
   [Enable Nextcloud write tools](enable-nextcloud-writes.md),
   [Enable the Shopping List tools](enable-nextcloud-shopping-list.md),
-  [Deploy and publish Deluge](publish-deluge.md),
   [Enable the Sankey exporter](enable-sankey-export.md): all moved to
   [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (2026-08-29 to 2026-09-07)
 - [Migrate AWS account bootstrap ownership](migrate-aws-account-bootstrap.md):

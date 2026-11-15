@@ -9,13 +9,11 @@ status: [`current-state.md`](current-state.md).
 /                      system SSD, ext4, 231 GB
 /mnt/black-hdd         ext4, 916 GB, live data      www-data:www-data 2770
 ├── nextcloud/         Nextcloud AIO data directory (NEXTCLOUD_DATADIR)
-├── downloads/         qBittorrent downloads; NFS to k3s; mounted into Nextcloud
-├── deluge-config/     qBittorrent state (qBittorrent/), old Deluge files; NFS to k3s
 ├── paperless-media/   Paperless documents; NFS to k3s
 └── blocky/            leftover data of the stopped Docker Blocky
 /mnt/red-hdd           ext4, 1.8 TB, backups only   root:root 0755
 ├── borg/              Nextcloud AIO Borg repository
-├── aux-backups/       aux-backup tarballs (qBittorrent config, Open WebUI data)
+├── aux-backups/       aux-backup tarballs (Open WebUI data)
 ├── authelia-backup/   Authelia CronJob output; NFS to k3s
 ├── paperless-export/  Paperless document_exporter output; NFS to k3s
 ├── stalwart-backup/   Stalwart CronJob tarballs; NFS to k3s
@@ -40,8 +38,8 @@ The tree shows managed paths only. Live data on `black-hdd`, backups on
   cleanup; prove what owns it first.
 - NFS exports go to one client IP each, with `root_squash` (the
   `nfs_server` role asserts this). A k3s workload writing to an export
-  runs as the uid/gid that owns the directory on the host (qBittorrent
-  993/986 via the `deluge` account, Paperless 983/978).
+  runs as the uid/gid that owns the directory on the host (e.g.
+  Paperless 983/978).
 - k3s hostPath PV directories on node-1 whose workload runs as non-root
   are created by `home-infra`'s `k3s_node_host_path_dirs` with that
   workload's uid/gid (sankey-export 10010, both Postgres 70), since a

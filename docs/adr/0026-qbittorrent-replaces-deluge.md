@@ -1,8 +1,8 @@
 # ADR 0026: qBittorrent replaces Deluge, so `apps` can enforce PodSecurity `restricted`
 
-- Status: Accepted
+- Status: Superseded: qBittorrent retired on 2026-11-15 ([decisions](../decisions.md#qbittorrent-retired))
 - Date: 2026-10-31
-- Deployment status: live since 2026-10-31 (`k3s-apps#142`); `apps` on `enforce: restricted` with `k3s-bootstrap#44`
+- Deployment status: live 2026-10-31 to 2026-11-15 (`k3s-apps#142`); `apps` on `enforce: restricted` with `k3s-bootstrap#44`, which stays
 
 ## Context
 

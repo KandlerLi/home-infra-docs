@@ -26,7 +26,7 @@ against AIO's own upstream docs before writing this rather than guessed.
    mastercontainer if needed.
 
 This covers Nextcloud user data and AIO's own configuration/database state.
-What it does **not** cover (Deluge downloads, k3s data) and how those are
+What it does **not** cover (k3s data) and how those are
 backed up instead: the Backups table in `docs/current-state.md`.
 
 ## Current model
@@ -88,20 +88,6 @@ Expected baseline:
   `started`, so a oneshot already `active (exited)` from a prior run
   still re-executes and self-heals a currently-dropped connection),
   and exits immediately as a no-op if Apache is already connected.
-- **The mounted downloads external-storage mount's permission cache
-  goes stale.** Nextcloud caches per-file permissions (including
-  whether the delete button shows up at all) from the last scan of a
-  mount -- it does not re-check the real filesystem live on every page
-  load. Files under the downloads mount are written and deleted by
-  Deluge entirely outside Nextcloud's awareness, and host-side
-  permission changes to that directory don't trigger a rescan on their
-  own either. Confirmed live: after fixing the host ACL so `www-data`
-  could actually delete, the UI still showed no delete option -- even
-  from a fresh, uncached browser profile -- until the mount was
-  explicitly rescanned (`occ files:scan`). `ansible/roles/
-  nextcloud_aio`'s own task runs this on every apply, not just once --
-  it's cheap, and it's the only thing keeping the mount's cache from
-  drifting from what Deluge does to the files underneath it.
 
 ## Reverse-proxy operation
 

@@ -978,3 +978,24 @@ for the image build. The state object stays in the bucket as an archive.
   Inside the Pod, Blocky and its exporter reach Postgres over
   127.0.0.1, which the sidecar trusts, so the password guards only
   Grafana's network access.
+
+## qBittorrent retired
+
+On 2026-11-15 qBittorrent went away completely (Julian's choice: never
+used), with its data: the downloads directory, its config and its
+`aux-backup` tarballs. The Nextcloud `Downloads` external storage went
+with it, since that directory was its only use, and so did
+`aux_backup`'s `exclude` option, which only qBittorrent needed.
+`torrent.jkandler.de`, its Authelia rule and the BitTorrent port 6881
+are gone.
+
+- **Order matters.** Argo CD prunes only while the Application exists and
+  its Role still names the objects, and automated sync won't prune an app
+  down to nothing (`allowEmpty`). So `k3s-apps#201` removed everything
+  but the PVCs first; `k3s-bootstrap#83` then removes the Application,
+  the Role's names and the NFS PVs, after the two PVCs are deleted by
+  hand (Argo CD never deletes PVCs, by design); a last `k3s-apps` PR
+  removes the leftover directory.
+- **Ansible doesn't undo what it created.** The `deluge` account, the two
+  directories, Nextcloud's external-storage entry and the old tarballs
+  are removed by hand once, after `home-infra#153`.
