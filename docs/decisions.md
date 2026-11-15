@@ -964,7 +964,11 @@ for the image build. The state object stays in the bucket as an archive.
   was set to `false` for exactly one local apply, whose plan destroyed
   only `module.repo["k3s-apps"]`'s roles, policies and variables, and
   restored to `true` by the next PR. This is the one recorded exception
-  to the rule that `prevent_destroy` stays on every IAM role.
+  to the rule that `prevent_destroy` stays on every IAM role. The first
+  attempt deleted the policies and variables but not the roles: the AWS
+  provider lists instance profiles before `DeleteRole`, which
+  `repo-infra-local` couldn't (`terraform-state#34` added
+  `iam:ListInstanceProfilesForRole` on the deploy roles).
 - **Blocky's password is rotated by hand, yearly** (Julian's choice),
   with `k3s-apps/scripts/rotate-blocky-postgres-password.sh` from the
   laptop, tracked in `secrets-manager`'s rotation schedule. The monthly
