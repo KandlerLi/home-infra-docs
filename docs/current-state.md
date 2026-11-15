@@ -97,6 +97,10 @@ All routed by k3s Traefik ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), 
 Traefik sees real client IPs since 2026-11-09 (`ingress-svc` with
 `externalTrafficPolicy: Local`, `k3s-apps#157`), so rate limits are per
 client. It relies on Traefik staying on `k3s-node-1`, the DNAT target.
+Traefik drops non-canonical spellings of headers (`Remote_User` for
+`Remote-User`; `aliasHeadersStrategy: delete`, since 2026-11-15,
+`k3s-apps#200`), so a client can't spoof the identity headers
+forward-auth sets for backends that treat both spellings alike.
 
 | Hostname | Service | Auth at the edge |
 | --- | --- | --- |

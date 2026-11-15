@@ -1029,3 +1029,35 @@ The first two were fixed by editing the database by hand.
   STT were tested in the browser afterwards.
 - **Rollback:** revert. The old rows are still in the `config` table,
   untouched.
+
+## In-cluster OIDC pins Authelia to `ingress-svc`'s ClusterIP
+
+Vaultwarden and, since 2026-11-15, Open WebUI (`k3s-apps#199`) have
+NetworkPolicies that allow no egress outside the cluster. They still need
+to reach `auth.jkandler.de` for OIDC discovery and token exchange. That
+name resolves to the public IP, so each Deployment maps it with
+`hostAliases` to `ingress-svc`'s ClusterIP (`10.43.153.200`). Traffic stays
+in-cluster, and TLS still checks the real certificate.
+
+- **Catch:** the ClusterIP isn't pinned in the Service spec. If
+  `ingress-svc` is ever recreated, it gets a new IP, and OIDC login in both
+  apps breaks. Then update both `hostAliases` (`grep -rn 10.43.153.200`
+  in `k3s-apps`).
+- **Rejected: allowing egress to the public IP.** It is a transient
+  address, and allowing it would let the Pods out through the router.
+
+## gha-common follows Semantic Versioning from v1.0.0
+
+Since 2026-11-15, `gha-common` releases follow [SemVer](https://semver.org/).
+Its public API (workflow files, inputs, secrets, check names) and the bump
+rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
+(`@v1.0.0`). There are no floating major tags.
+
+- **Why:** the `v0.0.x` tags said nothing about compatibility. Merging the
+  plan job into `Validate` (v1.0.0) renamed a required check, so every
+  caller needed a `repo-infra` change first. A major bump now makes that
+  visible, and the release notes say what to do before bumping.
+- **Rejected: a moving `v1` tag.** It would change callers' CI without a
+  PR. Callers are bumped by hand, one PR per repository.
+- **Releases** are cut with `gh release create vX.Y.Z --target <full SHA>`.
+  A short SHA is rejected (HTTP 422).
