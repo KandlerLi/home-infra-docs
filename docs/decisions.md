@@ -99,7 +99,7 @@ access for all six repos, not just removed a redundant click.
 
 Current flow: open a PR, review the speculative plan (PR comment from the
 `Validate` job, which runs validate and plan in one job since gha-common
-v0.0.18), merge once `Validate` is green — Terraform applies immediately,
+v1.0.0), merge once `Validate` is green — Terraform applies immediately,
 no separate approval step left.
 
 ## Self-hosted GitHub Actions runners are opted into via `config.yml`, wired by a generated variable

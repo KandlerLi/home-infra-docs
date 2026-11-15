@@ -122,7 +122,7 @@ eyes hadn't already seen at merge time, for the same single-owner reason the
 environment resource itself stayed, since it's also the AWS OIDC trust
 boundary (see Layer 3), unrelated to the reviewer gate. The current flow is:
 open a PR, review the speculative plan (PR comment from the `Validate` job,
-which runs validate and plan in one job since gha-common v0.0.18), merge once
+which runs validate and plan in one job since gha-common v1.0.0), merge once
 `Validate` is green — Terraform then applies immediately, with no separate
 approval step.
 
