@@ -17,9 +17,7 @@ need Julian's review; prefer read-only checks first.
 | [Manage repository infrastructure](manage-repo-infra.md) | Adding a repo to `repo-infra`, importing existing settings |
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
 | [FRITZ!Box WireGuard VPN](fritzbox-wireguard-vpn.md) | Adding, checking or removing a VPN device (ADR 0025) |
-| [Open WebUI voice transcription](enable-openai-voice-transcription.md) | The Admin Panel audio settings (deploy part is historical) |
-| [Harden Open WebUI login](harden-open-webui-login.md) | Native login form reappears despite OIDC-only settings |
-| [Fix Open WebUI's stale backend URL](fix-open-webui-stale-backend-url.md) | No model selectable in Open WebUI |
+| [Open WebUI voice transcription](enable-openai-voice-transcription.md) | Speech-to-text setup, per-user language, live check |
 | [Update this documentation](update-documentation.md) | After any change that alters what these docs say |
 
 ## Known issues

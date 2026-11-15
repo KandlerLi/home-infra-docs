@@ -201,6 +201,12 @@ claims.
   is tracked in the private task list. Open WebUI advertises only the
   synthetic model name `home-agent`. Boundaries: the
   `check-security-invariants` skill.
+- **Open WebUI**: every setting comes from
+  `k3s-apps/argocd/open-webui/deployment.yaml` only
+  (`ENABLE_PERSISTENT_CONFIG=False`, since 2026-11-15). Plugins, tools,
+  automations and calendar are off. Its NetworkPolicy allows egress only
+  to DNS, the ingress (Authelia OIDC) and `home_agent`; external targets
+  were refused when checked live on 2026-11-15.
 - **Mail**: Stalwart for `info@`/`julian@jkandler.de`; inbound on 25,
   outbound relayed through SES (eu-central-1, production access),
   IMAP 993 / submission 465 with app passwords. Settings are code in

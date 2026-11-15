@@ -1001,3 +1001,31 @@ are gone.
 - **Ansible doesn't undo what it created.** The `deluge` account, the two
   directories, Nextcloud's external-storage entry and the old tarballs
   are removed by hand once, after `home-infra#153`.
+
+## Open WebUI takes its settings from env only
+
+Since 2026-11-15 Open WebUI runs with `ENABLE_PERSISTENT_CONFIG=False`
+(`k3s-apps#202`), so `argocd/open-webui/deployment.yaml` is the only
+source of its settings. Before, Open WebUI wrote each setting to the
+`config` table in `webui.db` on first boot, and from then on the stored
+value overrode the env var. The database dates from the Docker
+deployment, so env changes silently did nothing three times:
+- the login form kept showing (2026-09-11)
+- the backend URL still pointed at the Docker alias (2026-09-12)
+- automations and calendar stayed on after `k3s-apps#199` disabled them
+  (2026-11-15)
+
+The first two were fixed by editing the database by hand.
+
+- **Rejected: keep persistence and fix rows by hand.** Every new setting
+  needs a database edit after the deploy, and a missed one fails silently,
+  including security switches.
+- **Cost:** a change in the admin panel lasts only until the next Pod
+  restart. Settings change through `deployment.yaml`, like everything else.
+  Per-user settings (for example the STT language) are not affected.
+- **What changed live:** besides automations and calendar going off, the
+  RAG settings now point at `home-agent-svc` instead of OpenAI, and STT
+  allows the default file extensions instead of none. Login, chat and
+  STT were tested in the browser afterwards.
+- **Rollback:** revert. The old rows are still in the `config` table,
+  untouched.

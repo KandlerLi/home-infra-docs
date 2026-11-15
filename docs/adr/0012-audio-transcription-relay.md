@@ -112,6 +112,10 @@ env vars alone will **not** retroactively flip the already-persisted `''`
 Settings → Audio page is also needed after deploying. See
 `docs/runbooks/enable-openai-voice-transcription.md`.
 
+Moot since 2026-11-15: Open WebUI now runs with
+`ENABLE_PERSISTENT_CONFIG=False`, so the env vars always apply
+([decisions](../decisions.md#open-webui-takes-its-settings-from-env-only)).
+
 ## Consequences
 
 - Recorded audio now leaves the homeserver, going to OpenAI via the same
