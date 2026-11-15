@@ -68,9 +68,9 @@ gate (approval required before the apply job receives AWS credentials)
 already provides an equivalent manual checkpoint, closer to the point of
 actual risk (AWS changes) than the merge itself.
 
-The desired workflow going forward: open a PR, review the `Terraform plan`
-job's speculative plan output in the checks tab, merge once `Validate` and
-`Terraform plan` are green (no separate approval step), then approve the
+The desired workflow going forward: open a PR, review the speculative plan
+(PR comment, from the `Validate` job, which runs the plan since gha-common
+v0.0.18), merge once `Validate` is green (no separate approval step), then approve the
 production environment deployment before Terraform applies. `CODEOWNERS`
 keeps naming `@KandlerLi` as sole code owner for documentation, with its
 stale explanation of the removed mechanism trimmed; `require_code_owner_reviews`
