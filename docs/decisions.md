@@ -981,6 +981,8 @@ for the image build. The state object stays in the bucket as an archive.
 
 ## qBittorrent retired
 
+The procedure, generalised: [Retire a k3s app](runbooks/retire-k3s-app.md).
+
 On 2026-11-15 qBittorrent went away completely (Julian's choice: never
 used), with its data: the downloads directory, its config and its
 `aux-backup` tarballs. The Nextcloud `Downloads` external storage went
