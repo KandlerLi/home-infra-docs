@@ -2,7 +2,13 @@
 
 - Status: Accepted (2026-11-14)
 - Date: 2026-11-14
-- Deployment status: in progress; federation in `terraform-state` first
+- Deployment status: live since 2026-11-15: federation (`terraform-state#33`),
+  k3s' public issuer (`home-infra#151`/`#152`), ESO and Reloader per
+  namespace (`k3s-bootstrap#69`), all twelve apps (`k3s-apps#184`-`#194`);
+  `k3s-apps`' Terraform retired afterwards (`k3s-apps#195` and the
+  cleanup PRs). Decided during the rollout: one ESO and one Reloader per
+  namespace, Roles only (no ClusterRole); Blocky's password rotation by
+  hand, yearly (decisions: "k3s-apps' Terraform retired").
 
 ## Context
 
