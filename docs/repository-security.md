@@ -121,9 +121,10 @@ eyes hadn't already seen at merge time, for the same single-owner reason the
 2026-08-21 removal already established. The gate was removed; the
 environment resource itself stayed, since it's also the AWS OIDC trust
 boundary (see Layer 3), unrelated to the reviewer gate. The current flow is:
-open a PR, review the `Terraform plan` job's speculative plan output in the
-checks tab, merge once `Validate` and `Terraform plan` are green — Terraform
-then applies immediately, with no separate approval step.
+open a PR, review the speculative plan (PR comment from the `Validate` job,
+which runs validate and plan in one job since gha-common v1.0.0), merge once
+`Validate` is green — Terraform then applies immediately, with no separate
+approval step.
 
 `CODEOWNERS` still names `@KandlerLi` as sole code owner for documentation
 purposes, but `require_code_owner_reviews` is `false` — it isn't enforced.
@@ -167,8 +168,8 @@ works for forks without exposing cloud access.
 
 ### Read-only speculative plan
 
-The plan job runs only when the pull request's head repository is the same as
-the base repository. Fork PRs are skipped.
+The plan steps (in the `Validate` job) run only when the pull request's head
+repository is the same as the base repository. Fork PRs skip them.
 
 That `if:` condition is a convenience, not a security boundary: for
 `pull_request` events GitHub runs the workflow file from the PR itself, so

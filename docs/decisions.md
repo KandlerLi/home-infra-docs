@@ -97,9 +97,10 @@ resource itself, since it's also the AWS OIDC trust boundary
 the token) — deleting the whole resource instead would have broken AWS
 access for all six repos, not just removed a redundant click.
 
-Current flow: open a PR, review the `Terraform plan` job's speculative plan
-output, merge once `Validate` and `Terraform plan` are green — Terraform
-applies immediately, no separate approval step left.
+Current flow: open a PR, review the speculative plan (PR comment from the
+`Validate` job, which runs validate and plan in one job since gha-common
+v1.0.0), merge once `Validate` is green — Terraform applies immediately,
+no separate approval step left.
 
 ## Self-hosted GitHub Actions runners are opted into via `config.yml`, wired by a generated variable
 
