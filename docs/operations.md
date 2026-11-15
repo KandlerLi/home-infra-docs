@@ -53,7 +53,9 @@ branch, validate and PR steps and the doc update; the
 [change rollout view](architecture/current/dynamic-ansible.md) shows the
 flow.
 
-- **CI-applied repos** ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps), `aws/*`): merge the PR; CI plans
+- **Argo CD-synced** ([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)): merge the PR; Argo CD syncs `main`
+  within a few minutes, ESO delivers Secrets from Secrets Manager.
+- **CI-applied repos** (`aws/*`, [`stalwart-config`](https://github.com/KandlerLi/stalwart-config)): merge the PR; CI plans
   on the PR and applies on merge.
 - **Local Terraform roots** ([`repo-infra`](https://github.com/KandlerLi/repo-infra),
   [`terraform-state`](https://github.com/KandlerLi/terraform-state), [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)): `git pull` on

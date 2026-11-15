@@ -152,8 +152,11 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   Postgres), `home_agent` (+ `nextcloud_tools` sidecar), Open WebUI,
   Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
   Stalwart, Bulwark, Paperless, Vaultwarden, qBittorrent, Headlamp and
-  the landing page, PVCs included. Its Terraform (CI-applied on merge)
-  keeps only the Secrets and the Pods' `checksum/*` annotations.
+  the landing page, PVCs included, and per app the ExternalSecrets that
+  ESO turns into its Secrets from AWS Secrets Manager (ADR 0032, since
+  2026-11-15); Reloader restarts a Pod when its Secret changes. No
+  Terraform since 2026-11-15; its in-cluster runner only builds
+  sankey-export's image.
 - **[`stalwart-config`](https://github.com/KandlerLi/stalwart-config)** (CI-applied on merge, on its in-cluster
   runner): Stalwart's runtime settings through its management API.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
@@ -161,11 +164,13 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   controller and one listener per repo in `arc-system`, one fresh runner
   Pod per job in `ci` on `k3s-node-2`, none at idle; GitHub App
   registration; NetworkPolicy: no inbound, outbound only DNS and the
-  public internet, plus the Kubernetes and Stalwart APIs and
-  Blocky/Grafana for the `k3s-apps` runner, and only the Stalwart API
-  for the `stalwart-config` runner), namespaces with their Pod
+  public internet, plus only the Stalwart API for the
+  `stalwart-config` runner), namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
-  defining RBAC, the privileged node-exporter DaemonSet, and Argo CD (`argocd.tf`, see
+  defining RBAC, the privileged node-exporter DaemonSet, the External
+  Secrets Operator and Reloader (one each per app namespace, Roles only,
+  with a SecretStore bound to that namespace's read-only IAM role from
+  `terraform-state`'s OIDC federation), and Argo CD (`argocd.tf`, see
   [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). In each runner Pod, dind is a native sidecar that
   listens only on its Unix socket and retries dockerd in place, and the
   runner starts only once dind answers.
@@ -183,8 +188,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `argocd` | restricted | Argo CD: controller, repo-server, server, Redis |
 | `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
-`k3s-apps-ci` has a Role per namespace with only the kinds that
-namespace's modules create; it reaches nothing in `ci`. Volumes on
+Volumes on
 `k3s-node-1` are static `Retain` PVs under `/var/lib/k3s-apps-data`
 (Blocky and Paperless Postgres, Paperless data, Bulwark, Traefik's ACME
 store, Stalwart's mail); Authelia and Vaultwarden use dynamic local-path

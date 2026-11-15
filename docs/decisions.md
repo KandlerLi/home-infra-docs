@@ -909,7 +909,9 @@ write access in its privileged namespace would let Argo CD start
 privileged Pods.
 
 From Bulwark on (2026-11-14), apps with Secrets move one at a time, and
-**Terraform keeps their Secrets and PVCs**: Argo CD gets the Deployment,
+**Terraform keeps their Secrets and PVCs** (superseded on 2026-11-15 by
+[ADR 0032](adr/0032-cluster-secrets-through-external-secrets.md): the
+Secrets come from ESO, see "k3s-apps' Terraform retired"): Argo CD gets the Deployment,
 Service and ConfigMaps only. Terraform also keeps restarting the Pod on
 a rotation, by setting the `checksum/*` Pod-template annotations on the
 Argo CD-managed Deployment through `kubernetes_annotations` with its own
@@ -943,3 +945,35 @@ no secret and serves a real route, so it is the test case.
   in Terraform. Moving more would need the Secrets Manager values in the
   cluster (External Secrets Operator) and a second tool for the Stalwart
   settings, which is the cost that kept the rest on Terraform.
+
+## k3s-apps' Terraform retired
+
+On 2026-11-15 the last Secret moved to the External Secrets Operator
+([ADR 0032](adr/0032-cluster-secrets-through-external-secrets.md)), so
+`k3s-apps` keeps only Argo CD manifests, the sankey-export image build
+and rotation scripts. `k3s-apps#195` first emptied its configuration
+down to the backend: the CI plan showed "No changes", which proves the
+state held nothing without anyone reading it. Then the Terraform files,
+the plan/apply workflows, the CI's AWS roles (`repo-infra`), its
+`k3s-apps-ci` ServiceAccount with its Roles and the runner's egress to
+Blocky, Grafana and Stalwart (`k3s-bootstrap`) went. The runner stays,
+for the image build. The state object stays in the bucket as an archive.
+
+- **The roles were deleted, not emptied** (Julian's choice). Their
+  `prevent_destroy` is a literal in `repo-infra`'s shared module, so it
+  was set to `false` for exactly one local apply, whose plan destroyed
+  only `module.repo["k3s-apps"]`'s roles, policies and variables, and
+  restored to `true` by the next PR. This is the one recorded exception
+  to the rule that `prevent_destroy` stays on every IAM role. The first
+  attempt deleted the policies and variables but not the roles: the AWS
+  provider lists instance profiles before `DeleteRole`, which
+  `repo-infra-local` couldn't (`terraform-state#34` added
+  `iam:ListInstanceProfilesForRole` on the deploy roles).
+- **Blocky's password is rotated by hand, yearly** (Julian's choice),
+  with `k3s-apps/scripts/rotate-blocky-postgres-password.sh` from the
+  laptop, tracked in `secrets-manager`'s rotation schedule. The monthly
+  unattended workflow went with the CI's cluster and AWS access; it had
+  failed since the move to ARC anyway (no AWS CLI on the runner image).
+  Inside the Pod, Blocky and its exporter reach Postgres over
+  127.0.0.1, which the sidecar trusts, so the password guards only
+  Grafana's network access.
