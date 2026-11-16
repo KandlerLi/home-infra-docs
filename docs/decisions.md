@@ -1111,3 +1111,32 @@ rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
   hand, because `repo-infra` had to drop the old required check first.
 - **Releases** are cut with `gh release create vX.Y.Z --target <full SHA>`.
   A short SHA is rejected (HTTP 422).
+
+## Runners keep a Terraform plugin cache per repository
+
+Since 2026-11-16 (`k3s-bootstrap#87`, tracker #52) the runner Pods'
+`/terraform-plugin-cache` is a hostPath per repository on `k3s-node-2`
+(`/var/lib/terraform-plugin-cache/<repo>`) instead of an `emptyDir`. It
+is the one exception to ADR 0027's "every Pod is fresh". After option 1
+(validate and plan in one job), `terraform init` was the largest step
+left: ~70 s per job, ~190 s when six PRs ran at once.
+
+- **Result:** dyndns, two dispatched runs in a row: `terraform init
+  -backend=false` 69 s → 25 s, the job 142 s → 92 s. The 25 s left are
+  Terraform hashing the ~700 MB AWS provider from node-2's disk to check
+  it against the lock file; locally that takes 1.5 s.
+- **Trust:** PR checks and the `main` apply of one repository share its
+  cache. Terraform uses an entry only if it matches a hash in that job's
+  lock file; a tampered provider failed `init` when tested. Repositories
+  don't see each other's cache, and fork PRs never run here. Julian
+  accepted this over "no caches".
+- **Rejected: a read-only mirror filled by its own CronJob.** It would
+  have to guess which versions to hold, and is a cache we'd build
+  ourselves. **Rejected: a pull-through network mirror.** Terraform needs
+  HTTPS with a trusted certificate, the runners would need a
+  NetworkPolicy exception into the cluster, it's another service to run,
+  and it saves only the download, not the unpacking.
+- **Limits:** Terraform never prunes, so an init container deletes
+  versions older than 14 days at Pod start. The cache isn't safe for
+  concurrent writers; two jobs of one repository fetching a new version
+  at once can fail one `init`, and a re-run fixes it.
