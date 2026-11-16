@@ -161,7 +161,10 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   Pod per job in `ci` on `k3s-node-2`, none at idle; GitHub App
   registration; NetworkPolicy: no inbound, outbound only DNS and the
   public internet, plus only the Stalwart API for the
-  `stalwart-config` runner), namespaces with their Pod
+  `stalwart-config` runner and the registry cache on 5000 for all;
+  per-repo Terraform plugin cache on node-2, and `registry-cache`, a
+  pull-through cache for `ghcr.io` on node-2, both since 2026-11-16),
+  namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
   defining RBAC, the privileged node-exporter DaemonSet, the External
   Secrets Operator and Reloader (one each per app namespace, Roles only,

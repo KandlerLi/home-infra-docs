@@ -1140,3 +1140,33 @@ left: ~70 s per job, ~190 s when six PRs ran at once.
   versions older than 14 days at Pod start. The cache isn't safe for
   concurrent writers; two jobs of one repository fetching a new version
   at once can fail one `init`, and a re-run fixes it.
+
+## A pull-through registry cache for the runners' CI images
+
+Since 2026-11-16 (`k3s-bootstrap#88`, `gha-common` v1.2.0, tracker #52)
+later jobs pull their CI image through `registry-cache` in `ci` on
+`k3s-node-2`, a single CNCF Distribution `registry` in proxy mode for
+`ghcr.io`, instead of from GHCR. "Initialize containers" was ~45 s per
+job, ~30 s of it the download into the job's fresh dind.
+
+- **Result:** dyndns, warm cache: download 4 s instead of ~32 s,
+  "Initialize containers" 43 s → 15 s. Unpacking (~12 s) stays. With the
+  plugin cache, one `Validate` went from ~210 s to ~107 s.
+- **Addressing:** dockerd's `registry-mirrors` covers only Docker Hub, so
+  the runner exports `GHCR_CACHE` and `gha-common`'s build-image job
+  hands later jobs the cache reference; the push still goes to GHCR. dind
+  lists the cache under `insecure-registries` (plain HTTP in-cluster).
+- **Credentials:** the cache pulls with `k3s-apps/ghcr-pull-token`, read
+  at `k3s-bootstrap` apply time (`terraform-state#36`), so a rotation
+  needs a re-apply there. That token is account-wide, so any runner can
+  pull any private KandlerLi package through the cache; accepted, since
+  those are CI images and `sankey-export`, holding no secrets. Jobs keep
+  passing their GHCR credentials: GitHub rejects empty container
+  credentials at template validation (found in testing, `gha-common#33`),
+  and docker sends them only after a 401, which the cache never issues.
+- **Rejected: Harbor.** It would give per-project rights and many
+  upstreams, but is ~7 components and ~1.5–2 GB on the CI node, for one
+  upstream. Worth its own decision if it ever becomes a cluster-wide
+  cache or replaces GHCR.
+- **Rejected: a warm runner Pod** (`minRunners: 1`): Julian wants runner
+  Pods only on demand.
