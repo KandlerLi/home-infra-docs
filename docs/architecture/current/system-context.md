@@ -10,12 +10,10 @@ flowchart LR
     clients["Remote clients<br/>[External Software System]<br/>Browsers, Nextcloud/mail/Paperless/Bitwarden apps, WebDAV"]
     mailers["Other mail servers<br/>[External Software System]<br/>Deliver mail to jkandler.de"]
 
-    home["Home Infrastructure<br/>[Software System]<br/>Private cloud, mail, documents, AI assistant, DNS filtering, monitoring"]
+    home["Home Infrastructure<br/>[Software System]<br/>Private cloud, mail, documents, DNS filtering, monitoring"]
 
     github["GitHub<br/>[External Software System]<br/>Repositories, Actions, GHCR images"]
     aws["AWS<br/>[External Software System]<br/>Route 53, Secrets Manager, SES, S3 state, OIDC/IAM, health check, budget, website"]
-    anthropic["Anthropic API<br/>[External Software System]<br/>Claude chat and tool use"]
-    openai["OpenAI API<br/>[External Software System]<br/>Whisper speech-to-text"]
     letsencrypt["Let's Encrypt<br/>[External Software System]<br/>TLS certificates"]
     fritz["FRITZ!Box<br/>[External Software System]<br/>Router: NAT, port forwards, WireGuard VPN, DynDNS updates"]
 
@@ -28,8 +26,6 @@ flowchart LR
     home -->|"Self-hosted runners execute CI; pulls images"| github
     github -->|"OIDC-authenticated plan/apply"| aws
     home -->|"Reads secrets; relays outbound mail; DNS-01 challenges"| aws
-    home -->|"Prompts and tool results over HTTPS"| anthropic
-    home -->|"Audio for transcription over HTTPS"| openai
     home -->|"ACME orders"| letsencrypt
     aws -->|"Alerts when the homeserver is unreachable"| julian
 
@@ -38,7 +34,7 @@ flowchart LR
     classDef external fill:#666,color:#fff,stroke:#333
     class julian person
     class home system
-    class clients,mailers,github,aws,anthropic,openai,letsencrypt,fritz external
+    class clients,mailers,github,aws,letsencrypt,fritz external
 ```
 
 ## Element responsibilities
@@ -51,8 +47,6 @@ flowchart LR
 | Other mail servers | External software system | Inbound SMTP to Stalwart |
 | GitHub | External software system | Source of truth for all code; CI orchestration; private GHCR images |
 | AWS | External software system | DNS, secrets, outbound mail relay, Terraform state, CI identities, outside-in health check, cost alerts, the static website |
-| Anthropic API | External software system | Model behind `home_agent` |
-| OpenAI API | External software system | Whisper behind the transcription relay |
 | Let's Encrypt | External software system | Certificates for Traefik (DNS-01) and Stalwart (HTTP-01) |
 | FRITZ!Box | External software system | Home router; configured by hand, not in any repo |
 

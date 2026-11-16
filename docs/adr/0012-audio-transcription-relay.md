@@ -1,6 +1,6 @@
 # ADR 0012: Relay speech-to-text through home-agent instead of local Whisper
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-21
 - Deployment status: Implemented, not yet deployed
 
@@ -110,7 +110,7 @@ Since this instance already booted at least once with STT unset, the new
 env vars alone will **not** retroactively flip the already-persisted `''`
 (local Whisper) value — a one-time manual change in Open WebUI's own Admin
 Settings → Audio page is also needed after deploying. See
-`docs/runbooks/enable-openai-voice-transcription.md`.
+`docs/runbooks/enable-openai-voice-transcription.md` (deleted 2026-11-16 with the app; in git history).
 
 Moot since 2026-11-15: Open WebUI now runs with
 `ENABLE_PERSISTENT_CONFIG=False`, so the env vars always apply

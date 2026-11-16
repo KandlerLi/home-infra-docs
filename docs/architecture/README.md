@@ -19,10 +19,6 @@ All views are current as of 2026-10-11. For the maintained prose summary see
    settings and the AWS OIDC/IAM identities CI runs with
 6. [Change rollout](current/dynamic-ansible.md) — PR to apply for Terraform,
    and an Ansible run
-7. [home_agent components](current/component-home-agent.md) — API, model
-   loop, tools, sidecar
-8. [home_agent chat flow](current/dynamic-home-agent.md) — one chat message
-   with a Nextcloud tool call
 
 ## Notation
 

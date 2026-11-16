@@ -40,7 +40,7 @@ sequenceDiagram
     J->>L: ansible-playbook site.yml --ask-become-pass
     L->>A: Fetch secret groups with Julian's own credentials
     L->>H: SSH, become root
-    L->>H: Apply roles in order (base ... aux_backup)
+    L->>H: Apply roles in order (base ... blocky_ipv6_relay)
     H-->>L: Changed/ok per task
 ```
 

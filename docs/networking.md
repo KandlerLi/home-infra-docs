@@ -33,7 +33,7 @@ k3s-node-2 192.168.101.11    reachable only from the homeserver)
 - Traefik in k3s terminates TLS for every HTTP hostname. It uses the file
   provider only and has no Kubernetes API token.
 - k3s Pods reach homeserver services on `192.168.101.1` (Nextcloud AIO
-  `:11000`, Prometheus `:9090`, `home-tools` `:8095`); those binds are
+  `:11000`, Prometheus `:9090`); those binds are
   additive to the loopback ones.
 - Raw-protocol ports (SMTP/IMAP to Stalwart, DNS to Blocky) are the only
   traffic that bypasses Traefik.

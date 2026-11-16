@@ -1,6 +1,6 @@
 # ADR 0014: Nextcloud Shopping List item tools
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-22
 - Deployment status: Implemented, not yet deployed
 

@@ -13,8 +13,6 @@ Without credentials (expected results checked 2026-10-11):
 check() { curl -s -o /dev/null -m 10 -w "%{http_code} %{redirect_url}\n" "$1"; }
 check https://nextcloud.jkandler.de/status.php        # 200
 check https://auth.jkandler.de/api/health             # 200
-check https://ai.jkandler.de/healthz                  # 302 to auth.jkandler.de (forward-auth)
-check https://ai.jkandler.de/                         # 200, Open WebUI login page
 check https://docs.jkandler.de/api/documents/         # 401 without a token
 check https://stalwart.jkandler.de/.well-known/jmap   # 307 to /jmap/session
 check https://www.jkandler.de/                        # 200
@@ -29,7 +27,7 @@ including blackbox probes and backup age.
 ssh julian@192.168.178.100
 docker ps --format '{{.Names}} {{.Status}}'   # AIO, Prometheus, exporters
 systemctl --failed
-systemctl list-timers aux-backup.timer backup-freshness.timer
+systemctl list-timers backup-freshness.timer
 df -h / /mnt/black-hdd /mnt/red-hdd
 ```
 

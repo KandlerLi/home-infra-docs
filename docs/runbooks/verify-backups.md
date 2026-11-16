@@ -26,7 +26,6 @@ PASS/FAIL line per check:
 
 | Check | Proves |
 | --- | --- |
-| `open-webui` | the newest tarball extracts and `webui.db` passes `PRAGMA integrity_check` |
 | `authelia` | the newest backup decompresses to a sound SQLite database |
 | `authelia-key` | the **current** storage encryption key decrypts it |
 | `paperless` | every exported original exists and matches the checksum in `manifest.json` |
@@ -128,16 +127,3 @@ media), per Paperless-ngx's `document_importer` documentation:
    container with the export mounted (the `paperless-export` PVC).
 3. Check: document count matches the drill's count, open a few documents,
    search works.
-
-## Restore: Open WebUI data
-
-Dated tarballs `open-webui-<date>.tar.gz` in `/mnt/red-hdd/aux-backups`,
-each holding the directory itself. `webui.db` is an SQLite online-backup
-snapshot. The directory is NFS-exported to the k3s Pod.
-
-1. Scale the `open-webui` Deployment to 0.
-2. As root on the homeserver, move `/var/lib/open-webui` aside and extract
-   the tarball into `/var/lib` (owner `open-webui-container:root`). `tar`
-   as root keeps owners and modes, except the SQLite snapshot, which the
-   backup wrote as root: `chown` `webui.db` back to the directory's owner.
-3. Scale back to 1 and check the chats in the UI.

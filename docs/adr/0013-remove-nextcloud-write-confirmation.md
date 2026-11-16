@@ -1,6 +1,6 @@
 # ADR 0013: Drop the Nextcloud write confirmation step
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-22
 - Deployment status: Implemented, not yet deployed
 

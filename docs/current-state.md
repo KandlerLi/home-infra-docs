@@ -17,14 +17,14 @@ on a single fact.
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, torrent downloads, Paperless media) |
-| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `aux-backups/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
+| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
-`site.yml` roles, in order: `base`, `storage`, `authelia_backup`,
+`site.yml` roles, in order: `base`, `unattended_upgrades`, `storage`,
+`authelia_backup`, `stalwart_backup`, `vaultwarden_backup`,
 `paperless_storage`, `nfs_server`, `docker`, `nextcloud_aio`,
-`home_agent`, `open_webui`, `monitoring`, `blocky_ipv6_relay`,
-`aux_backup`. Several of them (`home_agent`, `open_webui`,
-`authelia_backup`, `paperless_storage`) only keep host prerequisites
+`monitoring`, `blocky_ipv6_relay`. The `*_backup` and
+`paperless_storage` roles only keep host prerequisites
 (service accounts, NFS-exported directories) for workloads that run in
 k3s.
 
@@ -43,10 +43,8 @@ k3s.
   FRITZ!Box), so containers restored at boot never start without an
   upstream resolver (checked 2026-10-25).
 - **systemd services**: `blocky-ipv6-relay` (`[::]:53` → Blocky in k3s),
-  `home-tools` (host facts for `home_agent`, `192.168.101.1:8095`),
   `ntfy-relay` (Alertmanager → ntfy), NFS server, libvirt.
-- **Timers**: `aux-backup` (torrent client config, Open WebUI data → `red-hdd`),
-  `backup-freshness` (feeds the backup-age alerts).
+- **Timers**: `backup-freshness` (feeds the backup-age alerts).
 - **Stopped leftovers, not deleted**: `shared-ingress`, `blocky`,
   `blocky-postgres` (their roles are gone; the containers stay stopped as a
   manual rollback path).
@@ -75,8 +73,9 @@ NFS volumes cleanly instead of hanging until SIGKILL.
 ### NFS exports to the k3s VM
 
 All to `192.168.101.10` only, all `root_squash` (`nfs_server` asserts
-both): `/var/lib/open-webui`, `/mnt/red-hdd/authelia-backup`,
-`/mnt/black-hdd/paperless-media`, `/mnt/red-hdd/paperless-export`.
+both): `/mnt/red-hdd/authelia-backup`, `/mnt/red-hdd/stalwart-backup`,
+`/mnt/red-hdd/vaultwarden-backup`, `/mnt/black-hdd/paperless-media`,
+`/mnt/red-hdd/paperless-export` (checked 2026-11-16).
 
 ## Network and public entry
 
@@ -108,8 +107,6 @@ forward-auth sets for backends that treat both spellings alike.
 | `www.jkandler.de` | static site, S3 + CloudFront ([`website`](https://github.com/KandlerLi/website), ADR 0016) | none (not via the homeserver) |
 | `auth.jkandler.de` | Authelia | none (it is the login) |
 | `nextcloud.jkandler.de` | Nextcloud AIO | none; Nextcloud's own Authelia OIDC login |
-| `ai.jkandler.de` `/healthz`, `/v1/*` | `home_agent` API | forward-auth |
-| `ai.jkandler.de` (rest) | Open WebUI | none; its own Authelia OIDC login, password login and signup disabled |
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
@@ -149,8 +146,7 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   CD syncs from `main` into `apps`, `auth` and `monitoring` (2026-11-14):
   the ingress (Traefik as a small Helm chart, every route in its
   `values.yaml`, ACME via DNS-01), Authelia, Blocky (+ query-log
-  Postgres), `home_agent` (+ `nextcloud_tools` sidecar), Open WebUI,
-  Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
+  Postgres), Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
   Stalwart, Bulwark, Paperless, Vaultwarden, Headlamp and
   the landing page, PVCs included, and per app the ExternalSecrets that
   ESO turns into its Secrets from AWS Secrets Manager (ADR 0032, since
@@ -196,21 +192,9 @@ claims.
 
 ## Applications
 
-- **home_agent**: Claude (`claude-opus-5`) via Anthropic's API for chat and
-  tools; Whisper (OpenAI) for speech-to-text via its bounded relay. Tools:
-  host facts (`home-tools`), Nextcloud read/write within `Shared` as the
-  dedicated `home-agent` account (ADR 0021; only the second-brain share is
-  editable), Shopping List items (ADR 0014). Each tool only reaches what
-  Julian has shared with that account; which of them are confirmed live
-  is tracked in the private task list. Open WebUI advertises only the
-  synthetic model name `home-agent`. Boundaries: the
-  `check-security-invariants` skill.
-- **Open WebUI**: every setting comes from
-  `k3s-apps/argocd/open-webui/deployment.yaml` only
-  (`ENABLE_PERSISTENT_CONFIG=False`, since 2026-11-15). Plugins, tools,
-  automations and calendar are off. Its NetworkPolicy allows egress only
-  to DNS, the ingress (Authelia OIDC) and `home_agent`; external targets
-  were refused when checked live on 2026-11-15.
+- **No AI chat or agent** since 2026-11-16: Open WebUI, `home_agent`
+  and its Nextcloud tools were retired with their data, to be set up
+  again from scratch ([decisions](decisions.md#open-webui-and-home_agent-retired)).
 - **Mail**: Stalwart for `info@`/`julian@jkandler.de`; inbound on 25,
   outbound relayed through SES (eu-central-1, production access),
   IMAP 993 / submission 465 with app passwords. Settings are code in
@@ -233,7 +217,6 @@ claims.
 | What | How | Where |
 | --- | --- | --- |
 | Nextcloud (files + database) | AIO's built-in Borg, nightly (AIO schedule) | `/mnt/red-hdd/borg` |
-| Open WebUI data | `aux-backup` timer, dated tarballs | `/mnt/red-hdd/aux-backups` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |

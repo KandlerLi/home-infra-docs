@@ -13,7 +13,7 @@ flowchart TB
 
         subgraph homeserver["homeserver 192.168.178.100<br/>[Deployment Node: Debian 13, i5-2400, 32 GiB]"]
             docker["Docker<br/>[Deployment Node]<br/>Nextcloud AIO, Prometheus, exporters"]
-            systemd["systemd<br/>[Deployment Node]<br/>home-tools, ntfy-relay, blocky-ipv6-relay, aux-backup"]
+            systemd["systemd<br/>[Deployment Node]<br/>ntfy-relay, blocky-ipv6-relay"]
             dnat["iptables DNAT<br/>[Infrastructure Node: k3s_ingress_forward]<br/>80, 443, 53, 25, 465, 993 to 192.168.101.10"]
             nfs["NFS server<br/>[Infrastructure Node]<br/>Single-client exports, root_squash"]
             disks[("black-hdd 916 GB live data<br/>red-hdd 1.8 TB backups<br/>[Infrastructure Node]")]

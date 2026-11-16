@@ -1,6 +1,6 @@
 # ADR 0021: Widen the agent's Nextcloud scope and let it read PDF/xlsx
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-09-19
 - Deployment status: root widening (`k3s-apps#64`) and document reading
   (`home-infra` PR "read PDF and xlsx", then a k3s-apps image bump) are built

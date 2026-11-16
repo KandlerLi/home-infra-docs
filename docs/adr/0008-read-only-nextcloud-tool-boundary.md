@@ -1,6 +1,6 @@
 # ADR 0008: Put Nextcloud access behind a dedicated bounded service
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-19
 - Deployment status: Deployed and validated
 

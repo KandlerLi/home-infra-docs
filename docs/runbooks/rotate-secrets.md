@@ -40,18 +40,10 @@ own file under [`secrets-manager/secrets`](https://github.com/KandlerLi/secrets-
 
 ## Category A: plain credentials -- rotate anytime, no coordination needed
 
-`home_agent_anthropic_api_key` and `home_agent_openai_api_key` (both
-`home-infra/home-agent`) and `token` (`k3s-apps/ghcr-pull-token` —
-split out of `home-infra/home-agent` 2026-09-12, shared by
-`modules/home_agent` and `modules/sankey_export`). Generate the new
-credential at its own source (Anthropic Console, OpenAI dashboard, a
-new GHCR PAT), `put-secret-value`, then `terraform apply` in
-[`k3s-apps`](https://github.com/KandlerLi/k3s-apps) to roll the consuming Deployment/Secret.
-`home_agent_anthropic_api_key` is home_agent's own chat/tool-use
-credential (`agent.py`'s `AnthropicMessagesProvider`);
-`home_agent_openai_api_key` moved to Whisper speech-to-text only
-(`audio.py`) once chat switched providers 2026-09-18 — both are live
-and independently rotatable.
+`token` (`k3s-apps/ghcr-pull-token`, sankey-export's image pull and
+Renovate). Generate a new GHCR PAT, `put-secret-value`, then force an ESO
+sync of the pull Secret (see its runbook in
+[`secrets-manager`](https://github.com/KandlerLi/secrets-manager)).
 
 `k3s_ingress_acme_dns01_access_key_id` / `_secret_access_key`
 (`home-infra/ingress`) is the same shape but its own credential is
@@ -104,8 +96,7 @@ each of these has a real, different cost:
   in practice). Generate the same way as the session secret.
 - **`authelia_oidc_hmac_secret`** and **`authelia_oidc_issuer_private_key`**
   -- rotating either one invalidates every live OIDC session across
-  Grafana, Open WebUI, and Nextcloud simultaneously (all three
-  services' users get logged out and must re-authenticate through
+  Grafana and Nextcloud simultaneously (both services' users get logged out and must re-authenticate through
   Authelia). Generate with `authelia crypto rand --length 64 --charset
   alphanumeric` (hmac secret) or `authelia crypto pair rsa generate -b
   4096` (issuer private key, PEM/4096-bit).
@@ -126,10 +117,10 @@ apply. Details and the recovery state when it stops after `change-key`:
 
 ## Category C: Authelia OIDC client secret pairs -- coordinated, two secrets + two redeploys
 
-One pair per client (Grafana/Open WebUI/Nextcloud): Authelia holds a
+One pair per OIDC client (e.g. Grafana, Nextcloud): Authelia holds a
 hash (`home-infra/authelia`'s `authelia_oidc_*_client_secret_hash`),
 the client itself holds the plaintext (Grafana in
-`home-infra/grafana`, Open WebUI in `home-infra/open-webui`, Nextcloud
+`home-infra/grafana`, Nextcloud
 in `home-infra/nextcloud` -- Nextcloud's plaintext flows through
 [`home-infra`](https://github.com/KandlerLi/home-infra)'s own Ansible, not Terraform, since Nextcloud AIO
 runs on the homeserver, not in k3s). Rotating one without the other
@@ -148,11 +139,11 @@ not just "change both":
    hash -- keep both, you need them for two different secrets.
 2. Feed both values to
    `[`k3s-apps/scripts/rotate-oidc-client-secret.sh`](https://github.com/KandlerLi/k3s-apps/blob/main/scripts/rotate-oidc-client-secret.sh) grafana` (or
-   `openwebui`, or `nextcloud`) -- it prompts silently for the
+   another client, e.g. `nextcloud`) -- it prompts silently for the
    plaintext and the hash, rejects an obviously-swapped pair (a pbkdf2
    hash always starts with `$`, the random plaintext never does),
    writes both secrets, and runs `terraform apply` (rolls Authelia's
-   own side, plus the client's Deployment for Grafana/Open WebUI --
+   own side, plus the client's Deployment for Grafana --
    Nextcloud has none, it runs on the homeserver). **Nextcloud** (script
    support added 2026-09-11) additionally re-runs [`home-infra`](https://github.com/KandlerLi/home-infra)'s
    `site.yml` itself (`--ask-become-pass`, run this one yourself) so
@@ -163,7 +154,7 @@ not just "change both":
 Getting the order wrong (only updating one side, or applying the two
 repos' changes far apart in time) locks that one client's SSO out
 until both sides match again -- native login stays disabled for
-Grafana/Open WebUI regardless (see Category I), so a mismatch there is
+Grafana regardless (see Category I), so a mismatch there is
 a real, if temporary, outage for that service.
 
 ## Category D: personal login credentials (Julian's own)
@@ -187,7 +178,6 @@ a real, if temporary, outage for that service.
 
 ## Category E: Nextcloud app passwords (dedicated bot accounts)
 
-`nextcloud_tools_app_password` (`home-infra/home-agent`),
 `sankey_export_app_password` (`k3s-apps/sankey-export`).
 
 **Hard wall on automation:** a Nextcloud app password cannot mint
@@ -200,7 +190,7 @@ mint is scriptable.
 ```bash
 # on the homeserver -- the one manual step
 docker exec nextcloud-aio-nextcloud php occ user:auth-tokens:add \
-  --name "rotate-$(date +%F)" -- <nextcloud_tools|sankey-export>
+  --name "rotate-$(date +%F)" -- sankey-export
 ```
 
 For **`sankey_export_app_password`**, feed that token to
@@ -208,13 +198,7 @@ For **`sankey_export_app_password`**, feed that token to
 the `put-secret-value`, the `terraform apply`, waits for the next
 CronJob run to prove the token, and prints the revoke command.
 
-For **`nextcloud_tools_app_password`** there is no helper script yet
-([`home-infra`](https://github.com/KandlerLi/home-infra)'s own `nextcloud_tools` role and its rotation
-playbook were retired when `home_agent`/`open_webui` moved to k3s-native,
-`018c5ff`): capture the token, `put-secret-value` it into
-`home-infra/home-agent`, `terraform apply` in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps).
-
-Either way, revoke the superseded token only after confirming the new
+Revoke the superseded token only after confirming the new
 one works: `occ user:auth-tokens:list <account>` to get the ids, then
 `occ user:auth-tokens:delete <account> <id>` (note the arg order --
 `:list`/`:delete` take the account positionally *first*, `:add` takes it
