@@ -52,6 +52,8 @@ subject, not to the runner.
   repository: every Pod is fresh. The cost per job, measured
   2026-11-01: ~70 s from queued to started and ~76 s of `terraform init`
   without a plugin cache (tracker #52).
+  Since 2026-11-16 one exception: each repository's Terraform plugin cache
+  persists ([decisions](../decisions.md#runners-keep-a-terraform-plugin-cache-per-repository)).
 - The runner image stays the community `myoung34/github-runner`, started
   with `run.sh` under ARC. The official `actions/actions-runner` lacks
   `node` and the AWS CLI that host-run jobs need (see `decisions.md`).
