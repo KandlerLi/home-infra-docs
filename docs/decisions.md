@@ -1066,6 +1066,8 @@ rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
   caller needed a `repo-infra` change first. A major bump now makes that
   visible, and the release notes say what to do before bumping.
 - **Rejected: a moving `v1` tag.** It would change callers' CI without a
-  PR. Callers are bumped by hand, one PR per repository.
+  PR. Renovate proposes each new exact tag instead: MINOR and PATCH in a
+  repo's "non-major" group, a MAJOR in its own PR. v1.0.0 was bumped by
+  hand, because `repo-infra` had to drop the old required check first.
 - **Releases** are cut with `gh release create vX.Y.Z --target <full SHA>`.
   A short SHA is rejected (HTTP 422).
