@@ -1009,3 +1009,63 @@ are gone.
   `configuration.json` and overwrites it only when the variable is set.
   `home-infra#154` sets it to `""` for good. Deleting the directory
   before that would have kept Docker from starting the container.
+
+## Open WebUI takes its settings from env only
+
+Since 2026-11-15 Open WebUI runs with `ENABLE_PERSISTENT_CONFIG=False`
+(`k3s-apps#202`), so `argocd/open-webui/deployment.yaml` is the only
+source of its settings. Before, Open WebUI wrote each setting to the
+`config` table in `webui.db` on first boot, and from then on the stored
+value overrode the env var. The database dates from the Docker
+deployment, so env changes silently did nothing three times:
+- the login form kept showing (2026-09-11)
+- the backend URL still pointed at the Docker alias (2026-09-12)
+- automations and calendar stayed on after `k3s-apps#199` disabled them
+  (2026-11-15)
+
+The first two were fixed by editing the database by hand.
+
+- **Rejected: keep persistence and fix rows by hand.** Every new setting
+  needs a database edit after the deploy, and a missed one fails silently,
+  including security switches.
+- **Cost:** a change in the admin panel lasts only until the next Pod
+  restart. Settings change through `deployment.yaml`, like everything else.
+  Per-user settings (for example the STT language) are not affected.
+- **What changed live:** besides automations and calendar going off, the
+  RAG settings now point at `home-agent-svc` instead of OpenAI, and STT
+  allows the default file extensions instead of none. Login, chat and
+  STT were tested in the browser afterwards.
+- **Rollback:** revert. The old rows are still in the `config` table,
+  untouched.
+
+## In-cluster OIDC pins Authelia to `ingress-svc`'s ClusterIP
+
+Vaultwarden and, since 2026-11-15, Open WebUI (`k3s-apps#199`) have
+NetworkPolicies that allow no egress outside the cluster. They still need
+to reach `auth.jkandler.de` for OIDC discovery and token exchange. That
+name resolves to the public IP, so each Deployment maps it with
+`hostAliases` to `ingress-svc`'s ClusterIP (`10.43.153.200`). Traffic stays
+in-cluster, and TLS still checks the real certificate.
+
+- **Catch:** the ClusterIP isn't pinned in the Service spec. If
+  `ingress-svc` is ever recreated, it gets a new IP, and OIDC login in both
+  apps breaks. Then update both `hostAliases` (`grep -rn 10.43.153.200`
+  in `k3s-apps`).
+- **Rejected: allowing egress to the public IP.** It is a transient
+  address, and allowing it would let the Pods out through the router.
+
+## gha-common follows Semantic Versioning from v1.0.0
+
+Since 2026-11-15, `gha-common` releases follow [SemVer](https://semver.org/).
+Its public API (workflow files, inputs, secrets, check names) and the bump
+rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
+(`@v1.0.0`). There are no floating major tags.
+
+- **Why:** the `v0.0.x` tags said nothing about compatibility. Merging the
+  plan job into `Validate` (v1.0.0) renamed a required check, so every
+  caller needed a `repo-infra` change first. A major bump now makes that
+  visible, and the release notes say what to do before bumping.
+- **Rejected: a moving `v1` tag.** It would change callers' CI without a
+  PR. Callers are bumped by hand, one PR per repository.
+- **Releases** are cut with `gh release create vX.Y.Z --target <full SHA>`.
+  A short SHA is rejected (HTTP 422).

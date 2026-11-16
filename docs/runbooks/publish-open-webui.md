@@ -12,8 +12,8 @@ the service account and `open_webui_data_dir` host prerequisites the
 k3s Pod's NFS mount still depends on, nothing deployable on its own.
 Login has also changed since this runbook was current: Authelia OIDC
 SSO only since 2026-09-08, not the Basic Auth/native-signup flow
-described below — see
-[Harden Open WebUI login](harden-open-webui-login.md).
+described below (`ENABLE_LOGIN_FORM`, `ENABLE_PASSWORD_AUTH` and
+`ENABLE_SIGNUP` are `False`).
 
 There's no dedicated deploy/publish runbook for the current shape —
 Open WebUI is deployed the same way every other [`k3s-apps`](https://github.com/KandlerLi/k3s-apps)

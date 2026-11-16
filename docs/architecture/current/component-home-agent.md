@@ -47,6 +47,8 @@ flowchart LR
 ## Boundaries
 
 The agent holds the Anthropic and OpenAI keys; Open WebUI holds neither.
+Open WebUI's NetworkPolicy lets it reach only DNS, the ingress (for
+Authelia OIDC) and `home_agent`.
 The sidecar holds the Nextcloud app password; the agent container does
 not. Nextcloud scope is whatever Julian shares with `home-agent` under
 `Shared` (ADR 0021). The full rule set is the `check-security-invariants`
