@@ -13,11 +13,10 @@ need Julian's review; prefer read-only checks first.
 | [Operate Nextcloud AIO](nextcloud-aio.md) | Borg backup setup, AIO quirks, planned hardware shutdown |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
 | [Rotate secrets](rotate-secrets.md) | Rotating or adding a Secrets Manager value |
-| [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless, Open WebUI |
+| [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless |
 | [Manage repository infrastructure](manage-repo-infra.md) | Adding a repo to `repo-infra`, importing existing settings |
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
 | [FRITZ!Box WireGuard VPN](fritzbox-wireguard-vpn.md) | Adding, checking or removing a VPN device (ADR 0025) |
-| [Open WebUI voice transcription](enable-openai-voice-transcription.md) | Speech-to-text setup, per-user language, live check |
 | [Retire a k3s app](retire-k3s-app.md) | Removing an Argo CD-deployed app everywhere, optionally with its data |
 | [Update this documentation](update-documentation.md) | After any change that alters what these docs say |
 
@@ -35,12 +34,9 @@ describe no longer exist. Each file says where the thing lives now.
 
 - [GitHub runner VM](github-runner.md): runners are in k3s since
   2026-08-31, ARC scale sets in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) since 2026-11-01
-- [Publish the home-agent](publish-home-agent.md),
-  [Deploy and publish Open WebUI](publish-open-webui.md),
-  [Deploy read-only Nextcloud tools](deploy-nextcloud-tools.md),
-  [Enable Nextcloud write tools](enable-nextcloud-writes.md),
-  [Enable the Shopping List tools](enable-nextcloud-shopping-list.md),
-  [Enable the Sankey exporter](enable-sankey-export.md): all moved to
-  [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (2026-08-29 to 2026-09-07)
+- [Enable the Sankey exporter](enable-sankey-export.md): moved to
+  [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (2026-09-07). The home-agent, Open WebUI and
+  Nextcloud-tools runbooks were deleted when those apps were retired
+  (2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)).
 - [Migrate AWS account bootstrap ownership](migrate-aws-account-bootstrap.md):
   the first identity handoff, superseded by `repo-infra` (ADR 0010)

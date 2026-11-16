@@ -29,20 +29,8 @@ local-apply control-plane roots, and the homeserver/k3s workloads.
 
 Repository: [`home-infra`](https://github.com/KandlerLi/home-infra)
 
-Owns Ansible inventory, roles, playbooks, tests, encrypted variables, the
-home-agent source, the home-tools service, Nextcloud AIO master configuration,
-Traefik, the now-retired Open WebUI Docker runtime (container stopped
-2026-08-30, role files still here but unreachable — the deployed runtime is
-[`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/open_webui` now), deployed read-only Nextcloud tools
-plus implemented-but-not-yet-deployed Nextcloud write tools (ADR 0011,
-confirmation step later removed per ADR 0013 — see
-`docs/runbooks/enable-nextcloud-writes.md`), implemented-but-not-yet-deployed
-Shopping List item tools (ADR 0014, second Nextcloud integration reusing the
-same account via the app's own OCS API — see
-`docs/runbooks/enable-nextcloud-shopping-list.md`), an
-audio-transcription relay (ADR 0012, implemented, live-tested, and fixed
-three times against real behavior — see
-`docs/runbooks/enable-openai-voice-transcription.md`), storage, Docker,
+Owns Ansible inventory, roles, playbooks, tests, encrypted variables,
+Nextcloud AIO master configuration, Traefik, storage, Docker,
 libvirt, the GitHub runner VM, and the Finanzfluss Sankey exporter
 (ADR 0015, a third dedicated Nextcloud account plus this repo's first
 non-containerized service — see `docs/runbooks/enable-sankey-export.md`),
@@ -75,18 +63,7 @@ still always means `ansible-playbook site.yml --ask-become-pass` run by
 a human over the local network, same as always. Also registers
 self-hosted runners for `aws-budget`, `homeserver-health-check`, and
 `ses-relay` now, via `scripts/sync_github_runner_repositories.py`
-reading `repo-infra`'s `config.yml`. A second, separate workflow
-(`.github/workflows/build-home-agent.yml`, added 2026-08-30) builds and
-pushes `home_agent`'s image to a private GHCR package
-(`ghcr.io/kandlerli/home-agent`) on the same self-hosted runner, on
-every push touching `ansible/roles/home_agent/files/agent/**` --
-needed once `home_agent` started moving into the k3s cluster
-([`k3s-apps`](https://github.com/KandlerLi/k3s-apps)' `modules/home_agent/`), specifically to avoid
-building it on the homeserver itself, unlike every other image this
-repo runs (which `docker_image`/`docker build` locally on the
-homeserver as part of the normal Ansible apply). Uses the workflow's
-own short-lived `GITHUB_TOKEN`, not a durable credential -- `k3s-apps`'
-own pull secret is the only place a durable, read-scoped PAT is needed.
+reading `repo-infra`'s `config.yml`..
 
 ### `monitoring` role
 
@@ -98,7 +75,7 @@ HTTPS probe module reports both), all scraped by Prometheus (TSDB on the
 root disk, not the HDD, retention capped at 30 days/2 GB given only 23 GiB
 was free at last check) and visualized in Grafana (three provisioned
 dashboards, admin password via the `_FILE` env-var convention rather than
-raw env, same reasoning as `home_agent`'s `OPENAI_API_KEY_FILE`).
+raw env).
 Alertmanager routes every firing alert to both a ntfy push notification and
 an email relayed through `ses-relay` (applied and live). Every container
 runs `network_mode: host` uniformly.
@@ -163,35 +140,11 @@ did too (2026-08-29/30) until qBittorrent was retired with its data on
 2026-11-15 (see [decisions](decisions.md#qbittorrent-retired)); see
 `history.md`'s "k3s learning cluster" section for the cutover history.
 
-### `aux_backup` role
+### `aux_backup` role (retired)
 
-Opt-in (`aux_backup_enabled`, default `false`), added 2026-09-16. Daily
-`tar.gz` backup, via a systemd timer, of the small host directories
-Nextcloud AIO's own Borg backup was never going to cover: Open WebUI's
-real data (an `nfs_server` export, see above; the torrent client's
-config until 2026-11-15) -- not another Borg repository, these sources are small enough
-that Borg's own dedup/compression/encryption machinery would be
-disproportionate. Runs as root (reads across several different
-dedicated-host-uid directories in one pass; every hardening directive
-that doesn't touch DAC/capabilities is still applied) and writes to
-`/mnt/red-hdd/aux-backups`, the same disk Nextcloud's own Borg backup
-uses, in its own subdirectory. See the role's own README for the full
-reasoning. **Built and unit-tested, not yet applied** -- matching
-`deluge`/`monitoring`'s own rollout history (private validation
-before persisting `aux_backup_enabled: true` in inventory); see
-the private task list's "Nextcloud data has zero backup" entry for the fuller
-backup-scope investigation this came out of.
-
-`ansible/tasks/` holds task files shared across roles/playbooks by
-`include_tasks` with `role_path`/`playbook_dir`-relative paths (a new,
-2026-08-21 convention in this repo — previously every `include_tasks` stayed
-within its own role): `deploy_socket_service.yml` (installs a Python
-service, templates its systemd unit, and waits for its socket — used by
-`home_agent`; originally shared with `nextcloud_tools` too, but that role
-and its whole playbook/task family, including this file's own
-`generate_and_validate_nextcloud_app_password.yml` sibling, were deleted
-outright once `nextcloud_tools` moved to a k3s-native replacement — see
-`current-state.md`).
+Backed up Open WebUI's data daily to `/mnt/red-hdd/aux-backups` from
+2026-09-16; removed with Open WebUI on 2026-11-16 (see
+[decisions](decisions.md#open-webui-and-home_agent-retired)).
 
 `ansible/inventory/group_vars/all/github_runner_repositories.yml` is
 **generated**, not hand-edited: `scripts/sync_github_runner_repositories.py`
@@ -200,11 +153,7 @@ with `runner: true`. Regenerate it after changing `config.yml`, review the
 diff, and commit — see [`repo-infra/docs/README.md`](https://github.com/KandlerLi/repo-infra/blob/main/docs/README.md)'s "Adding a repository with a
 self-hosted GitHub Actions runner" section.
 
-Important paths (verified against the repo 2026-09-16 -- the
-`nextcloud_tools`/`shared_ingress` roles and every playbook in the old
-Docker-based nextcloud-tools deploy/rotate/disable and shared-ingress
-publish/rollback flows are gone outright, see this file's own
-`blocky`/`ansible/tasks/` notes above and `current-state.md` for why):
+Important paths (checked 2026-11-16):
 
 ```text
 ansible/inventory/home.yml
@@ -213,15 +162,9 @@ ansible/inventory/group_vars/all/github_runner_repositories.yml
 scripts/sync_github_runner_repositories.py
 tests/test_sync_github_runner_repositories.py
 ansible/playbooks/site.yml
-ansible/playbooks/home-agent.yml
 ansible/playbooks/k3s.yml
-ansible/roles/home_agent/
-ansible/roles/open_webui/
 ansible/roles/nextcloud_aio/
 ansible/roles/k3s_ingress_forward/
-tests/test_home_agent.py
-tests/test_nextcloud_tools_service.py
-tests/test_open_webui.py
 ```
 
 Focused validation:
@@ -230,8 +173,7 @@ Focused validation:
 cd home-infra
 .venv/bin/python -m unittest discover -s tests -v
 .venv/bin/ansible-playbook ansible/playbooks/site.yml --syntax-check
-.venv/bin/ansible-lint ansible/roles/home_agent ansible/roles/nextcloud_tools \
-  ansible/roles/open_webui ansible/roles/shared_ingress
+.venv/bin/ansible-lint ansible/roles/<role>
 git diff --check
 ```
 
@@ -271,26 +213,9 @@ at a time, each proven live first, matching the user's explicit
   Ingress). Serves `torrent.jkandler.de`. **Cut over and confirmed
   live** 2026-08-29/30, including reading Deluge's pre-existing session
   state cleanly over NFS and a real login through the deployed UI.
-- `modules/home_agent/` — `home_agent` + `nextcloud_tools` as sidecars in
-  one Pod, sharing a Unix socket through an `emptyDir` (same trust shape
-  the Docker deployment already had). `nextcloud_tools` reaches Nextcloud
-  AIO's Apache at `192.168.101.1:11000`; the one piece that couldn't move
-  as a sidecar, `home_tools_service` (reports the homeserver's own real
-  hardware), stays there and is reached over a new optional TCP listener
-  instead. `home_agent`'s own image is a private GHCR package built by
-  `home-infra`'s self-hosted CI runner, never on the homeserver itself.
-  **Cut over to `ai.jkandler.de` 2026-08-30** (see `ai_ingress.tf` below).
-- `modules/open_webui/` — the k3s-native copy of `home-infra`'s own role:
-  same pinned image, same real data (an NFS export of
-  `/var/lib/open-webui`, not started fresh), same UID:GID the Docker
-  deployment already used. Migrated against the real, already-live
-  accounts/chat history — the old container was stopped first (SQLite
-  tolerates concurrent NFS writers far worse than Deluge's own session
-  state), confirmed to read the real data correctly, and never restarted.
-  **Cut over 2026-08-30.**
-- `ai_ingress.tf` — the root-level resource replicating `shared_ingress`'s
-  own `ai.jkandler.de` path split (`/healthz`/`/v1/chat` to `home_agent`,
-  everything else to `open_webui`) as a standard Kubernetes Ingress.
+- *Retired 2026-11-16, see [decisions](decisions.md#open-webui-and-home_agent-retired):*
+  `home_agent` (+ `nextcloud_tools` sidecar) and Open WebUI, which served
+  `ai.jkandler.de` from 2026-08-30.
 - `modules/grafana/` — Phase 1 of moving `home-infra`'s `monitoring` role
   into k3s: Grafana only (Prometheus/exporters/Blocky stay on the
   homeserver permanently, reporting this physical host's own
@@ -716,8 +641,6 @@ docs/current-state.md
 docs/architecture/README.md
 docs/networking.md
 docs/security-and-secrets.md
-docs/runbooks/publish-home-agent.md
-docs/runbooks/publish-open-webui.md
 ```
 
 ## `home-infra-ai-context` (archived)

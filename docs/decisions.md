@@ -1010,6 +1010,46 @@ are gone.
   `home-infra#154` sets it to `""` for good. Deleting the directory
   before that would have kept Docker from starting the container.
 
+## Open WebUI and home_agent retired
+
+The procedure: [Retire a k3s app](runbooks/retire-k3s-app.md).
+
+On 2026-11-16 Open WebUI went away completely, with `home_agent` behind
+it (Claude chat, Whisper speech-to-text, the Nextcloud and host-facts
+tools). Julian had set it up before knowing what he needed and will set
+it up again from scratch, so nothing was kept: the chat data
+(`/var/lib/open-webui`), its `aux-backup` tarballs, the `home-agent`
+Nextcloud account (no files of its own; Julian's shares to it went with
+it), both Secrets Manager groups, the OIDC client and its hash, and the
+`ai.jkandler.de` routes and DNS record. The Anthropic and OpenAI keys
+were revoked at the providers. `aux_backup` went too, since Open WebUI
+was its last source. `sankey-export` stays; it has its own account,
+secret and pull Secret.
+
+- **An app without a PVC needs another anchor.** Automated sync won't
+  prune an app down to nothing (`allowEmpty`), and `home-agent` had no
+  PVC. `k3s-apps#208` kept its source ConfigMap instead, a harmless
+  object already in the Role's names, so Argo CD pruned the rest,
+  including the ExternalSecrets and thereby the Secrets holding the API
+  keys. The Applications have no finalizer, so after `k3s-bootstrap#85`
+  the ConfigMap and the PVC were deleted by hand, then the PV
+  (`k3s-bootstrap#86`) and the directories (`k3s-apps#209`).
+- **Secrets go by hand, then the PR.** Every secret container has
+  `prevent_destroy`, and `secrets-manager`'s CI role has no
+  `DeleteSecret`. Julian deleted both as root (7-day recovery window);
+  the AWS provider drops a secret scheduled for deletion from state on
+  refresh, so `secrets-manager#66`'s plan had nothing left to destroy.
+  The first try failed with `ResourceNotFoundException`: the CLI's
+  default region isn't `eu-central-1`, so pass `--region` explicitly.
+- **Older leftovers.** Besides what the current roles had created, the
+  host still had `home-agent-container` (from the Docker deployment
+  before k3s), which also kept `home-tools-client` from being deleted.
+  Both had no files or processes and were removed.
+- Rest: `home-infra#156` (roles, NFS export, probe, freshness marker,
+  image build), `terraform-state#35` (ESO and operator grants),
+  `dyndns#57`. `k3s-apps`' required `Validate` check lost its only step,
+  the home-agent checksum check; what replaces it is tracked.
+
 ## Open WebUI takes its settings from env only
 
 Since 2026-11-15 Open WebUI runs with `ENABLE_PERSISTENT_CONFIG=False`

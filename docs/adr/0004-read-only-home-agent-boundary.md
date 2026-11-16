@@ -1,6 +1,6 @@
 # ADR 0004: Separate the AI Agent from Fixed Host Collectors
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-18
 
 ## Context

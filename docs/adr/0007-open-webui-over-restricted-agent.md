@@ -1,6 +1,6 @@
 # ADR 0007: Use Open WebUI over the restricted home-agent
 
-- Status: Accepted
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted
 - Date: 2026-08-19
 
 ## Context

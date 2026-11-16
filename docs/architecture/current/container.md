@@ -10,15 +10,11 @@ Grouped by where each container runs. Details per hostname and auth:
 ```mermaid
 flowchart TB
     julian["Julian / remote clients<br/>[Person]"]
-    anthropic["Anthropic API<br/>[External Software System]"]
     ses["AWS SES<br/>[External Software System]"]
 
     subgraph k3s["k3s cluster (k3s-node-1)"]
         traefik["Traefik<br/>[Container: Traefik v3, file provider]<br/>TLS, routing, rate limits, security headers"]
         authelia["Authelia<br/>[Container]<br/>Forward-auth, OIDC provider, TOTP/WebAuthn"]
-        owui["Open WebUI<br/>[Container]<br/>Chat UI"]
-        agent["home_agent<br/>[Container: Python]<br/>Bounded API, model and tool loop"]
-        nctools["nextcloud_tools<br/>[Container: Python sidecar]<br/>WebDAV/OCS tools for one Nextcloud account"]
         grafana["Grafana<br/>[Container]<br/>Dashboards"]
         alertmanager["Alertmanager<br/>[Container]<br/>Alert routing"]
         blocky["Blocky<br/>[Container]<br/>LAN DNS with ad blocking"]
@@ -33,7 +29,6 @@ flowchart TB
 
     subgraph host["Homeserver (Debian)"]
         aio["Nextcloud AIO<br/>[Container: Docker]<br/>Files, calendar, Talk, Collabora"]
-        hometools["home-tools<br/>[Container: systemd, Python]<br/>Read-only host facts"]
         prometheus["Prometheus + exporters<br/>[Container: Docker]<br/>Metrics and probes"]
         ntfy["ntfy-relay<br/>[Container: systemd]<br/>Alertmanager to ntfy"]
         black[("black-hdd<br/>[Data store: ext4 + NFS exports]<br/>Live data")]
@@ -43,15 +38,10 @@ flowchart TB
     julian -->|"HTTPS"| traefik
     julian -->|"SMTP/IMAP"| stalwart
     traefik -->|"Forward-auth check"| authelia
-    traefik --> owui & agent & grafana & bulwark & paperless & vaultwarden & other & aio & stalwart
-    owui -->|"OpenAI-compatible chat"| agent
-    agent -->|"Unix socket"| nctools
-    agent -->|"HTTP 192.168.101.1:8095"| hometools
-    agent -->|"Messages API"| anthropic
-    nctools -->|"WebDAV/OCS on 192.168.101.1:11000"| aio
+    traefik --> grafana & bulwark & paperless & vaultwarden & other & aio & stalwart
     bulwark -->|"JMAP"| stalwart
     stalwart -->|"Outbound relay"| ses
-    owui & grafana & paperless & bulwark -->|"OIDC login"| authelia
+    grafana & paperless & bulwark -->|"OIDC login"| authelia
     vaultwarden -->|"OIDC via Traefik ClusterIP"| traefik
     blocky --> blockydb
     paperless --> paperlessdb
@@ -67,8 +57,8 @@ flowchart TB
     classDef container fill:#438dd5,color:#fff,stroke:#0b4884
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class julian person
-    class anthropic,ses external
-    class traefik,authelia,owui,agent,nctools,grafana,alertmanager,blocky,stalwart,bulwark,paperless,vaultwarden,other,aio,hometools,prometheus,ntfy container
+    class ses external
+    class traefik,authelia,grafana,alertmanager,blocky,stalwart,bulwark,paperless,vaultwarden,other,aio,prometheus,ntfy container
     class blockydb,paperlessdb,black,red datastore
 ```
 

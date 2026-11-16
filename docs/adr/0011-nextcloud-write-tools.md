@@ -1,6 +1,6 @@
 # ADR 0011: Give the home agent Nextcloud write access via a server-verified propose/confirm flow
 
-- Status: Accepted (confirmation step later removed — see
+- Status: Superseded (retired 2026-11-16, [decisions](../decisions.md#open-webui-and-home_agent-retired)); was Accepted (confirmation step later removed — see
   [ADR 0013](0013-remove-nextcloud-write-confirmation.md))
 - Date: 2026-08-21
 - Deployment status: Implemented, not yet deployed
