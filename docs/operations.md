@@ -19,7 +19,11 @@ check https://www.jkandler.de/                        # 200
 ```
 
 Grafana (`grafana.jkandler.de`) shows the same picture from Prometheus,
-including blackbox probes and backup age.
+including blackbox probes and backup age. Logs are in Grafana's Explore
+with the `Loki` datasource: `{job="host-journal"}` for the homeserver's
+journal (`boot_id` selects one boot, e.g. the one before a crash; the
+values match `journalctl --list-boots`), `{job="k3s-pods", namespace="apps"}`
+for Pod logs, including Pods that no longer exist. Retention 30 days.
 
 ## Homeserver
 
