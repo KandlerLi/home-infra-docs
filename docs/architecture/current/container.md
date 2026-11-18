@@ -24,12 +24,14 @@ flowchart TB
         paperless["Paperless-ngx<br/>[Container]<br/>Document archive with OCR"]
         paperlessdb[("Paperless DB<br/>[Container: PostgreSQL + Redis]")]
         vaultwarden["Vaultwarden<br/>[Container]<br/>Password manager, SQLite"]
+        alloyk["Alloy<br/>[Container]<br/>Pod logs via the API"]
         other["Landing page, Headlamp,<br/>Argo CD, sankey_export<br/>[Containers]"]
     end
 
     subgraph host["Homeserver (Debian)"]
         aio["Nextcloud AIO<br/>[Container: Docker]<br/>Files, calendar, Talk, Collabora"]
         prometheus["Prometheus + exporters<br/>[Container: Docker]<br/>Metrics and probes"]
+        loki[("Loki + Alloy<br/>[Container: Docker]<br/>Host journal and Pod logs")]
         ntfy["ntfy-relay<br/>[Container: systemd]<br/>Alertmanager to ntfy"]
         black[("black-hdd<br/>[Data store: ext4 + NFS exports]<br/>Live data")]
         red[("red-hdd<br/>[Data store]<br/>Backups")]
@@ -48,6 +50,8 @@ flowchart TB
     prometheus -->|"Alerts"| alertmanager
     alertmanager -->|"Webhook"| ntfy
     grafana -->|"Queries"| prometheus
+    grafana -->|"Log queries"| loki
+    alloyk -->|"Push"| loki
     aio --> black
     paperless -->|"NFS media"| black
     aio -->|"Borg"| red
@@ -58,8 +62,8 @@ flowchart TB
     classDef datastore fill:#2e8b57,color:#fff,stroke:#1d5c3a
     class julian person
     class ses external
-    class traefik,authelia,grafana,alertmanager,blocky,stalwart,bulwark,paperless,vaultwarden,other,aio,prometheus,ntfy container
-    class blockydb,paperlessdb,black,red datastore
+    class traefik,authelia,grafana,alertmanager,alloyk,blocky,stalwart,bulwark,paperless,vaultwarden,other,aio,prometheus,ntfy container
+    class blockydb,paperlessdb,loki,black,red datastore
 ```
 
 Not drawn, to keep the view readable: the CI runners (`k3s-node-2`, see
