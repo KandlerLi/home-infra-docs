@@ -42,3 +42,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0030](0030-credentials-outside-secrets-manager.md) | Accepted | Credentials that can't live in Secrets Manager go into `pass` or onto paper |
 | [0031](0031-argocd-ui-behind-authelia.md) | Accepted | Argo CD's UI public on `argo.jkandler.de`, behind Authelia forward-auth and OIDC |
 | [0032](0032-cluster-secrets-through-external-secrets.md) | Accepted | Cluster Secrets through the External Secrets Operator, authenticated by OIDC federation |
+| [0033](0033-nextcloud-on-k3s.md) | Proposed | Move Nextcloud from AIO on the host to plain manifests on k3s |
