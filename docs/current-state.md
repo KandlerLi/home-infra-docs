@@ -37,7 +37,9 @@ k3s.
   `https://192.168.178.100:8080` (LAN only).
 - **Monitoring** (Docker, `network_mode: host`): Prometheus
   (`127.0.0.1:9090`, plus `192.168.101.1:9090` for k3s Grafana),
-  node_exporter, cAdvisor (`8081`), blackbox_exporter. Grafana and
+  node_exporter, cAdvisor (`8081`), blackbox_exporter. Loki
+  (`192.168.101.1:3100` only, data on the root disk, 30 d retention) and
+  Alloy, which ships the host journal to it (since 2026-11-18). Grafana and
   Alertmanager run in k3s (below).
 - **Docker DNS**: `daemon.json` pins `dns: [192.168.178.1]` (the
   FRITZ!Box), so containers restored at boot never start without an
@@ -146,7 +148,8 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   CD syncs from `main` into `apps`, `auth` and `monitoring` (2026-11-14):
   the ingress (Traefik as a small Helm chart, every route in its
   `values.yaml`, ACME via DNS-01), Authelia, Blocky (+ query-log
-  Postgres), Grafana, Alertmanager, kube-state-metrics, sankey_export (CronJob),
+  Postgres), Grafana, Alertmanager, kube-state-metrics, Alloy (Pod logs to
+  the homeserver's Loki), sankey_export (CronJob),
   Stalwart, Bulwark, Paperless, Vaultwarden, Headlamp and
   the landing page, PVCs included, and per app the ExternalSecrets that
   ESO turns into its Secrets from AWS Secrets Manager (ADR 0032, since
@@ -181,7 +184,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `ci` | privileged | the GitHub Actions runner Pods (dind) |
 | `arc-system` | restricted | the ARC controller and its listeners |
 | `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
-| `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics |
+| `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics, Alloy |
 | `auth` | restricted | Authelia |
 | `apps` | restricted (from k3s-bootstrap#44) | every other `k3s-apps` workload, Traefik included |
 | `argocd` | restricted | Argo CD: controller, repo-server, server, Redis |
@@ -236,8 +239,8 @@ Prometheus on the homeserver scrapes the host, containers, both k3s nodes
 and blackbox probes of the public hostnames (HTTPS probes also cover
 certificate expiry). Alerts go to Alertmanager in k3s
 (`192.168.101.10:9093`), which notifies ntfy (via `ntfy-relay`) and email
-(SES). Grafana (`grafana.jkandler.de`) reads Prometheus and Blocky's
-query-log Postgres; its "GitHub Runners" dashboard shows runner Pods
+(SES). Grafana (`grafana.jkandler.de`) reads Prometheus, Blocky's
+query-log Postgres and Loki; its "GitHub Runners" dashboard shows runner Pods
 ready and pending, ARC listeners, waiting containers, restarts, jobs per
 hour, per-container CPU/memory, GitHub's own online/busy view and the IO
 load on `k3s-node-2` and the HDDs. Separately, [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) (Route 53
