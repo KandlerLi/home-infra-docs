@@ -1111,3 +1111,62 @@ rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
   hand, because `repo-infra` had to drop the old required check first.
 - **Releases** are cut with `gh release create vX.Y.Z --target <full SHA>`.
   A short SHA is rejected (HTTP 422).
+
+## Runners keep a Terraform plugin cache per repository
+
+Since 2026-11-16 (`k3s-bootstrap#87`, tracker #52) the runner Pods'
+`/terraform-plugin-cache` is a hostPath per repository on `k3s-node-2`
+(`/var/lib/terraform-plugin-cache/<repo>`) instead of an `emptyDir`. It
+is the one exception to ADR 0027's "every Pod is fresh". After option 1
+(validate and plan in one job), `terraform init` was the largest step
+left: ~70 s per job, ~190 s when six PRs ran at once.
+
+- **Result:** dyndns, two dispatched runs in a row: `terraform init
+  -backend=false` 69 s → 25 s, the job 142 s → 92 s. The 25 s left are
+  Terraform hashing the ~700 MB AWS provider from node-2's disk to check
+  it against the lock file; locally that takes 1.5 s.
+- **Trust:** PR checks and the `main` apply of one repository share its
+  cache. Terraform uses an entry only if it matches a hash in that job's
+  lock file; a tampered provider failed `init` when tested. Repositories
+  don't see each other's cache, and fork PRs never run here. Julian
+  accepted this over "no caches".
+- **Rejected: a read-only mirror filled by its own CronJob.** It would
+  have to guess which versions to hold, and is a cache we'd build
+  ourselves. **Rejected: a pull-through network mirror.** Terraform needs
+  HTTPS with a trusted certificate, the runners would need a
+  NetworkPolicy exception into the cluster, it's another service to run,
+  and it saves only the download, not the unpacking.
+- **Limits:** Terraform never prunes, so an init container deletes
+  versions older than 14 days at Pod start. The cache isn't safe for
+  concurrent writers; two jobs of one repository fetching a new version
+  at once can fail one `init`, and a re-run fixes it.
+
+## A pull-through registry cache for the runners' CI images
+
+Since 2026-11-16 (`k3s-bootstrap#88`, `gha-common` v1.2.0, tracker #52)
+later jobs pull their CI image through `registry-cache` in `ci` on
+`k3s-node-2`, a single CNCF Distribution `registry` in proxy mode for
+`ghcr.io`, instead of from GHCR. "Initialize containers" was ~45 s per
+job, ~30 s of it the download into the job's fresh dind.
+
+- **Result:** dyndns, warm cache: download 4 s instead of ~32 s,
+  "Initialize containers" 43 s → 15 s. Unpacking (~12 s) stays. With the
+  plugin cache, one `Validate` went from ~210 s to ~107 s.
+- **Addressing:** dockerd's `registry-mirrors` covers only Docker Hub, so
+  the runner exports `GHCR_CACHE` and `gha-common`'s build-image job
+  hands later jobs the cache reference; the push still goes to GHCR. dind
+  lists the cache under `insecure-registries` (plain HTTP in-cluster).
+- **Credentials:** the cache pulls with `k3s-apps/ghcr-pull-token`, read
+  at `k3s-bootstrap` apply time (`terraform-state#36`), so a rotation
+  needs a re-apply there. That token is account-wide, so any runner can
+  pull any private KandlerLi package through the cache; accepted, since
+  those are CI images and `sankey-export`, holding no secrets. Jobs keep
+  passing their GHCR credentials: GitHub rejects empty container
+  credentials at template validation (found in testing, `gha-common#33`),
+  and docker sends them only after a 401, which the cache never issues.
+- **Rejected: Harbor.** It would give per-project rights and many
+  upstreams, but is ~7 components and ~1.5–2 GB on the CI node, for one
+  upstream. Worth its own decision if it ever becomes a cluster-wide
+  cache or replaces GHCR.
+- **Rejected: a warm runner Pod** (`minRunners: 1`): Julian wants runner
+  Pods only on demand.
