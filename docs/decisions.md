@@ -1080,17 +1080,17 @@ The first two were fixed by editing the database by hand.
 
 ## In-cluster OIDC pins Authelia to `ingress-svc`'s ClusterIP
 
-Vaultwarden and, since 2026-11-15, Open WebUI (`k3s-apps#199`) have
-NetworkPolicies that allow no egress outside the cluster. They still need
+Vaultwarden (and Open WebUI from 2026-11-15 until its retirement on
+2026-11-16) has a NetworkPolicy that allows no egress outside the cluster. They still need
 to reach `auth.jkandler.de` for OIDC discovery and token exchange. That
-name resolves to the public IP, so each Deployment maps it with
+name resolves to the public IP, so the Deployment maps it with
 `hostAliases` to `ingress-svc`'s ClusterIP (`10.43.153.200`). Traffic stays
 in-cluster, and TLS still checks the real certificate.
 
-- **Catch:** the ClusterIP isn't pinned in the Service spec. If
-  `ingress-svc` is ever recreated, it gets a new IP, and OIDC login in both
-  apps breaks. Then update both `hostAliases` (`grep -rn 10.43.153.200`
-  in `k3s-apps`).
+- **Pinned since 2026-11-16** (`k3s-apps#210`): `ingress-svc` sets
+  `spec.clusterIP: 10.43.153.200`, so a recreated Service keeps the IP.
+  Changing it means changing the `hostAliases` too (`grep -rn
+  10.43.153.200` in `k3s-apps`).
 - **Rejected: allowing egress to the public IP.** It is a transient
   address, and allowing it would let the Pods out through the router.
 
