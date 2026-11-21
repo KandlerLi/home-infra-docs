@@ -177,7 +177,8 @@ Decided while building (2026-11-21):
   `nginx` as root with its own PostgreSQL, RabbitMQ and Redis, which
   `apps` (`restricted`) does not admit. Nextcloud moves without it; a
   rootless image or an alternative is a separate decision. Until then
-  there is no document editing after the cutover.
+  there is no document editing after the cutover. Decided and live since
+  2026-11-21: [ADR 0034](0034-eurooffice-on-k3s.md).
 - **notify_push comes along from the start**; Imaginary only if
   previews (such as HEIC) are missing.
 - **The public route has no forward-auth** (approved by Julian,
