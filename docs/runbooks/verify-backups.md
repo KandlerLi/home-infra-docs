@@ -5,8 +5,9 @@ Every backup lives on `/mnt/red-hdd` on the homeserver (`current-state.md`,
 backups are restorable without touching production, and the **restore**
 procedures per backup for when they are needed.
 
-Status: the drill passed on 2026-10-26 for all six checks then; the
-`stalwart` check was added on 2026-10-28. The restore
+Status: the drill passed on 2026-11-21 for all eight checks, including
+`nextcloud-db` and `nextcloud-restic` on their first run (restic's first
+full snapshot of the live data directory, before the cutover). The restore
 procedures below have **not** been exercised end to end; each one restores
 into production, so read it fully before starting.
 
