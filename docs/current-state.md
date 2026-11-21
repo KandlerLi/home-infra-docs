@@ -111,6 +111,7 @@ forward-auth sets for backends that treat both spellings alike.
 | `www.jkandler.de` | static site, S3 + CloudFront ([`website`](https://github.com/KandlerLi/website), ADR 0016) | none (not via the homeserver) |
 | `auth.jkandler.de` | Authelia | none (it is the login) |
 | `nextcloud.jkandler.de` | Nextcloud on k3s (ADR 0033); `/push` to notify_push | none (reviewed exception: sync clients and apps use app passwords); the web login only through Authelia OIDC (force-SSO) |
+| `nextcloud.jkandler.de/eurooffice` | Euro-Office editor (ADR 0034) | forward-auth for `user:julian` (no editing from the phone app or public shares) |
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
@@ -223,8 +224,13 @@ claims.
   with PostgreSQL 18, Redis, cron and notify_push in the same Pod;
   data directory `/mnt/black-hdd/nextcloud` over NFS, code and config on
   node-local volumes. A NetworkPolicy admits only Traefik, sankey-export
-  and the backup Job. Euro-Office is not deployed (tracker #74), so
-  there is no in-browser document editing.
+  and the backup Job.
+- **Euro-Office** (ADR 0034): document editor for Nextcloud, Euro-Office's
+  Kubernetes build `cluster-docs` as proxy, docservice and converter,
+  rootless as 101, with PostgreSQL, Redis and RabbitMQ in the same Pod; no
+  persistent storage. Reaches Nextcloud through Traefik's pinned
+  ClusterIP; NetworkPolicy in from Traefik and Nextcloud, out to DNS and
+  Traefik only.
 
 ## Backups
 
