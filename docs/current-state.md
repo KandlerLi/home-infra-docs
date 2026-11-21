@@ -17,24 +17,26 @@ on a single fact.
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, torrent downloads, Paperless media) |
-| Backups | `/mnt/red-hdd`, 1.8 TB: `borg/`, `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
+| Backups | `/mnt/red-hdd`, 1.8 TB: `nextcloud-restic/`, `nextcloud-backup/`, `borg/` (AIO, kept until its removal), `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `unattended_upgrades`, `storage`,
 `authelia_backup`, `stalwart_backup`, `vaultwarden_backup`,
-`paperless_storage`, `nfs_server`, `docker`, `nextcloud_aio`,
-`monitoring`, `blocky_ipv6_relay`. The `*_backup` and
-`paperless_storage` roles only keep host prerequisites
+`paperless_storage`, `nextcloud_storage`, `nfs_server`, `docker`,
+`nextcloud_aio` (parked), `monitoring`, `blocky_ipv6_relay`. The `*_backup`,
+`paperless_storage` and `nextcloud_storage` roles only keep host prerequisites
 (service accounts, NFS-exported directories) for workloads that run in
 k3s.
 
 ### Running on the host (checked 2026-10-11)
 
-- **Nextcloud AIO** (Docker, managed by its own mastercontainer): Apache,
-  Nextcloud, PostgreSQL, Redis, Imaginary, Collabora, Talk, Notify Push,
-  Whiteboard. Apache listens on `127.0.0.1:11000` and on
-  `192.168.101.1:11000` for k3s Traefik. The mastercontainer admin UI is
-  `https://192.168.178.100:8080` (LAN only).
+- **Nextcloud AIO, parked** (ADR 0033): Nextcloud moved to k3s on
+  2026-11-21. The mastercontainer and every AIO container are stopped
+  (`nextcloud_aio_parked`, no restart); volumes, configuration and the
+  Borg repository stay for a rollback until AIO is removed.
+- **restic for Nextcloud's files** (`nextcloud_storage` role): systemd
+  timer at 03:45 UTC as `www-data`, backing up `/mnt/black-hdd/nextcloud`
+  and the database dumps into `/mnt/red-hdd/nextcloud-restic`.
 - **Monitoring** (Docker, `network_mode: host`): Prometheus
   (`127.0.0.1:9090`, plus `192.168.101.1:9090` for k3s Grafana),
   node_exporter, cAdvisor (`8081`), blackbox_exporter. Loki
@@ -108,7 +110,7 @@ forward-auth sets for backends that treat both spellings alike.
 | `jkandler.de` | 301 to `www.jkandler.de` | none |
 | `www.jkandler.de` | static site, S3 + CloudFront ([`website`](https://github.com/KandlerLi/website), ADR 0016) | none (not via the homeserver) |
 | `auth.jkandler.de` | Authelia | none (it is the login) |
-| `nextcloud.jkandler.de` | Nextcloud AIO | none; Nextcloud's own Authelia OIDC login |
+| `nextcloud.jkandler.de` | Nextcloud on k3s (ADR 0033); `/push` to notify_push | none (reviewed exception: sync clients and apps use app passwords); the web login only through Authelia OIDC (force-SSO) |
 | `grafana.jkandler.de` | Grafana | forward-auth, then Grafana's own OIDC login |
 | `home.jkandler.de` | landing page | forward-auth |
 | `k8s.jkandler.de` | Headlamp (read-only cluster UI) | forward-auth |
@@ -216,13 +218,20 @@ claims.
   ClusterIP). Infrastructure secrets stay in `pass`.
 - **Sankey export** (ADR 0015): k3s CronJob, every minute, renders the
   Finanzfluss workbook to a PNG in Nextcloud via the `sankey-export`
-  account.
+  account, in-cluster on `nextcloud-svc`.
+- **Nextcloud** (ADR 0033): official image, rootless as `www-data` (33),
+  with PostgreSQL 18, Redis, cron and notify_push in the same Pod;
+  data directory `/mnt/black-hdd/nextcloud` over NFS, code and config on
+  node-local volumes. A NetworkPolicy admits only Traefik, sankey-export
+  and the backup Job. Euro-Office is not deployed (tracker #74), so
+  there is no in-browser document editing.
 
 ## Backups
 
 | What | How | Where |
 | --- | --- | --- |
-| Nextcloud (files + database) | AIO's built-in Borg, nightly (AIO schedule) | `/mnt/red-hdd/borg` |
+| Nextcloud database + `config.php` | k3s CronJob 03:30 UTC, `pg_dump` over NFS, 14-day retention | `/mnt/red-hdd/nextcloud-backup` |
+| Nextcloud files (+ the dumps) | restic on the host, 03:45 UTC, 7 daily / 4 weekly / 6 monthly | `/mnt/red-hdd/nextcloud-restic` |
 | Authelia (TOTP/WebAuthn, sessions) | k3s CronJob over NFS, 14-day retention | `/mnt/red-hdd/authelia-backup` |
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |

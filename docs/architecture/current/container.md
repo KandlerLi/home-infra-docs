@@ -2,7 +2,7 @@
 
 - **C4 type:** Container
 - **Scope:** Home Infrastructure software system
-- **Status:** Current as of 2026-10-11
+- **Status:** Current as of 2026-11-21 (Nextcloud on k3s, ADR 0033)
 
 Grouped by where each container runs. Details per hostname and auth:
 [`current-state.md`](../../current-state.md).
@@ -26,10 +26,10 @@ flowchart TB
         vaultwarden["Vaultwarden<br/>[Container]<br/>Password manager, SQLite"]
         alloyk["Alloy<br/>[Container]<br/>Pod logs via the API"]
         other["Landing page, Headlamp,<br/>Argo CD, sankey_export<br/>[Containers]"]
+        aio["Nextcloud<br/>[Container: k3s Pod]<br/>Files, calendar, contacts; PostgreSQL, Redis, notify_push"]
     end
 
     subgraph host["Homeserver (Debian)"]
-        aio["Nextcloud AIO<br/>[Container: Docker]<br/>Files, calendar, Talk, Collabora"]
         prometheus["Prometheus + exporters<br/>[Container: Docker]<br/>Metrics and probes"]
         loki[("Loki + Alloy<br/>[Container: Docker]<br/>Host journal and Pod logs")]
         ntfy["ntfy-relay<br/>[Container: systemd]<br/>Alertmanager to ntfy"]
@@ -43,7 +43,8 @@ flowchart TB
     traefik --> grafana & bulwark & paperless & vaultwarden & other & aio & stalwart
     bulwark -->|"JMAP"| stalwart
     stalwart -->|"Outbound relay"| ses
-    grafana & paperless & bulwark -->|"OIDC login"| authelia
+    grafana & paperless & bulwark & aio -->|"OIDC login"| authelia
+    other -->|"WebDAV (sankey_export)"| aio
     vaultwarden -->|"OIDC via Traefik ClusterIP"| traefik
     blocky --> blockydb
     paperless --> paperlessdb
@@ -52,9 +53,9 @@ flowchart TB
     grafana -->|"Queries"| prometheus
     grafana -->|"Log queries"| loki
     alloyk -->|"Push"| loki
-    aio --> black
+    aio -->|"NFS data directory"| black
     paperless -->|"NFS media"| black
-    aio -->|"Borg"| red
+    aio -->|"pg_dump CronJob; restic on the host"| red
 
     classDef person fill:#08427b,color:#fff,stroke:#052e56
     classDef external fill:#666,color:#fff,stroke:#333

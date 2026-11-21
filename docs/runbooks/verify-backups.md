@@ -5,8 +5,9 @@ Every backup lives on `/mnt/red-hdd` on the homeserver (`current-state.md`,
 backups are restorable without touching production, and the **restore**
 procedures per backup for when they are needed.
 
-Status: the drill passed on 2026-10-26 for all six checks then; the
-`stalwart` check was added on 2026-10-28. The restore
+Status: the drill passed on 2026-11-21 for all eight checks, including
+`nextcloud-db` and `nextcloud-restic` on their first run (restic's first
+full snapshot of the live data directory, before the cutover). The restore
 procedures below have **not** been exercised end to end; each one restores
 into production, so read it fully before starting.
 
@@ -31,7 +32,9 @@ PASS/FAIL line per check:
 | `paperless` | every exported original exists and matches the checksum in `manifest.json` |
 | `stalwart` | the newest tarball extracts and holds RocksDB's `CURRENT` and the generated config |
 | `vaultwarden` | the newest snapshot passes `PRAGMA integrity_check` and holds at least one user |
-| `borg` | the passphrase opens AIO's Borg repository and a file comes back intact from the newest archive |
+| `nextcloud-db` | the newest Nextcloud `pg_dump` exists and `pg_restore` can list its tables |
+| `nextcloud-restic` | the restic repository opens with its password file, the newest snapshot is under 26 h old and covers `/mnt/black-hdd/nextcloud`, and the newest dump restored out of it is readable |
+| `borg` | the passphrase opens AIO's Borg repository and a file comes back intact from the newest archive (skipped once the repository is gone) |
 
 Secrets (Borg passphrase, Authelia key, sudo password) go to the homeserver
 on stdin only. Run the drill after any change to a backup job, after a key
@@ -40,7 +43,11 @@ list, a disk swap).
 
 **Where the keys are:**
 
-- Borg (Nextcloud AIO): `pass` entry `nc/backup` (verified by the drill on
+- restic (Nextcloud since ADR 0033): `restic_password` in Secrets Manager
+  (`home-infra/nextcloud-backup`); on the host as
+  `/etc/nextcloud-restic/password` (`www-data`, `0400`). Without it the
+  repository is unrestorable.
+- Borg (Nextcloud AIO, until AIO is removed): `pass` entry `nc/backup` (verified by the drill on
   2026-10-26). AIO shows the passphrase only once at setup; without it the
   repository is unrestorable.
 - Authelia: `authelia_storage_encryption_key` in Secrets Manager
@@ -50,7 +57,36 @@ list, a disk swap).
   that secret. The last rotation was 2026-10-25 22:37; Authelia backups are
   kept 14 days.
 
-## Restore: Nextcloud (AIO Borg)
+## Restore: Nextcloud (restic + database dump)
+
+Nextcloud runs in k3s (ADR 0033). A restore needs three things: the data
+directory (restic), the database and `config.php` (the CronJob's dump in
+`/mnt/red-hdd/nextcloud-backup`, also inside every restic snapshot). The
+cutover used the same mechanism with AIO's dump, rehearsed on 2026-11-21:
+[migrate-nextcloud-to-k3s.md](migrate-nextcloud-to-k3s.md), steps 5–7.
+
+1. Nextcloud into maintenance mode:
+   `kubectl -n apps exec deploy/nextcloud -c nextcloud -- php occ maintenance:mode --on`.
+2. **Files**, only if the data directory is damaged or lost. As
+   `www-data` on the homeserver, with the repository's environment
+   (`RESTIC_REPOSITORY=/mnt/red-hdd/nextcloud-restic`,
+   `RESTIC_PASSWORD_FILE=/etc/nextcloud-restic/password`):
+   `restic snapshots`, then
+   `restic restore <id> --target / --include /mnt/black-hdd/nextcloud`.
+   Restore into an empty or new directory first if part of it is still
+   good.
+3. **Database**: pick a dump `nextcloud-db-<UTC timestamp>.dump` (or
+   restore one out of restic), then in a Job labelled
+   `app: nextcloud-backup` like `restore-aio.yaml`: `DROP DATABASE
+   nextcloud WITH (FORCE)`, `CREATE DATABASE nextcloud OWNER nextcloud`,
+   `pg_restore --exit-on-error -d nextcloud <dump>`.
+4. **`config.php`**, only if lost: the matching
+   `nextcloud-config-<timestamp>.php` into the `nextcloud-html` volume's
+   `config/` (as uid 33, mode `0640`).
+5. `occ maintenance:mode --off`, `occ files:scan --all`, then log in and
+   open a representative file.
+
+## Restore: Nextcloud AIO (Borg), until AIO is removed
 
 Into a fresh AIO instance (e.g. after a rebuild where `/mnt/black-hdd` was
 lost). AIO's own restore flow does the work:

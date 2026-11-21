@@ -29,14 +29,16 @@ for Pod logs, including Pods that no longer exist. Retention 30 days.
 
 ```bash
 ssh julian@192.168.178.100
-docker ps --format '{{.Names}} {{.Status}}'   # AIO, Prometheus, exporters
+docker ps --format '{{.Names}} {{.Status}}'   # Prometheus, exporters, Loki
+systemctl list-timers nextcloud-restic.timer
 systemctl --failed
 systemctl list-timers backup-freshness.timer
 df -h / /mnt/black-hdd /mnt/red-hdd
 ```
 
-The Nextcloud AIO admin interface is `https://192.168.178.100:8080` (LAN or
-VPN only); AIO's own containers, updates and Borg backup are managed there.
+Nextcloud runs in k3s since 2026-11-21 (ADR 0033); `occ` is
+`kubectl -n apps exec deploy/nextcloud -c nextcloud -- php occ …`. AIO is
+parked on the host (stopped, kept for a rollback).
 
 For "the homeserver died" use the `investigate-homeserver-outage` skill
 and [`runbooks/homeserver-silent-freeze.md`](runbooks/homeserver-silent-freeze.md).
@@ -94,15 +96,13 @@ as a command-line argument. Commands and rotation steps:
 SSH back after several minutes (most of it is the VMs' shutdown), then
 ~15 minutes until the public services answer and ~13 until all CI
 runners are online: both VMs cold-start from the black HDD (measured
-2026-10-25). Nextcloud AIO comes back by itself. The "GitHub Runners"
+2026-10-25). Nextcloud comes back with `k3s-node-1`. The "GitHub Runners"
 Grafana dashboard shows the runners recovering.
 
 ## Planned shutdown (hardware maintenance)
 
 Copy [`home-infra/scripts/shutdown-homeserver-for-maintenance.sh`](https://github.com/KandlerLi/home-infra/blob/main/scripts/shutdown-homeserver-for-maintenance.sh)
 to the host, run it with `sudo bash … --check`, then without `--check`, and
-type `POWER OFF` when asked. It shuts down both k3s VMs, stops Nextcloud
-AIO cleanly, checks the disks and failed units, syncs and powers off. It does not take a backup.
-After boot the VMs start by themselves; start the AIO containers in the AIO
-interface, then run the public checks above. Full steps:
-[`runbooks/nextcloud-aio.md`](runbooks/nextcloud-aio.md).
+type `POWER OFF` when asked. It shuts down both k3s VMs (Nextcloud with
+them), checks the disks and failed units, syncs and powers off. It does not take a backup.
+After boot the VMs start by themselves; then run the public checks above.

@@ -120,10 +120,7 @@ apply. Details and the recovery state when it stops after `change-key`:
 One pair per OIDC client (e.g. Grafana, Nextcloud): Authelia holds a
 hash (`home-infra/authelia`'s `authelia_oidc_*_client_secret_hash`),
 the client itself holds the plaintext (Grafana in
-`home-infra/grafana`, Nextcloud
-in `home-infra/nextcloud` -- Nextcloud's plaintext flows through
-[`home-infra`](https://github.com/KandlerLi/home-infra)'s own Ansible, not Terraform, since Nextcloud AIO
-runs on the homeserver, not in k3s). Rotating one without the other
+`home-infra/grafana`, Nextcloud in `home-infra/nextcloud`). Rotating one without the other
 breaks that client's SSO outright -- the guide is the exact sequence,
 not just "change both":
 
@@ -143,13 +140,9 @@ not just "change both":
    plaintext and the hash, rejects an obviously-swapped pair (a pbkdf2
    hash always starts with `$`, the random plaintext never does),
    writes both secrets, and runs `terraform apply` (rolls Authelia's
-   own side, plus the client's Deployment for Grafana --
-   Nextcloud has none, it runs on the homeserver). **Nextcloud** (script
-   support added 2026-09-11) additionally re-runs [`home-infra`](https://github.com/KandlerLi/home-infra)'s
-   `site.yml` itself (`--ask-become-pass`, run this one yourself) so
-   the new plaintext reaches Nextcloud's own `occ user_oidc:provider`
-   config -- confirmed live this step is a real upsert, not a
-   formality.
+   own side, plus the client's Deployment). For **Nextcloud** the
+   restart matters: its start hook re-registers the `Authelia` provider
+   with the new plaintext (`occ user_oidc:provider`).
 
 Getting the order wrong (only updating one side, or applying the two
 repos' changes far apart in time) locks that one client's SSO out
@@ -181,15 +174,15 @@ a real, if temporary, outage for that service.
 `sankey_export_app_password` (`k3s-apps/sankey-export`).
 
 **Hard wall on automation:** a Nextcloud app password cannot mint
-another one, so minting the replacement always needs `occ` on the
-homeserver (or the account's login password, which is generated and
+another one, so minting the replacement always needs `occ` in the
+Nextcloud Pod (or the account's login password, which is generated and
 discarded at bootstrap per ADR 0008). Nothing reachable from the
 in-cluster runner or an AWS Lambda can do it. Everything *after* the
 mint is scriptable.
 
 ```bash
-# on the homeserver -- the one manual step
-docker exec nextcloud-aio-nextcloud php occ user:auth-tokens:add \
+# the one manual step
+kubectl -n apps exec deploy/nextcloud -c nextcloud -- php occ user:auth-tokens:add \
   --name "rotate-$(date +%F)" -- sankey-export
 ```
 
