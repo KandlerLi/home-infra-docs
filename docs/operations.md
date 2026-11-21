@@ -96,7 +96,7 @@ as a command-line argument. Commands and rotation steps:
 SSH back after several minutes (most of it is the VMs' shutdown), then
 ~15 minutes until the public services answer and ~13 until all CI
 runners are online: both VMs cold-start from the black HDD (measured
-2026-10-25). Nextcloud comes back with `k3s-node-1`. The "GitHub Runners"
+2026-10-25). Nextcloud comes back with `k3s-node-1`. The "CI – GitHub runners"
 Grafana dashboard shows the runners recovering.
 
 ## Planned shutdown (hardware maintenance)
