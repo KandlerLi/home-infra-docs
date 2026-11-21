@@ -31,7 +31,7 @@ k3s.
 ### Running on the host (checked 2026-10-11)
 
 - **Nextcloud AIO, parked** (ADR 0033): Nextcloud moved to k3s on
-  CUTOVER_DATE. The mastercontainer and every AIO container are stopped
+  2026-11-21. The mastercontainer and every AIO container are stopped
   (`nextcloud_aio_parked`, no restart); volumes, configuration and the
   Borg repository stay for a rollback until AIO is removed.
 - **restic for Nextcloud's files** (`nextcloud_storage` role): systemd

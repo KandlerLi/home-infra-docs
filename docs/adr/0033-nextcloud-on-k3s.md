@@ -2,7 +2,7 @@
 
 - Status: Accepted (2026-11-21)
 - Date: 2026-11-18
-- Deployment status: in progress; test instance (migration step 2) in review
+- Deployment status: live since 2026-11-21 (cutover 14:41–15:04 CET, [runbook](../runbooks/migrate-nextcloud-to-k3s.md)); AIO parked until its removal
 - Supersedes: [ADR 0003](0003-nextcloud-aio.md)
 
 ## Context

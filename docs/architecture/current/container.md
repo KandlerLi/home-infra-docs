@@ -2,7 +2,7 @@
 
 - **C4 type:** Container
 - **Scope:** Home Infrastructure software system
-- **Status:** Current as of CUTOVER_DATE (Nextcloud on k3s, ADR 0033)
+- **Status:** Current as of 2026-11-21 (Nextcloud on k3s, ADR 0033)
 
 Grouped by where each container runs. Details per hostname and auth:
 [`current-state.md`](../../current-state.md).

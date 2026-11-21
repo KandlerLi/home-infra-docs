@@ -1,6 +1,6 @@
 # Runbook: Operate Nextcloud AIO
 
-**Historical since CUTOVER_DATE.** Nextcloud runs in k3s (ADR 0033); AIO
+**Historical since 2026-11-21.** Nextcloud runs in k3s (ADR 0033); AIO
 is parked (stopped, kept for a rollback) until it is removed. Cutover and
 rollback: [migrate-nextcloud-to-k3s.md](migrate-nextcloud-to-k3s.md).
 Restores: [verify-backups.md](verify-backups.md).

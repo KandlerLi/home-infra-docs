@@ -35,7 +35,7 @@ describe no longer exist. Each file says where the thing lives now.
 - [GitHub runner VM](github-runner.md): runners are in k3s since
   2026-08-31, ARC scale sets in [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) since 2026-11-01
 - [Operate Nextcloud AIO](nextcloud-aio.md): Nextcloud runs in k3s since
-  CUTOVER_DATE (ADR 0033); AIO is parked until it is removed
+  2026-11-21 (ADR 0033); AIO is parked until it is removed
 - [Enable the Sankey exporter](enable-sankey-export.md): moved to
   [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) (2026-09-07). The home-agent, Open WebUI and
   Nextcloud-tools runbooks were deleted when those apps were retired

@@ -36,7 +36,7 @@ systemctl list-timers backup-freshness.timer
 df -h / /mnt/black-hdd /mnt/red-hdd
 ```
 
-Nextcloud runs in k3s since CUTOVER_DATE (ADR 0033); `occ` is
+Nextcloud runs in k3s since 2026-11-21 (ADR 0033); `occ` is
 `kubectl -n apps exec deploy/nextcloud -c nextcloud -- php occ …`. AIO is
 parked on the host (stopped, kept for a rollback).
 
