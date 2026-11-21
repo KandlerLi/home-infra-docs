@@ -2,7 +2,7 @@
 
 - Status: Accepted (2026-11-21)
 - Date: 2026-11-18
-- Deployment status: not built
+- Deployment status: in progress; test instance (migration step 2) in review
 - Supersedes: [ADR 0003](0003-nextcloud-aio.md)
 
 ## Context
@@ -158,3 +158,28 @@ cluster phase are picked up again with `occ files:scan`.
 - Off-site backup stays a separate open item for everything on
   `red-hdd`. Restic makes it a later change of repository target, not a
   tool change.
+
+## Implementation notes
+
+Decided while building (2026-11-21):
+
+- **Background jobs run in the Pod**, as a second container calling
+  `cron.php` every 5 minutes, not as a CronJob. PostgreSQL and Redis stay
+  on localhost, and no second Pod mounts the node-local code volume.
+- **Rootless as `www-data` (33).** Apache binds port 80 through the
+  namespaced sysctl `net.ipv4.ip_unprivileged_port_start`, which
+  PodSecurity `restricted` allows. Redis is configured through `occ` in a
+  start hook, because the image's `REDIS_HOST` handling writes into a
+  root-owned PHP directory.
+- **The data directory is mounted at `/mnt/ncdata`**, the path AIO uses.
+  Nextcloud's root storage id contains that path.
+- **Euro-Office is deferred.** AIO's image runs `supervisord` and
+  `nginx` as root with its own PostgreSQL, RabbitMQ and Redis, which
+  `apps` (`restricted`) does not admit. Nextcloud moves without it; a
+  rootless image or an alternative is a separate decision. Until then
+  there is no document editing after the cutover.
+- **notify_push comes along from the start**; Imaginary only if
+  previews (such as HEIC) are missing.
+- Before the migration, about 240,000 `filecache` rows of two unmounted
+  storages left over from earlier mounts were removed (after a database
+  dump), so the dump that moves is smaller.
