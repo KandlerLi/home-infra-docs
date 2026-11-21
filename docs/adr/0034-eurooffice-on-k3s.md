@@ -2,7 +2,7 @@
 
 - Status: Accepted (2026-11-21)
 - Date: 2026-11-21
-- Deployment status: in review
+- Deployment status: live since 2026-11-21; opening, editing and saving a document confirmed by Julian
 - Follows: [ADR 0033](0033-nextcloud-on-k3s.md), which deferred the document editor
 
 ## Context
@@ -63,3 +63,20 @@ core only.
 - Upstream calls the images testing builds; Renovate bumps the digest, and
   a broken release only takes editing down, not Nextcloud.
 - No backup needed: Euro-Office holds no state worth keeping.
+
+## Implementation notes
+
+Found while rolling out (2026-11-21):
+
+- **The image doesn't set `COMPANY_NAME`**, only `COMPANY_NAME_LOW`,
+  while the entrypoints build every path from it; the Deployment sets it.
+- **No body limit on the editor route.** `max_body_bytes` adds Traefik's
+  buffering middleware, which breaks the editor's socket.io websocket.
+  Euro-Office's own nginx caps bodies at 100m.
+- **`X-Forwarded-Proto: https` is forced on the route.** Traefik sends
+  `wss` on websocket upgrades; Euro-Office's nginx then falls back to
+  `http`, and docservice builds the `Editor.bin` link from that socket's
+  headers, so the browser blocked it as mixed content ("Download failed").
+  AIO's old Nextcloud route forced the header for the same reason.
+- **`SECURE_LINK_SECRET` is set**: its default is a fixed public string.
+- The Pod uses about 550 MiB idle, less than estimated.
