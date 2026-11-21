@@ -10,6 +10,7 @@ need Julian's review; prefer read-only checks first.
 | --- | --- |
 | [Move to the 256 GB SSD](migrate-to-ssd.md) | Clone the system disk, grow root, move the k3s VM disks off the HDD (#40) |
 | [Rebuild the homeserver](rebuild-homeserver.md) | Disaster recovery (outline; restore steps in Verify and restore backups) |
+| [Move Nextcloud from AIO to k3s](migrate-nextcloud-to-k3s.md) | The ADR 0033 cutover: maintenance window, restore, rollback |
 | [Operate Nextcloud AIO](nextcloud-aio.md) | Borg backup setup, AIO quirks, planned hardware shutdown |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
 | [Rotate secrets](rotate-secrets.md) | Rotating or adding a Secrets Manager value |
