@@ -1,9 +1,9 @@
 # ADR 0033: Move Nextcloud from AIO on the host to k3s
 
-- Status: Proposed
+- Status: Accepted (2026-11-21)
 - Date: 2026-11-18
 - Deployment status: not built
-- Would supersede: [ADR 0003](0003-nextcloud-aio.md)
+- Supersedes: [ADR 0003](0003-nextcloud-aio.md)
 
 ## Context
 
@@ -54,7 +54,7 @@ Options considered:
 
 ## Decision
 
-Proposed: run Nextcloud in k3s as plain manifests under
+Run Nextcloud in k3s as plain manifests under
 `k3s-apps/argocd/nextcloud`, digest-pinned and deployed by Argo CD.
 Retire AIO once the cluster instance has taken over.
 

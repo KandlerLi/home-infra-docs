@@ -1,7 +1,10 @@
 # ADR 0003: Operate Nextcloud through All-in-One
 
-- Status: Accepted
+- Status: Superseded by [ADR 0033](0033-nextcloud-on-k3s.md)
 - Date: 2026-08-18
+
+**2026-11-21 update**: ADR 0033 replaces this decision. AIO stays live
+until the migration it describes is complete.
 
 ## Context
 
