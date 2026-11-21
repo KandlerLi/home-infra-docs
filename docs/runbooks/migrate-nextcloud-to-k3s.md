@@ -191,9 +191,14 @@ never written to.
 2. Revert the `k3s-apps` cutover PR: the route goes back to AIO's
    Apache, the Pod back to the test hostname and directory.
 3. Revert the `home-infra` park PR and roll it out: the master runs again.
-4. In AIO's interface (port 8080) start the containers.
-5. 💻 `ssh julian@192.168.178.100 docker exec -u www-data nextcloud-aio-nextcloud php occ maintenance:mode --off`
-6. Files written while k3s served them are on disk, but AIO's database
+4. Parking on 2026-11-21 left `nextcloud-aio-nextcloud` recreated
+   without AIO's volumes (fixed in `home-infra` since). Remove that
+   container and its two empty anonymous volumes first, so AIO creates
+   it again from its own configuration:
+   🖥️ `docker rm -v nextcloud-aio-nextcloud`
+5. In AIO's interface (port 8080) start the containers.
+6. 💻 `ssh julian@192.168.178.100 docker exec -u www-data nextcloud-aio-nextcloud php occ maintenance:mode --off`
+7. Files written while k3s served them are on disk, but AIO's database
    doesn't know them: `occ files:scan --all` in AIO.
 
 ## Afterwards (migration steps 4 and 5)
