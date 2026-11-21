@@ -12,7 +12,7 @@ Architecture decisions use short Markdown records with one of these states:
 | --- | --- | --- |
 | [0001](0001-ansible-as-infrastructure-source-of-truth.md) | Accepted | Use Ansible and Git as the infrastructure source of truth |
 | [0002](0002-sops-with-gpg-for-secrets.md) | Accepted | Encrypt committed secrets with SOPS and GPG |
-| [0003](0003-nextcloud-aio.md) | Accepted | Operate Nextcloud through AIO without reorganising its data |
+| [0003](0003-nextcloud-aio.md) | Superseded by 0033 | Operate Nextcloud through AIO without reorganising its data |
 | [0004](0004-read-only-home-agent-boundary.md) | Superseded (retired 2026-11-16) | Separate a cloud-model agent from fixed host collectors |
 | [0005](0005-shared-reverse-proxy.md) | Accepted | Introduce a shared authenticated HTTPS ingress layer |
 | [0006](0006-local-aws-account-bootstrap.md) | Superseded by 0010 | Manage AWS deployment identities from a local-only control plane |
@@ -42,4 +42,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0030](0030-credentials-outside-secrets-manager.md) | Accepted | Credentials that can't live in Secrets Manager go into `pass` or onto paper |
 | [0031](0031-argocd-ui-behind-authelia.md) | Accepted | Argo CD's UI public on `argo.jkandler.de`, behind Authelia forward-auth and OIDC |
 | [0032](0032-cluster-secrets-through-external-secrets.md) | Accepted | Cluster Secrets through the External Secrets Operator, authenticated by OIDC federation |
-| [0033](0033-nextcloud-on-k3s.md) | Proposed | Move Nextcloud from AIO on the host to plain manifests on k3s |
+| [0033](0033-nextcloud-on-k3s.md) | Accepted | Move Nextcloud from AIO on the host to plain manifests on k3s |
