@@ -180,6 +180,16 @@ Decided while building (2026-11-21):
   there is no document editing after the cutover.
 - **notify_push comes along from the start**; Imaginary only if
   previews (such as HEIC) are missing.
+- **The public route has no forward-auth** (approved by Julian,
+  2026-11-21), like AIO's route before: sync clients, WebDAV and the
+  apps sign in with app passwords and can't follow a login redirect; the
+  web login goes only through Authelia (`user_oidc`, force-SSO). The
+  route has no body limit either: Traefik's buffering middleware would
+  hold each upload chunk (up to 1 GB) in memory.
+- **The cutover mounts the live directory through a new PV**
+  (`nextcloud-files`) instead of re-pointing the test one: an NFS source
+  is immutable, and a bound PV can't be replaced while the Pod runs.
+  Procedure: [runbook](../runbooks/migrate-nextcloud-to-k3s.md).
 - Before the migration, about 240,000 `filecache` rows of two unmounted
   storages left over from earlier mounts were removed (after a database
   dump), so the dump that moves is smaller.
