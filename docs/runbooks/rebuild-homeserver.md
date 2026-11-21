@@ -35,10 +35,11 @@ restorable on 2026-10-26; Stalwart mail still has no backup outside the VM.
 3. Apply `site.yml` (`scripts/roll-out.sh`). The `storage` role mounts both
    disks by UUID; verify with `findmnt /mnt/black-hdd /mnt/red-hdd` and a
    look at the expected top-level directories (`docs/storage.md`).
-4. Nextcloud: if `black-hdd` survived, AIO picks up its data directory and
-   volumes; otherwise restore from the Borg repository on
-   `/mnt/red-hdd/borg` through the AIO interface, passphrase in `pass`
-   (`nc/backup`): [`verify-backups.md`](verify-backups.md).
+4. Nextcloud runs in k3s (ADR 0033) and comes back with step 6: if
+   `black-hdd` survived, its data directory is still there; otherwise
+   restore it from restic first. The database and `config.php` come
+   from the newest dump: [`verify-backups.md`](verify-backups.md),
+   "Restore: Nextcloud".
 5. Apply `k3s.yml` (`scripts/roll-out-k3s.sh`): both k3s VMs, k3s itself.
    The VM disks live on `black-hdd`; if they survived, the cluster comes
    back with its local-path volumes.

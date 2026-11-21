@@ -8,11 +8,13 @@ status: [`current-state.md`](current-state.md).
 ```text
 /                      system SSD, ext4, 231 GB
 /mnt/black-hdd         ext4, 916 GB, live data      www-data:www-data 2770
-├── nextcloud/         Nextcloud AIO data directory (NEXTCLOUD_DATADIR)
+├── nextcloud/         Nextcloud data directory (www-data); NFS to k3s, /mnt/ncdata in the Pod
 ├── paperless-media/   Paperless documents; NFS to k3s
 └── blocky/            leftover data of the stopped Docker Blocky
 /mnt/red-hdd           ext4, 1.8 TB, backups only   root:root 0755
-├── borg/              Nextcloud AIO Borg repository
+├── nextcloud-restic/  restic repository of Nextcloud's files (www-data)
+├── nextcloud-backup/  Nextcloud pg_dump + config.php CronJob output; NFS to k3s
+├── borg/              Nextcloud AIO Borg repository, kept until AIO is removed
 ├── authelia-backup/   Authelia CronJob output; NFS to k3s
 ├── paperless-export/  Paperless document_exporter output; NFS to k3s
 ├── stalwart-backup/   Stalwart CronJob tarballs; NFS to k3s
@@ -28,10 +30,12 @@ The tree shows managed paths only. Live data on `black-hdd`, backups on
 - The `storage` role mounts both disks by UUID and sets only the mount
   point's own owner and mode. Automation never changes ownership or
   permissions recursively below either mount.
-- Do not reorganise `/mnt/black-hdd`, move the Nextcloud data directory or
-  delete Nextcloud AIO Docker volumes during unrelated work. A full
-  Nextcloud restore needs both the data directory and the AIO volumes
-  (database, config); the Borg backup covers both.
+- Do not reorganise `/mnt/black-hdd` or move the Nextcloud data directory
+  during unrelated work: Nextcloud's root storage id contains the path
+  `/mnt/ncdata` it is mounted at. A full Nextcloud restore needs the data
+  directory (restic) and the database dump plus `config.php`
+  (`nextcloud-backup`, also inside restic). AIO's Docker volumes stay
+  untouched until AIO's removal is decided.
 - Never delete an unidentified directory or Docker volume as routine
   cleanup; prove what owns it first.
 - NFS exports go to one client IP each, with `root_squash` (the

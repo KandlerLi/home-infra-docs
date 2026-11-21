@@ -12,7 +12,7 @@ flowchart TB
         fritz["FRITZ!Box<br/>[Deployment Node: router]<br/>NAT, port forwards, WireGuard VPN"]
 
         subgraph homeserver["homeserver 192.168.178.100<br/>[Deployment Node: Debian 13, i5-2400, 32 GiB]"]
-            docker["Docker<br/>[Deployment Node]<br/>Nextcloud AIO, Prometheus, exporters"]
+            docker["Docker<br/>[Deployment Node]<br/>Prometheus, exporters, Loki"]
             systemd["systemd<br/>[Deployment Node]<br/>ntfy-relay, blocky-ipv6-relay"]
             dnat["iptables DNAT<br/>[Infrastructure Node: k3s_ingress_forward]<br/>80, 443, 53, 25, 465, 993 to 192.168.101.10"]
             nfs["NFS server<br/>[Infrastructure Node]<br/>Single-client exports, root_squash"]
@@ -38,7 +38,7 @@ flowchart TB
     node1 -->|"NFS mounts"| nfs
     nfs --- disks
     docker --- disks
-    node1 -->|"192.168.101.1:11000, :9090, :8095"| docker
+    node1 -->|"192.168.101.1:9090, :3100"| docker
     node1 -->|"192.168.101.1:8095"| systemd
     node2 -->|"CI jobs: outbound internet only"| internet
     node1 -->|"Secrets, SES relay, DNS-01"| aws

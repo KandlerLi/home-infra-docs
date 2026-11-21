@@ -7,8 +7,8 @@ Remote Nextcloud client
   -> Route 53 CNAME/A
   -> FRITZ!Box NAT
   -> Traefik :443
-  -> 127.0.0.1:11000
-  -> Nextcloud AIO Apache and application stack
+  -> nextcloud-svc (k3s)
+  -> Nextcloud Pod (Apache, PostgreSQL, Redis, notify_push), data over NFS
 ```
 
 
@@ -49,7 +49,7 @@ absorbed this trust path from the retired `aws-account-bootstrap` root on
 
 - configuration: Ansible for the host; Terraform for AWS/DNS; local-only
   Terraform for AWS automation identities
-- runtime: Docker for Nextcloud AIO on the host; k3s for the other apps
+- runtime: k3s for the apps, Nextcloud included (ADR 0033); Docker on the host for monitoring
 - secrets: AWS Secrets Manager for everything (the 2026-09-09
   SOPS-to-Secrets-Manager cutover retired SOPS/GPG entirely)
 - ingress: pinned Traefik `v3.7.1`, host network, file provider, no Docker socket

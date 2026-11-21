@@ -93,12 +93,15 @@ pending a separate archive/delete decision for that repository.
   management" above) — there is no local decryption step, unlike the
   retired SOPS mechanism this section used to describe.
 
-### Nextcloud AIO to Docker
+### Nextcloud on k3s
 
-The AIO master container receives the Docker socket because it manages sibling
-containers. This makes it a highly trusted component. A read-only bind mount
-of a Unix socket does not make the Docker API itself harmless, so access must
-not be extended to unrelated containers.
+Since ADR 0033 Nextcloud runs in `apps` under PodSecurity `restricted`,
+rootless as `www-data` (33); AIO's master container, which needed the
+Docker socket, is stopped (parked until AIO is removed). The public route
+has no forward-auth, like AIO's had: sync clients and apps sign in with
+app passwords, the web login goes only through Authelia (force-SSO). A
+NetworkPolicy admits Traefik, sankey-export and the backup Job only;
+PostgreSQL and Redis live in the same Pod.
 
 ### Self-hosted GitHub Actions runners
 
