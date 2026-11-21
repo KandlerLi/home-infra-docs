@@ -118,6 +118,8 @@ kubectl -n apps exec deploy/nextcloud -c nextcloud -- ls /mnt/ncdata
 ```bash
 cd /home/julian/projects/infra/k3s-apps
 git checkout main && git pull --ff-only
+# A finished Job of the same name would make apply a no-op ("unchanged"): delete it first.
+kubectl -n apps delete job nextcloud-restore-aio --ignore-not-found
 kubectl apply -f argocd/nextcloud/cutover/restore-aio.yaml
 kubectl -n apps wait --for=condition=complete --timeout=30m job/nextcloud-restore-aio
 kubectl -n apps logs job/nextcloud-restore-aio -c restore-db
@@ -137,7 +139,7 @@ image's.
 X(){ kubectl -n apps exec deploy/nextcloud -c nextcloud -- "$@"; }
 X php occ maintenance:mode --off
 # AIO's apps without code here (Talk, Whiteboard, Euro-Office, AIO's own).
-X php occ app:disable spreed whiteboard richdocuments eurooffice office nextcloud-aio
+X php occ app:disable spreed whiteboard eurooffice office nextcloud-aio
 X php occ maintenance:repair --include-expensive
 X php occ db:add-missing-indices
 X /docker-entrypoint-hooks.d/before-starting/10-settings.sh
@@ -148,6 +150,13 @@ X php occ status
 ```
 
 `files:scan` walks the 109,000 files over NFS and takes the longest.
+
+Rehearsed on 2026-11-21 against the test instance with a real AIO dump:
+the restore Job took 22 s (225 tables), every enabled app's version in
+AIO's database matched the code in the Pod except the four this step
+disables, and the commands above (without `files:scan`) took 35 s with
+no errors. The rehearsal ran on the empty test directory, so it couldn't
+time `files:scan`.
 
 ### 8. Check
 
