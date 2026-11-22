@@ -2,7 +2,7 @@
 
 - Status: Accepted (2026-11-22); the own-node amendment is Proposed
 - Date: 2026-11-22
-- Deployment status: live since 2026-11-22, Java and Bedrock, on `k3s-node-1`; own node not built
+- Deployment status: live since 2026-11-22, Java and Bedrock; own node and login alerts in rollout (tracker #78)
 
 ## Context
 
