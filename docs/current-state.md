@@ -84,7 +84,7 @@ both): `/mnt/red-hdd/authelia-backup`, `/mnt/red-hdd/stalwart-backup`,
 
 ## Network and public entry
 
-The FRITZ!Box forwards TCP 80, 443, 25, 465, 993 and 25565 and UDP 19132 to the homeserver's LAN
+The FRITZ!Box forwards TCP 80, 443, 25, 465, 993, 25565 and 19132 and UDP 19132 to the homeserver's LAN
 IP (Terraform in `KandlerLi/fritzbox`, private, local apply only). `k3s_ingress_forward` DNATs those on to the k3s VM
 (`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart, 25565/19132
 to the Minecraft server (ADR 0036). It also
@@ -127,8 +127,8 @@ forward-auth sets for backends that treat both spellings alike.
 ### DNS (Route 53)
 
 - [`dyndns`](https://github.com/KandlerLi/dyndns): the apex `jkandler.de` A record (dynamic, updated from the
-  homeserver) and CNAMEs to it for `ai`, `argo`, `auth`, `docs`, `grafana`,
-  `home`, `k8s`, `mail`, `nextcloud`, `stalwart`, `torrent`, `vault`, `vpn`.
+  homeserver) and CNAMEs to it for `argo`, `auth`, `docs`, `grafana`,
+  `home`, `k8s`, `mail`, `minecraft`, `nextcloud`, `stalwart`, `vault`, `vpn`.
 - [`website`](https://github.com/KandlerLi/website): `www` alias A/AAAA to CloudFront, the only AAAA record.
 - [`ses-relay`](https://github.com/KandlerLi/ses-relay): MX, SPF (`-all`), DMARC and the SES DKIM records.
 - Public IP values are never recorded in Git.
@@ -234,8 +234,8 @@ claims.
   ClusterIP; NetworkPolicy in from Traefik and Nextcloud, out to DNS and
   Traefik only.
 - **Minecraft** (ADR 0036): Paper with Geyser and Floodgate, so Java
-  and Bedrock players share one world; public on 25565/tcp and
-  19132/udp, no Authelia in front: `online-mode` plus an enforced
+  and Bedrock players share one world; public as `minecraft.jkandler.de`
+  on 25565/tcp and 19132/udp+tcp (NetherNet signaling), no Authelia in front: `online-mode` plus an enforced
   whitelist. Rootless as 980:975; NetworkPolicy in on the game ports only,
   out to DNS and public HTTPS only.
 

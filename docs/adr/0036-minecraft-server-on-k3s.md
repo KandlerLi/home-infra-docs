@@ -1,8 +1,8 @@
-# ADR 0036: Minecraft server on k3s, public on 25565/tcp and 19132/udp
+# ADR 0036: Minecraft server on k3s, public on 25565/tcp and 19132/udp+tcp
 
 - Status: Proposed (2026-11-22)
 - Date: 2026-11-22
-- Deployment status: not deployed
+- Deployment status: live since 2026-11-22 (Java); Bedrock needs the NetherNet amendment below
 
 ## Context
 
@@ -56,6 +56,28 @@ public on 25565/tcp (Java) and 19132/udp (Bedrock).
 - **Sizing**: 3 GiB heap, 4 GiB memory limit; `k3s-node-1` grows from 10
   to 14 GiB. No CPU limit, like every workload here; view distance 8 and
   simulation distance 6 for the i7-2600's single-core speed.
+
+## Amendment (2026-11-22): NetherNet for Bedrock
+
+Found on the first start: Bedrock 26.60 (2026-10-27) no longer connects
+over RakNet, only over NetherNet (WebRTC), and Geyser 2.12 defaults to it.
+NetherNet needs signaling, which Geyser's built-in mode serves over TCP on
+the Bedrock port, and it tells players which address to connect to.
+
+- **19132/tcp is forwarded too**, in `fritzbox`, `k3s_ingress_forward`,
+  `minecraft-svc` and the NetworkPolicy.
+- **`minecraft.jkandler.de`**, a CNAME to the DynDNS apex (`dyndns`), is
+  the advertised address; STUN discovery is off, since the NetworkPolicy
+  blocks it and the address is known.
+- **`auth-type: floodgate`**: Geyser does not switch on its own, so Bedrock
+  players needed a Java account before.
+- Geyser's config takes no env vars; a ConfigMap (`minecraft-geyser-patches`)
+  holds `PATCH_DEFINITIONS` that the image applies on every start.
+- Signaling stays plain HTTP: each Bedrock player confirms a "trust on
+  first use" prompt once. HTTPS would need a certificate for
+  `minecraft.jkandler.de` in the Pod.
+- Geyser resolves the advertised host name when signaling starts. Whether
+  it follows a changed home IP without a restart is untested.
 
 ## Consequences
 

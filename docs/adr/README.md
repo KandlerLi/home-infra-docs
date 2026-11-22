@@ -45,4 +45,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0033](0033-nextcloud-on-k3s.md) | Accepted | Move Nextcloud from AIO on the host to plain manifests on k3s |
 | [0034](0034-eurooffice-on-k3s.md) | Accepted | Euro-Office on k3s, rootless, behind forward-auth |
 | [0035](0035-monitoring-off-the-host.md) | Proposed | Monitoring off the host: Prometheus, Loki and blackbox to k3s, no Docker on the host |
-| [0036](0036-minecraft-server-on-k3s.md) | Proposed | Minecraft server on k3s, public on 25565/tcp and 19132/udp |
+| [0036](0036-minecraft-server-on-k3s.md) | Proposed | Minecraft server on k3s, public on 25565/tcp and 19132/udp+tcp |
