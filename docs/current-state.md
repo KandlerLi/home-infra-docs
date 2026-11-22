@@ -17,7 +17,7 @@ on a single fact.
 | Memory | 32 GiB (checked 2026-10-11) |
 | System disk | `/`, 231 GB, Samsung PM851 256 GB SSD, bought used (33,736 power-on hours, SMART clean, at install on 2026-10-31); also holds the k3s VM disks in `/var/lib/libvirt/k3s/` |
 | Live data | `/mnt/black-hdd`, 916 GB (Nextcloud data, torrent downloads, Paperless media) |
-| Backups | `/mnt/red-hdd`, 1.8 TB: `nextcloud-restic/`, `nextcloud-backup/`, `borg/` (AIO, kept until its removal), `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/` |
+| Backups | `/mnt/red-hdd`, 1.8 TB: `nextcloud-restic/`, `nextcloud-backup/`, `borg/` (AIO, kept until its removal), `authelia-backup/`, `paperless-export/`, `stalwart-backup/`, `vaultwarden-backup/`, `minecraft-backup/` |
 | Managed by | [`home-infra`](https://github.com/KandlerLi/home-infra): `site.yml` (host) and `k3s.yml` (k3s VMs, deliberately not part of `site.yml`) |
 
 `site.yml` roles, in order: `base`, `unattended_upgrades`, `storage`,
@@ -79,13 +79,15 @@ NFS volumes cleanly instead of hanging until SIGKILL.
 All to `192.168.101.10` only, all `root_squash` (`nfs_server` asserts
 both): `/mnt/red-hdd/authelia-backup`, `/mnt/red-hdd/stalwart-backup`,
 `/mnt/red-hdd/vaultwarden-backup`, `/mnt/black-hdd/paperless-media`,
-`/mnt/red-hdd/paperless-export` (checked 2026-11-16).
+`/mnt/red-hdd/paperless-export` (checked 2026-11-16), `/mnt/red-hdd/minecraft-backup`
+(ADR 0036).
 
 ## Network and public entry
 
-The FRITZ!Box forwards TCP 80, 443, 25, 465 and 993 to the homeserver's LAN
+The FRITZ!Box forwards TCP 80, 443, 25, 465, 993 and 25565 and UDP 19132 to the homeserver's LAN
 IP (Terraform in `KandlerLi/fritzbox`, private, local apply only). `k3s_ingress_forward` DNATs those on to the k3s VM
-(`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart. It also
+(`192.168.101.10`): 80/443 to Traefik, 25/465/993 to Stalwart, 25565/19132
+to the Minecraft server (ADR 0036). It also
 DNATs TCP+UDP 53 to Blocky, which only LAN clients reach: the FRITZ!Box
 doesn't forward 53, so there is no public DNS resolver. The
 k3s network `192.168.101.0/24` is reachable only from the homeserver.
@@ -142,7 +144,7 @@ from a checksum-verified release binary:
 
 | Node | Address | Size | Role |
 | --- | --- | --- | --- |
-| `k3s-node-1` | `192.168.101.10` | 3 vCPU, 10 GiB | control plane, all app workloads |
+| `k3s-node-1` | `192.168.101.10` | 3 vCPU, 14 GiB | control plane, all app workloads |
 | `k3s-node-2` | `192.168.101.11` | 4 vCPU, 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
 
 Workloads are declared in Git, never `kubectl apply` by hand:
@@ -196,7 +198,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 Volumes on
 `k3s-node-1` are static `Retain` PVs under `/var/lib/k3s-apps-data`
 (Blocky and Paperless Postgres, Paperless data, Bulwark, Traefik's ACME
-store, Stalwart's mail); Authelia and Vaultwarden use dynamic local-path
+store, Stalwart's mail, the Minecraft world); Authelia and Vaultwarden use dynamic local-path
 claims.
 
 ## Applications
@@ -231,6 +233,11 @@ claims.
   persistent storage. Reaches Nextcloud through Traefik's pinned
   ClusterIP; NetworkPolicy in from Traefik and Nextcloud, out to DNS and
   Traefik only.
+- **Minecraft** (ADR 0036): Paper with Geyser and Floodgate, so Java
+  and Bedrock players share one world; public on 25565/tcp and
+  19132/udp, no Authelia in front: `online-mode` plus an enforced
+  whitelist. Rootless as 980:975; NetworkPolicy in on the game ports only,
+  out to DNS and public HTTPS only.
 
 ## Backups
 
@@ -242,6 +249,7 @@ claims.
 | Paperless | nightly `document_exporter` CronJob over NFS | `/mnt/red-hdd/paperless-export` |
 | Stalwart mail | none outside the k3s VM | — |
 | Vaultwarden (database only) | k3s CronJob 04:15, online SQLite snapshot over NFS, 14-day retention | `/mnt/red-hdd/vaultwarden-backup` |
+| Minecraft world | `mc-backup` sidecar every 24 h from Pod start, `save-off` over RCON, tar over NFS, 14-day retention | `/mnt/red-hdd/minecraft-backup` |
 
 Backup age is alerted on via `backup-freshness` + Prometheus. Restorability
 is checked by `home-infra`'s `scripts/verify-backups.sh` (all checks passed
