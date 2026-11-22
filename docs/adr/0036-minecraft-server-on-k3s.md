@@ -1,8 +1,8 @@
 # ADR 0036: Minecraft server on k3s, public on 25565/tcp and 19132/udp+tcp
 
-- Status: Proposed (2026-11-22)
+- Status: Accepted (2026-11-22); the own-node amendment is Proposed
 - Date: 2026-11-22
-- Deployment status: live since 2026-11-22 (Java); Bedrock needs the NetherNet amendment below
+- Deployment status: live since 2026-11-22, Java and Bedrock, on `k3s-node-1`; own node not built
 
 ## Context
 
@@ -78,6 +78,75 @@ the Bedrock port, and it tells players which address to connect to.
   `minecraft.jkandler.de` in the Pod.
 - Geyser resolves the advertised host name when signaling starts. Whether
   it follows a changed home IP without a restart is untested.
+
+## Amendment (2026-11-22, Proposed): its own k3s node, and login alerts
+
+### Context
+
+Before any player reaches the whitelist, the server parses traffic from
+anyone on the internet: Paper's login handling, Geyser's HTTP signaling
+and a native WebRTC library (`libdatachannel`). Geyser and Floodgate
+track their latest builds. Today the Pod shares `k3s-node-1` with the
+control plane, every other app and its data, and the service-account
+signing key AWS trusts. Between a compromised Minecraft process and all
+of that stands only the Linux kernel. Julian may also remove the server
+again later.
+
+Logins are visible only by reading the server log; nobody learns of a
+rejected or successful login as it happens.
+
+### Decision
+
+**A third node, `k3s-node-3`, only for Minecraft**, the same pattern as
+`k3s-node-2` for the CI runners:
+
+- libvirt VM from the `k3s_node` role, agent, `192.168.101.12`,
+  2 vCPU, 6 GiB, 30 GiB disk on the SSD. Tainted
+  `workload=minecraft:NoSchedule` and labelled `role=minecraft`; the
+  Minecraft Pod selects and tolerates it, nothing else does (node-exporter
+  tolerates it, as on node-2). `k3s-node-1` goes back to 10 GiB.
+- **Traffic**: k3s' servicelb doesn't run on tainted nodes (none on
+  node-2 today), so `minecraft-svc` becomes a `NodePort` Service with
+  fixed node ports and `externalTrafficPolicy: Local`.
+  `k3s_ingress_forward` DNATs the three Minecraft ports to
+  `192.168.101.12` on those node ports; every other rule keeps
+  `192.168.101.10`. Its target-IP assert becomes an explicit list of
+  those two addresses.
+- **World**: a node-local `Retain` PV on `k3s-node-3`, its directory
+  owned 980:975 by `k3s.yml`. The world moves with the backup: an init
+  container (`mc-backup`'s `restore-tar-backup`) unpacks the newest
+  tarball when the volume is empty, and stays as the restore path. The
+  old directory on `k3s-node-1` and its PV go after the move is verified.
+- What it buys: a container escape lands on a VM holding nothing but
+  Minecraft. That node's kubelet can only read objects of its own Pods
+  (NodeRestriction), and Minecraft has no Secrets. It can still reach
+  the API server on `k3s-node-1` with its node credentials, like node-2.
+- Removing the server later also deletes the VM; nothing of it stays on
+  `k3s-node-1`.
+
+**Login alerts** through the existing Alertmanager (ntfy and email):
+
+- Loki gets a ruler (it has none yet) that evaluates rules on the
+  Minecraft Pod's log and sends to Alertmanager in k3s.
+- `MinecraftLoginRejected`: a connection got as far as a login and was
+  turned away (not whitelisted, failed account check). Names the player
+  name and edition, not the IP; grouped, so a scanner sweep is one
+  notification.
+- `MinecraftPlayerJoined`: a whitelisted player joined; low priority,
+  so Julian sees when friends play.
+- If ADR 0035 moves Loki into k3s, the ruler and its rules move along.
+
+### Consequences
+
+- About 2 GiB more host memory than today (10 + 8 + 6 GiB for the
+  VMs instead of 14 + 8), and 9 vCPUs on the i7-2600's 8 threads. Fine
+  for 8 players while CI isn't at full load at the same time.
+- One VM restart for `k3s-node-1` (back to 10 GiB), and a few minutes of
+  Minecraft downtime for the move.
+- Scanners probing 25565 will send `MinecraftLoginRejected` now and then;
+  if it gets noisy, the rule moves to email only.
+- Rollback: Pod back to `k3s-node-1` with its old PV and the DNAT rules
+  back to `192.168.101.10`, until the old directory is deleted.
 
 ## Consequences
 
