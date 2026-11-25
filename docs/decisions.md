@@ -1170,3 +1170,27 @@ job, ~30 s of it the download into the job's fresh dind.
   cache or replaces GHCR.
 - **Rejected: a warm runner Pod** (`minRunners: 1`): Julian wants runner
   Pods only on demand.
+
+## PostgreSQL major upgrades by dump and restore in the Pod
+
+On 2026-11-23 Renovate's `postgres` 19 bump (`k3s-apps#238`) put blocky,
+Paperless and Nextcloud into CrashLoopBackOff: since 18 the image refuses
+to init next to an older cluster. `k3s-apps#240` reverted it, and
+Renovate's Postgres major PRs now carry a warning (`renovate#25`).
+The move to 19 (tracker #79, `k3s-apps#242`–`#244`) works like this:
+
+- **Dump and restore inside the Pod:** a one-shot `postgres-upgrade` init
+  container runs the old image, starts the old cluster socket-only and
+  dumps it into an emptyDir. The v19 entrypoint sources a restore script
+  from there on first init, before it opens TCP. A failed restore removes
+  `PG_VERSION`, so postgres stays down instead of serving partial data.
+- **Layout:** the volume is mounted at `/var/lib/postgresql` on subPath
+  `pgdata`, so PGDATA is `pgdata/<major>/docker`. The entrypoint never sees
+  the old cluster, which stays untouched for a rollback by revert, and the
+  next major can use `pg_upgrade --link` inside one mount.
+- **Rejected: `pg_upgrade` now.** It needs both majors' binaries in one
+  container (e.g. `tianon/postgres-upgrade`) and, for blocky and Paperless,
+  a move of PGDATA out of the volume root first. A dump of ≤ 221 MB
+  restores in about a minute.
+- **Rejected: a manual dump/restore with `kubectl exec`.** It would have
+  to scale the Deployment against Argo CD and is not repeatable from Git.

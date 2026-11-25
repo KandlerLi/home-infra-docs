@@ -224,7 +224,7 @@ claims.
   Finanzfluss workbook to a PNG in Nextcloud via the `sankey-export`
   account, in-cluster on `nextcloud-svc`.
 - **Nextcloud** (ADR 0033): official image, rootless as `www-data` (33),
-  with PostgreSQL 18, Redis, cron and notify_push in the same Pod;
+  with PostgreSQL 19, Redis, cron and notify_push in the same Pod;
   data directory `/mnt/black-hdd/nextcloud` over NFS, code and config on
   node-local volumes. A NetworkPolicy admits only Traefik, sankey-export
   and the backup Job.
