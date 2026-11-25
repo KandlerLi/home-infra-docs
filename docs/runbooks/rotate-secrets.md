@@ -205,7 +205,8 @@ self-hosted-runner repository. Generate a new one in GitHub's own PAT
 settings (same scope as the current one), `put-secret-value` on
 `home-infra/github-runner`, then an actual [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)
 apply. (Retired: since 2026-09-16 the runners use the GitHub App
-instead, since 2026-11-01 through ARC's `arc-github-app` Secret.)
+instead, since 2026-11-01 through ARC's `arc-github-app` Secret. The PAT
+itself was deleted in GitHub 2026-11-25.)
 Revoke the old PAT in GitHub only after confirming at least one
 runner re-registered successfully post-apply.
 
