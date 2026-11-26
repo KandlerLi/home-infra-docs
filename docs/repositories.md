@@ -408,12 +408,10 @@ without a deploy step beyond the one resource.
 
 CI runs on the self-hosted home runner (`[self-hosted, home, debian]`).
 This surfaced a real gap while being set up: the fine-grained GitHub PAT
-used for self-hosted-runner registration (`github_runner_github_token`)
+then used for self-hosted-runner registration (`github_runner_github_token`)
 was scoped only to `dyndns`, the one repository that had ever needed it
-before — it has to be manually granted access to any new
-`runner: true` repository (`Administration: write`) before that repo's
-runner can register. Not something Terraform/Ansible can grant on its
-own, since it's tied to a personal PAT.
+before. The runners register through the GitHub App since 2026-09-16; the
+PAT was deleted 2026-11-25.
 
 **Applied and pushed.** Its self-hosted runner is registered and online, and
 the `aws_budgets_budget` resource itself is live — confirmed via `aws
@@ -573,10 +571,9 @@ exists purely as a convention consumed by `home-infra`'s
 repository's `github_runner_github_repositories` Ansible variable.
 Attaching a self-hosted runner is inherently imperative (registration
 token + `config.sh` against the runner VM), which Terraform's GitHub
-provider has no resource for — and the fine-grained GitHub PAT used for
-that registration (`github_runner_github_token`) has to be manually
-re-scoped to include each new `runner: true` repository; it doesn't
-happen automatically just because `config.yml` changed.
+provider has no resource for — and the GitHub App the runners register
+through has to be installed on each new `runner: true` repository; it
+doesn't happen automatically just because `config.yml` changed.
 
 Current orientation revision: `09afb3c` (adds the `homeserver-health-check`
 `config.yml`/`aws_policies.tf` entries — Terraform validated, **not yet
