@@ -2,7 +2,7 @@
 
 - **C4 type:** System context
 - **Scope:** Home Infrastructure software system
-- **Status:** Current as of 2026-10-11
+- **Status:** Current as of 2026-11-27
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ flowchart LR
     mailers -->|"SMTP port 25 via port forward"| fritz
     fritz -->|"Forwards 80/443/25/465/993"| home
     fritz -->|"Reports the public IPv4"| aws
-    home -->|"Self-hosted runners execute CI; pulls images"| github
+    home -->|"Runs stalwart-config's CI runner; pulls images"| github
     github -->|"OIDC-authenticated plan/apply"| aws
     home -->|"Reads secrets; relays outbound mail; DNS-01 challenges"| aws
     home -->|"ACME orders"| letsencrypt

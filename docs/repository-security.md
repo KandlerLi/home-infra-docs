@@ -174,10 +174,11 @@ repository is the same as the base repository. Fork PRs skip them.
 That `if:` condition is a convenience, not a security boundary: for
 `pull_request` events GitHub runs the workflow file from the PR itself, so
 a fork PR can delete the condition. What actually keeps untrusted code off
-the self-hosted runners is that only collaborators can open PRs and that
+the runners (above all `stalwart-config`'s self-hosted one, which reaches
+Stalwart's API) is that only collaborators can open PRs and that
 fork-PR workflows need owner approval (both enforced by `pr_policy.tf`).
 So never approve a fork PR's workflows on these repositories: approving runs
-the PR's own workflow files on the self-hosted runners. Review an outside
+the PR's own workflow files on the runners. Review an outside
 contribution as a diff, and bring it over on a branch of the repository.
 
 It receives `contents: read` and `id-token: write`, assumes a dedicated
@@ -347,8 +348,10 @@ and `production` environment as soon as the repository has an
 `aws_policies.tf` entry. What still requires manual work is exactly what
 can't be automated — the repository's specific IAM statements.
 
-If the repository needs a self-hosted GitHub Actions runner (a separate
-concern from the AWS/OIDC trust below), set `runner: true` on its
+If the repository's CI needs the home network, and only then (everything
+else runs on GitHub-hosted runners, see [decisions](decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network)),
+it gets a self-hosted GitHub Actions runner (a separate concern from the
+AWS/OIDC trust below): set `runner: true` on its
 `config.yml` entry and follow [`repo-infra/docs/README.md`](https://github.com/KandlerLi/repo-infra/blob/main/docs/README.md)'s "Adding a repository
 with a self-hosted GitHub Actions runner" section — that step stays outside
 Terraform, since attaching a runner process is imperative.

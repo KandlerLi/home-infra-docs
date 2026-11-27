@@ -11,10 +11,10 @@ local-apply control-plane roots, and the homeserver/k3s workloads.
 | [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) | workloads | Git, `main`, aligned with `origin/main` | The k3s cluster's workloads: manifests under `argocd/` for Argo CD, Secrets as ExternalSecrets (ADR 0032); no Terraform since 2026-11-15 |
 | [`stalwart-config`](https://github.com/KandlerLi/stalwart-config) | workloads | Git, `main`, public, standard branch protection (2026-11-14), CI applied on its in-cluster runner | Stalwart's runtime settings through its management API (Terraform, `tahacodes/stalwart`), split out of `k3s-apps` |
 | [`dyndns`](https://github.com/KandlerLi/dyndns) | AWS | Git, `main`, aligned with `origin/main` | DNS/AWS workload Terraform and protected CI/CD |
-| [`website`](https://github.com/KandlerLi/website) | AWS | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, self-hosted runner |
-| [`aws-budget`](https://github.com/KandlerLi/aws-budget) | AWS | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, self-hosted runner, applied and confirmed live |
-| [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) | AWS | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, self-hosted runner, applied and confirmed live |
-| [`ses-relay`](https://github.com/KandlerLi/ses-relay) | AWS | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, self-hosted runner, applied and live (ADR 0019) |
+| [`website`](https://github.com/KandlerLi/website) | AWS | Git, `main`, aligned with `origin/main` | Static personal site (S3 + CloudFront) Terraform and CI/CD, deployed and live, GitHub-hosted CI |
+| [`aws-budget`](https://github.com/KandlerLi/aws-budget) | AWS | Git, `main`, aligned with `origin/main` | $10/month AWS Budget alert Terraform, GitHub-hosted CI, applied and confirmed live |
+| [`homeserver-health-check`](https://github.com/KandlerLi/homeserver-health-check) | AWS | Git, `main`, aligned with `origin/main` | Route53 health check + CloudWatch alarm + SNS email for homeserver reachability, GitHub-hosted CI, applied and confirmed live |
+| [`ses-relay`](https://github.com/KandlerLi/ses-relay) | AWS | Git, `main`, aligned with `origin/main` | SES sending identity (jkandler.de domain + Outlook recipient) relaying homeserver monitoring alert emails, GitHub-hosted CI, applied and live (ADR 0019) |
 | [`terraform-state`](https://github.com/KandlerLi/terraform-state) | control plane | Git, `main`, public, standard branch protection (2026-09-14) | Terraform root managing the central S3 backend bucket and (as of 2026-08-23) the `julian` operator IAM identity — both foundational, root-only, essentially-bootstrap-once resources (ADR 0018) |
 | [`repo-infra`](https://github.com/KandlerLi/repo-infra) | GitHub | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only from a trusted local controller, never via GitHub Actions | Terraform-managed GitHub repository protection and AWS OIDC/IAM deploy identities for `dyndns`/`website`/`aws-budget`/`homeserver-health-check`/`ses-relay`, plus visibility/backup-mirror support for itself and 4 other repos; applied routinely, by `julian` once its scoped policy is live |
 | [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) | control plane | Git, `main`, public, standard branch protection (2026-09-15) -- still applied only locally with the k3s node's own cluster-admin kubeconfig, never via GitHub Actions | The k3s cluster's self-hosted GitHub Actions runner (`modules/github_runner`), cluster-scoped PersistentVolumes, and privilege-defining RBAC (Headlamp's own ServiceAccount, Argo CD's Roles), ESO and Reloader with their SecretStores, that can't live in [`k3s-apps`](https://github.com/KandlerLi/k3s-apps) itself |
@@ -53,17 +53,15 @@ learning cluster — see `k3s_node`'s own paragraph below and `k3s-apps`'
 own project section.
 Current orientation revision: `add8273`. Has checks-only CI
 (`.github/workflows/checks.yml`, added 2026-08-23) — Ansible syntax
-check + full unit test suite on every push to `main`, self-hosted home
-runner (switched from GitHub-hosted the same day, for consistency with
-`website`/`aws-budget` — no real availability tradeoff either way here,
-since these checks never touch the homeserver). Deliberately never
+check + full unit test suite on every push to `main`, on GitHub-hosted
+runners since 2026-11-26 (self-hosted from 2026-08-23 until then). Deliberately never
 applies anything: `home-infra`'s real target (the physical homeserver)
 has no public API, unlike `dyndns`/`website`'s AWS deploys, so applying
 still always means `ansible-playbook site.yml --ask-become-pass` run by
-a human over the local network, same as always. Also registers
-self-hosted runners for `aws-budget`, `homeserver-health-check`, and
-`ses-relay` now, via `scripts/sync_github_runner_repositories.py`
-reading `repo-infra`'s `config.yml`..
+a human over the local network, same as always. Its
+`scripts/sync_github_runner_repositories.py` generates the runner
+repository list from `repo-infra`'s `config.yml` (only `stalwart-config`
+since 2026-11-26).
 
 ### `monitoring` role
 
@@ -305,9 +303,9 @@ repository plan/apply roles and policies. Merging now only requires the
 `Validate`/`Terraform plan` checks, since only the owner can merge at all
 (collaborator-restricted) and the `production` environment's reviewer gate
 covers the equivalent checkpoint before AWS changes apply. `checks.yml` and
-`apply.yml` both run on the self-hosted runner (`[self-hosted, home,
-debian]`) — verified production-proven via PR #11's merge, including a real
-`Apply saved plan` run on `github-runner-dyndns`.
+`apply.yml` run through `gha-common` on GitHub-hosted runners since
+2026-11-26 (on the self-hosted runner before, first proven via PR #11's
+merge).
 
 `deployment.auto.tfvars` currently includes `ai`, `grafana`, `home`,
 `nextcloud`, and `torrent` in the `subdomains` set. Terraform creates all
@@ -358,12 +356,9 @@ apex-vs-subdomain reasoning.
 Content lives in `site/` (plain HTML/CSS, no build step, no framework;
 real CV content, not a placeholder) and deploys via `aws s3 sync` plus a
 CloudFront invalidation in `apply.yml`, right after `terraform apply` —
-not via Terraform-managed `aws_s3_object` resources. CI runs on the
-self-hosted home runner (`[self-hosted, home, debian]`), same as
-`dyndns` — originally GitHub-hosted specifically to keep the deploy
-pipeline independent of home-network uptime, switched on 2026-08-23 at
-the user's explicit request after being shown that tradeoff directly
-(see ADR 0016's Update section).
+not via Terraform-managed `aws_s3_object` resources. CI runs on
+GitHub-hosted runners, independent of the homeserver: self-hosted from
+2026-08-23 to 2026-11-26 (see ADR 0016's two Update sections).
 
 **Deployed and confirmed live** by the user: `https://www.jkandler.de/`
 serves the site.
@@ -406,8 +401,8 @@ a budget alert doesn't manage Terraform state or identities, it's a
 standing piece of AWS infrastructure like `dyndns`/`website`, just
 without a deploy step beyond the one resource.
 
-CI runs on the self-hosted home runner (`[self-hosted, home, debian]`).
-This surfaced a real gap while being set up: the fine-grained GitHub PAT
+CI runs on GitHub-hosted runners since 2026-11-26. On the self-hosted
+runner, its setup surfaced a real gap: the fine-grained GitHub PAT
 then used for self-hosted-runner registration (`github_runner_github_token`)
 was scoped only to `dyndns`, the one repository that had ever needed it
 before. The runners register through the GitHub App since 2026-09-16; the
@@ -452,8 +447,8 @@ the home network, DynDNS record, and Traefik are working end-to-end.
 
 Same public-repo pattern as `aws-budget`: `alert_email` has no committed
 default, threaded through `TF_VAR_alert_email` from an `ALERT_EMAIL`
-`action_variables` entry in `repo-infra`'s `config.yml`. CI runs on the
-self-hosted home runner (`[self-hosted, home, debian]`).
+`action_variables` entry in `repo-infra`'s `config.yml`. CI runs on
+GitHub-hosted runners since 2026-11-26.
 
 **Applied, GitHub repo created and content pushed.** The first real
 `apply.yml` run failed once: `aws_sns_topic_subscription` needs

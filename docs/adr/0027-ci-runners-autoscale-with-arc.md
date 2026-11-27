@@ -2,7 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-11-01
-- Deployment status: live since 2026-11-01 (`k3s-bootstrap#45`–`#48`): PR checks, `k3s-apps` plan/apply and host-run AWS CLI jobs green on ARC (tracker #39). Phase 2 (one global pool in a GitHub organization) open
+- Deployment status: live since 2026-11-01 (`k3s-bootstrap#45`–`#48`): PR checks, `k3s-apps` plan/apply and host-run AWS CLI jobs green on ARC (tracker #39). Phase 2 (one global pool in a GitHub organization) open. Since 2026-11-26 the scale sets serve only `stalwart-config`, on `ghcr.io/actions/actions-runner` without dind; the controller runs on node-1 ([decisions](../decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network))
 
 ## Context
 

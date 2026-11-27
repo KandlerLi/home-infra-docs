@@ -13,4 +13,4 @@
 | Home Infrastructure | The complete managed homeserver environment and supporting automation |
 | Infrastructure repository | [`home-infra`](https://github.com/KandlerLi/home-infra) |
 | SOPS | Secrets OPerationS, used to encrypt Ansible variables in Git |
-| Runner VM | Dedicated Debian virtual machine for self-hosted GitHub Actions jobs |
+| Runner | GitHub Actions job host: GitHub-hosted (`ubuntu-latest`) for most repos, an ARC runner Pod on `k3s-node-2` for repos whose CI needs the home network (today `stalwart-config`); the runner VM was retired 2026-08-31 |

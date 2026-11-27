@@ -130,3 +130,10 @@ the original reasoning above was sound and is still accurate as a
 description of the tradeoff — the user simply weighed it differently once
 asked directly, preferring one consistent CI setup over the marginal
 resilience benefit for this particular low-traffic personal site.
+
+## Update (2026-11-26): back on GitHub-hosted runners
+
+`website`'s CI runs on GitHub-hosted runners again, through `gha-common`
+v2.0.0, like every repository whose CI doesn't need the home network.
+A homeserver outage no longer blocks deploys of the site. See
+[decisions](../decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network).

@@ -67,7 +67,7 @@ flowchart TB
     class blockydb,paperlessdb,loki,black,red datastore
 ```
 
-Not drawn, to keep the view readable: the CI runners (`k3s-node-2`, see
+Not drawn, to keep the view readable: `stalwart-config`'s CI runner (`k3s-node-2`, see
 [deployment](deployment.md)), Authelia's own storage (SQLite on a PVC,
 sessions in Redis), Stalwart's RocksDB PVC, and the backup jobs (listed in
 `current-state.md`).

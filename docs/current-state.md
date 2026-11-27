@@ -140,12 +140,14 @@ homeserver's IPv6 address is pinned via EUI-64 since 2026-09-24).
 ## k3s cluster
 
 Three Debian VMs on the homeserver (libvirt, `k3s_node` role), k3s installed
-from a checksum-verified release binary:
+from a checksum-verified release binary. The agents join with a dedicated
+agent token, never the server token (2026-11-26; the server token was
+rotated on 2026-11-27, [runbook](runbooks/rotate-k3s-server-token.md)):
 
 | Node | Address | Size | Role |
 | --- | --- | --- | --- |
 | `k3s-node-1` | `192.168.101.10` | 3 vCPU, 14 GiB (back to 10 after the Minecraft move, tracker #78) | control plane, all app workloads except Minecraft |
-| `k3s-node-2` | `192.168.101.11` | 4 vCPU, 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runners only |
+| `k3s-node-2` | `192.168.101.11` | 4 vCPU, 8 GiB, 100 GB disk | agent, tainted `ci=github-runner:NoSchedule`; CI runner Pods only |
 | `k3s-node-3` | `192.168.101.12` | 2 vCPU, 6 GiB, 30 GB disk | agent, tainted `workload=minecraft:NoSchedule`; the Minecraft server only (ADR 0036) |
 
 Workloads are declared in Git, never `kubectl apply` by hand:
@@ -160,34 +162,34 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   the landing page, PVCs included, and per app the ExternalSecrets that
   ESO turns into its Secrets from AWS Secrets Manager (ADR 0032, since
   2026-11-15); Reloader restarts a Pod when its Secret changes. No
-  Terraform since 2026-11-15; its in-cluster runner only builds
-  sankey-export's image.
+  Terraform since 2026-11-15; its CI (incl. sankey-export's image build)
+  runs on GitHub-hosted runners.
 - **[`stalwart-config`](https://github.com/KandlerLi/stalwart-config)** (CI-applied on merge, on its in-cluster
   runner): Stalwart's runtime settings through its management API.
 - **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
-  GitHub Actions runners (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md):
-  controller and one listener per repo in `arc-system`, one fresh runner
-  Pod per job in `ci` on `k3s-node-2`, none at idle; GitHub App
-  registration; NetworkPolicy: no inbound, outbound only DNS and the
-  public internet, plus only the Stalwart API for the
-  `stalwart-config` runner and the registry cache on 5000 for all;
-  per-repo Terraform plugin cache on node-2, and `registry-cache`, a
-  pull-through cache for `ghcr.io` on node-2, both since 2026-11-16),
+  GitHub Actions runner (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)), since
+  2026-11-26 only for `stalwart-config`, the one repository whose CI needs
+  the home network; every other repository's CI runs on GitHub-hosted
+  runners ([decisions](decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network)).
+  Controller and listener in `arc-system` on `k3s-node-1`; one fresh
+  runner Pod per job in `ci` on `k3s-node-2`, none at idle:
+  `ghcr.io/actions/actions-runner` as uid 1001, no Docker, PSA
+  `restricted`; GitHub App registration; NetworkPolicy for every Pod in
+  `ci`: no inbound, outbound only DNS and the public internet, plus the
+  Stalwart API for the `stalwart-config` runner. Also
   namespaces with their Pod
   Security labels, cluster-scoped PersistentVolumes and privilege-
   defining RBAC, the privileged node-exporter DaemonSet, the External
   Secrets Operator and Reloader (one each per app namespace, Roles only,
   with a SecretStore bound to that namespace's read-only IAM role from
   `terraform-state`'s OIDC federation), and Argo CD (`argocd.tf`, see
-  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). In each runner Pod, dind is a native sidecar that
-  listens only on its Unix socket and retries dockerd in place, and the
-  runner starts only once dind answers.
+  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031).
 
 Namespaces (tracker #32), each with its Pod Security Admission level:
 
 | Namespace | PSA `enforce` | Holds |
 | --- | --- | --- |
-| `ci` | privileged | the GitHub Actions runner Pods (dind) |
+| `ci` | restricted (since 2026-11-26) | the GitHub Actions runner Pods |
 | `arc-system` | restricted | the ARC controller and its listeners |
 | `node-exporter` | privileged | node-exporter (host network, PID, filesystem) |
 | `monitoring` | restricted | Grafana, Alertmanager, kube-state-metrics, Alloy |

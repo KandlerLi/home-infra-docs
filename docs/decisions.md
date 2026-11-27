@@ -876,7 +876,7 @@ but not read state.
 
 ## ARC runners: myoung34 image, explicit `self-hosted`, anonymous Helm pulls
 
-Decided 2026-11-01 while moving the runners to ARC
+The image part is superseded 2026-11-26 by [CI on GitHub-hosted runners](#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network): the runner is `ghcr.io/actions/actions-runner` again, now that no job needs node or the AWS CLI on the runner. Decided 2026-11-01 while moving the runners to ARC
 ([ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)), all in
 [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap):
 
@@ -1114,6 +1114,8 @@ rules are in its `docs/README.md`, "Versioning". Callers pin an exact tag
 
 ## Runners keep a Terraform plugin cache per repository
 
+Superseded 2026-11-26 by [CI on GitHub-hosted runners](#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network): no hostPath under PSA `restricted`, and the remaining runner's jobs run without it.
+
 Since 2026-11-16 (`k3s-bootstrap#87`, tracker #52) the runner Pods'
 `/terraform-plugin-cache` is a hostPath per repository on `k3s-node-2`
 (`/var/lib/terraform-plugin-cache/<repo>`) instead of an `emptyDir`. It
@@ -1142,6 +1144,8 @@ left: ~70 s per job, ~190 s when six PRs ran at once.
   at once can fail one `init`, and a re-run fixes it.
 
 ## A pull-through registry cache for the runners' CI images
+
+Superseded 2026-11-26 by [CI on GitHub-hosted runners](#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network): without Docker on the runners there is nothing to pull; `registry-cache` is gone.
 
 Since 2026-11-16 (`k3s-bootstrap#88`, `gha-common` v1.2.0, tracker #52)
 later jobs pull their CI image through `registry-cache` in `ci` on
@@ -1194,3 +1198,39 @@ The move to 19 (tracker #79, `k3s-apps#242`–`#244`) works like this:
   restores in about a minute.
 - **Rejected: a manual dump/restore with `kubectl exec`.** It would have
   to scale the Deployment against Argo CD and is not repeatable from Git.
+
+## CI on GitHub-hosted runners, self-hosted only for the home network
+
+Decided 2026-11-26 (tracker #82). Root on `k3s-node-2` was cluster-admin:
+a CI job got root on the node through the privileged `dind` sidecar, and
+from there two paths led to the control plane. The agents held the k3s
+server token, and the ARC controller's token (Pod and RBAC rights in a
+`privileged` namespace) sat on the same node. An inventory of all nine
+runner repositories showed that only `stalwart-config` needs the home
+network (Stalwart's in-cluster API), and it uses no Docker. Every runner
+repository is public, so GitHub-hosted minutes cost nothing.
+
+- **Hosted by default:** `gha-common` v2.0.0 runs every job on
+  `ubuntu-latest` (`build-ci-image`, `terraform-checks`,
+  `terraform-apply`; the `runs_on` defaults of the trivy workflows too).
+  `home-infra`'s checks, `k3s-apps`' sankey-export build and
+  `secrets-manager`'s rotation check moved as well. `runner: true` stays
+  only on `stalwart-config`. `website` is independent of the homeserver
+  again, which undoes ADR 0016's 2026-08-23 update.
+- **Runner without Docker or root:** `ghcr.io/actions/actions-runner` as
+  uid 1001, one container, an `emptyDir`; `ci` enforces PSA `restricted`.
+  `stalwart-config` uses `setup-terraform` with `terraform_wrapper: false`
+  (no node on `PATH`) and no plugin cache. The dind sidecar, the hostPath
+  plugin cache and `registry-cache` went (`k3s-bootstrap#102`).
+- **Controller off the runner node:** the ARC controller and listeners run
+  on `k3s-node-1`, and the `ci` NetworkPolicy covers every Pod in `ci`
+  (`k3s-bootstrap#103`). A ValidatingAdmissionPolicy pinning `ci` Pods to
+  node-2 was left out: with the controller on node-1, nothing on node-2
+  can create Pods.
+- **Agent token:** agents join with a dedicated agent token (`home-infra#178`),
+  and the server token was rotated
+  ([runbook](runbooks/rotate-k3s-server-token.md)). Adding `agent-token-file`
+  left the datastore copy of `cred/passwd` stale until the rotation saved
+  it. The next start failed, see the runbook.
+- **Cost:** Terraform providers and CI images download fresh on every
+  job; a homeserver outage no longer blocks CI except for `stalwart-config`.

@@ -2,7 +2,7 @@
 
 - **C4 type:** Deployment
 - **Scope:** Production, physical and network placement
-- **Status:** Current as of 2026-10-11
+- **Status:** Current as of 2026-11-27
 
 ```mermaid
 flowchart TB
@@ -20,7 +20,7 @@ flowchart TB
 
             subgraph libvirt["libvirt NAT network 192.168.101.0/24, reachable only from the homeserver"]
                 node1["k3s-node-1 192.168.101.10<br/>[Deployment Node: VM, 3 vCPU, 10 GiB]<br/>Control plane and all app Pods"]
-                node2["k3s-node-2 192.168.101.11<br/>[Deployment Node: VM, 8 GiB, 100 GB]<br/>Tainted: GitHub Actions runners only"]
+                node2["k3s-node-2 192.168.101.11<br/>[Deployment Node: VM, 8 GiB, 100 GB]<br/>Tainted: stalwart-config's CI runner Pods only"]
             end
         end
     end
