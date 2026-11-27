@@ -46,4 +46,4 @@ Architecture decisions use short Markdown records with one of these states:
 | [0034](0034-eurooffice-on-k3s.md) | Accepted | Euro-Office on k3s, rootless, behind forward-auth |
 | [0035](0035-monitoring-off-the-host.md) | Proposed | Monitoring off the host: Prometheus, Loki and blackbox to k3s, no Docker on the host |
 | [0036](0036-minecraft-server-on-k3s.md) | Accepted (own-node amendment Proposed) | Minecraft server on k3s, public on 25565/tcp and 19132/udp+tcp |
-| [0037](0037-k3s-bootstrap-through-platform-argocd.md) | Proposed | `k3s-bootstrap` as GitOps manifests, synced by a separate platform Argo CD |
+| [0037](0037-k3s-bootstrap-through-platform-argocd.md) | Accepted | `k3s-bootstrap` as GitOps manifests, synced by a separate platform Argo CD |

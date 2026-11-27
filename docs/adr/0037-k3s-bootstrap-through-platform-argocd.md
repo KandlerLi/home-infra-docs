@@ -1,10 +1,10 @@
 # ADR 0037: k3s-bootstrap as GitOps manifests, synced by a platform Argo CD
 
-- Status: Proposed
+- Status: Accepted (2026-11-27)
 - Date: 2026-11-25
-- Deployment status: not started; would supersede the "local-only"
-  rule for `k3s-bootstrap` and narrow ADR 0031's "no ClusterRole" to the
-  apps instance
+- Deployment status: not started (tracker #80). Supersedes the "local-only"
+  rule for `k3s-bootstrap` stage by stage, and narrows ADR 0031's "no
+  ClusterRole" to the apps instance
 
 ## Context
 
@@ -93,22 +93,29 @@ ExternalSecrets needs.
 
 ### 5. Guards on the platform instance
 
-- **Sync:** `prune` off everywhere. Auto-sync off for `namespaces/`,
-  `rbac/`, `storage/` and `argocd/`: a merge shows up as OutOfSync and
-  Julian syncs it in the UI. That click replaces `scripts/update.sh`.
-  `arc/` and `eso/` may auto-sync.
+Decided 2026-11-27. A taken-over GitHub account alone must not reach the
+cluster: a change needs a merge **and** a sync, and the sync is only
+possible from the home network, behind Authelia with a second factor.
+
+- **No automated sync, no prune:** every Application on the platform
+  instance syncs by hand only. A merge shows up as OutOfSync, and Julian
+  syncs it in the UI. That click replaces `scripts/update.sh`.
+- **UI only from the home network:** no public DNS record. The hostname
+  resolves only through Blocky to the homeserver, and its Traefik route
+  carries an IP allowlist for the LAN, which the FRITZ!Box WireGuard
+  clients share (ADR 0025; to be confirmed in stage 0b). Authelia
+  forward-auth (`user:julian`, two-factor) and its own OIDC client
+  (`julian_only`). No local admin, Dex, anonymous access, exec or API keys.
+- **Notifications:** Argo CD notifications for OutOfSync and for every
+  sync started, succeeded or failed go to Julian (channel decided in
+  stage 0b), so an unexpected change on `main` or an unexpected sync is
+  visible at once.
 - **Source:** its AppProject allows only `k3s-bootstrap` at `main`.
   `main` keeps branch protection and the required `trivy-config` and
   `rollout-ack` checks.
-- **Commit signatures:** the AppProject requires GPG-signed commits. A
-  squash merge in GitHub's web UI is signed with GitHub's own key, so
-  trusting that key helps only against a stolen repository token, not a
-  stolen GitHub account. Merging locally with Julian's key would cover
-  both, at the cost of the web merge button. To be decided when it is
-  implemented.
-- **Login:** same as ADR 0031. Authelia forward-auth limited to
-  `user:julian`, OIDC (`julian_only`), no local admin, Dex, anonymous
-  access, exec or API keys. Its UI gets its own hostname and OIDC client.
+- **No commit-signature check:** without a hardware key, a signing key
+  would sit on the same laptop as the GitHub session. The sync gate
+  above is the control instead (2026-11-27).
 
 ### 6. Migration, in stages
 
@@ -117,7 +124,10 @@ the same object as a manifest, adopted by Argo CD in place. A plan or
 diff that shows a create, replace or destroy of a live object is a stop
 condition.
 
-1. Stage 0: platform Argo CD, with an empty root Application
+1. Stage 0a: platform Argo CD (Terraform, local), headless, with an
+   empty root Application. Without a UI nobody can sync, so nothing
+   reaches the cluster through it yet.
+   Stage 0b: its UI (LAN only, OIDC) and notifications.
 2. Namespaces and PSA labels
 3. RBAC
 4. ESO and Reloader, plus the new ESO roles for `arc-system` and `argocd`
@@ -142,11 +152,11 @@ condition.
 
 ## Consequences
 
-- **The trust root moves to GitHub.** Whoever can merge to
-  `k3s-bootstrap`'s `main` (Julian's GitHub account and session) can get
-  cluster-admin once a sync runs. Manual sync for the privileged
-  components adds an Authelia login with second factor in between, but
-  is not a hard boundary against someone holding both.
+- **The trust root moves partly to GitHub.** A change to the platform
+  layer needs a merge to `k3s-bootstrap`'s `main` and a sync, which needs
+  access to the home network plus Julian's Authelia login with second
+  factor (Decision 5). Today it needs the laptop with the node's admin
+  kubeconfig, the SSH key and `pass`.
 - **Answered 2026-11-27 (tracker #82):** until 2026-11-26, root on
   `k3s-node-2` was cluster-admin. A CI job reached it through the
   privileged `dind` sidecar, and the agents held the server token, while
