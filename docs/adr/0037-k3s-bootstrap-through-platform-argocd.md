@@ -147,11 +147,16 @@ condition.
   cluster-admin once a sync runs. Manual sync for the privileged
   components adds an Authelia login with second factor in between, but
   is not a hard boundary against someone holding both.
-- **Open question:** how far today's privileged `dind` runners on
-  `k3s-node-2` already reach. Root on node-2 gives its kubelet
-  credential, which the Node authorizer restricts, not cluster-admin.
-  Check before this is accepted, so the comparison in the first point is
-  honest.
+- **Answered 2026-11-27 (tracker #82):** until 2026-11-26, root on
+  `k3s-node-2` was cluster-admin. A CI job reached it through the
+  privileged `dind` sidecar, and the agents held the server token, while
+  the ARC controller's Pod rights in a `privileged` namespace sat on the
+  same node. Both paths are closed now: only `stalwart-config` keeps a
+  self-hosted runner, without Docker or root under PSA `restricted`, the
+  controller runs on node-1, and the agents join with their own agent
+  token ([decisions](../decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network)).
+  So today no GitHub-side path leads to cluster-admin, and the first
+  point would add one rather than replace one.
 - A second Argo CD to run and update, about 0.5 GiB of memory.
 - `check-security-invariants` changes: `k3s-bootstrap` drops out of the
   "local machine only" list (stage 0 stays local), and the Argo CD rule

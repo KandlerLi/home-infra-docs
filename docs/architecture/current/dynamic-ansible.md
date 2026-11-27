@@ -3,18 +3,22 @@
 - **C4 type:** Dynamic
 - **Scope:** How a change reaches production, for a CI-applied Terraform
   repo and for the Ansible-managed homeserver
-- **Status:** Current as of 2026-10-11
+- **Status:** Current as of 2026-11-27
 
-## CI-applied Terraform repo (e.g. [`k3s-apps`](https://github.com/KandlerLi/k3s-apps))
+## CI-applied Terraform repo (e.g. [`dyndns`](https://github.com/KandlerLi/dyndns))
+
+Through `gha-common`'s reusable workflows, on GitHub-hosted runners since
+v2.0.0. Only `stalwart-config` runs the same flow on its self-hosted
+runner in k3s (`k3s-node-2`), which can reach Stalwart's API.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor J as Julian
     participant G as GitHub
-    participant R as Self-hosted runner (k3s-node-2)
+    participant R as GitHub-hosted runner
     participant A as AWS (OIDC, S3 state, Secrets Manager)
-    participant T as Target (k3s cluster or AWS)
+    participant T as Target (AWS)
 
     J->>G: Push branch, open PR
     G->>R: checks.yml (gha-common): validate, trivy, gitleaks

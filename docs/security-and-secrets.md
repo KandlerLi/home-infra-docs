@@ -105,33 +105,35 @@ PostgreSQL and Redis live in the same Pod.
 
 ### Self-hosted GitHub Actions runners
 
-**Updated 2026-11-01 for ARC ([ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)).**
-The runners run in k3s ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s own
-`modules/github_runner`) on a dedicated, tainted node (`k3s-node-2`,
-`ci=github-runner:NoSchedule`), so CI workloads never compete with or
-endanger anything on `k3s-node-1`. Every repository in
-[`repo-infra/config.yml`](https://github.com/KandlerLi/repo-infra/blob/main/config.yml)'s `runner: true` list has its own ARC
-runner scale set. ARC creates one Pod per job and deletes it afterwards.
-The controller (`arc-system`, `enforce: restricted`) only has Roles in
-`ci`.
+**Updated 2026-11-27.** Only repositories whose CI needs the home network
+get a self-hosted runner: today `stalwart-config` (Stalwart's in-cluster
+API). Every other repository's CI, including every Docker build and
+`container:` job, runs on GitHub-hosted runners since `gha-common`
+v2.0.0 (2026-11-26).
 
-Each runner Pod runs the community `myoung34/github-runner` image with a
-privileged `docker:dind` sidecar. That is a deliberate trade-off, not an
-oversight: every repository's existing `docker build`/`docker run`
-workflow steps keep working unmodified, at the real cost that a
-privileged container can escape to its own node. It is contained to
-`k3s-node-2`, which runs nothing else. Jobs of different repositories
-can run on that node at the same time, so an escape from one job could
-reach another repository's concurrently running job. dind listens only
-on the Unix socket shared with the runner container. Until 2026-10-25
-the image's entrypoint also opened an unauthenticated `tcp://0.0.0.0:2375`,
-which only the runners' NetworkPolicy kept other Pods away from.
+The runner runs in k3s ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s
+`modules/github_runner`, ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md))
+on a dedicated, tainted node (`k3s-node-2`, `ci=github-runner:NoSchedule`).
+ARC creates one Pod per job and deletes it afterwards. The runner Pod is
+`ghcr.io/actions/actions-runner` as uid 1001, without Docker, root or
+hostPath, and `ci` enforces PSA `restricted`; no runner mounts a
+ServiceAccount token. The controller and its listeners (`arc-system`,
+`enforce: restricted`) run on `k3s-node-1`, so nothing on the node that
+runs CI code holds the GitHub App key or the controller's right to create
+Pods in `ci`. A NetworkPolicy isolates every Pod in `ci`: no inbound,
+outbound only DNS and the public internet, plus Stalwart's API for its
+runner.
+
+Until 2026-11-26 every runner Pod had a privileged `docker:dind`
+sidecar, a hostPath Terraform plugin cache and a GHCR pull-through cache,
+and ran for nine repositories. A privileged container can escape to its
+node, which made a CI job a path to that node's root, and the agents
+then held the k3s server token. Both are gone: the runners lost Docker
+and root, and the agents join with their own agent token.
 
 Runners are ephemeral per Pod: every job starts in a fresh Pod with only
-`emptyDir` volumes, so no job sees another job's checkout, tool cache,
-Docker images or Terraform providers, and no job can tamper with what
-the next one runs. Until 2026-11-01 the slot Pods restarted the runner
-in place and kept per-slot Docker and Terraform caches on `hostPath`.
+an `emptyDir` work volume, so no job sees another job's checkout or tool
+cache.
 
 Runner registration used a shared, manually-rotated fine-grained PAT
 until 2026-09-16, when it switched to GitHub App installation tokens
