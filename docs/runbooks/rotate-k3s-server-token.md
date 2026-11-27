@@ -24,6 +24,9 @@ Checked against the k3s v1.37.2 source (`pkg/cli/token/token.go`,
   agent token is configured, so the agents are unaffected.
 - On restart, k3s takes the token from `config.yaml` or, as here, from
   `server/cred/passwd`. No `token:` setting is needed.
+- At the end it saves the bootstrap data (`cluster.Save(..., override)`),
+  so the copy of `cred/passwd` in the datastore matches the file on disk
+  again. See "`cred/passwd` newer than datastore" below.
 - It touches neither the CA nor the service-account signing key, so
   ServiceAccount tokens, ESO's AWS login (ADR 0032) and kubeconfigs keep
   working.
@@ -85,7 +88,10 @@ ssh -t -J julian@192.168.178.100 ansible@192.168.101.10
    From 💻 the laptop, `kubectl get nodes` through the tunnel should work
    unchanged, since the kubeconfig uses client certificates, not the token.
 
-5. After a day without problems, delete the backup on 🤖 `k3s-node-1`:
+5. Restart `k3s` once more (`sudo systemctl restart k3s`) and wait for
+   `/readyz`: a clean second start proves the datastore copy is in sync.
+
+6. After a day without problems, delete the backup on 🤖 `k3s-node-1`:
 
    ```bash
    sudo rm /root/k3s-server-before-token-rotate.tgz
@@ -103,3 +109,32 @@ sudo systemctl start k3s
 ```
 
 The fingerprint from step 1 should match again.
+
+## `cred/passwd` newer than datastore
+
+k3s keeps a copy of `server/cred/passwd` in the bootstrap data and
+compares it with the file at every start. When k3s itself changes the
+file without saving the bootstrap data, the *next* start fails:
+
+```text
+level=fatal msg="/var/lib/rancher/k3s/server/cred/passwd newer than datastore and could cause a cluster outage. Remove the file(s) from disk and restart to be recreated from datastore."
+```
+
+Seen 2026-11-27: the restart that added `agent-token-file` (2026-11-26)
+rewrote the agent entry in `cred/passwd` but not the datastore copy, so
+the next stop/start, here the backup in step 2, left the API down until
+the fix below. Every reboot of `k3s-node-1` in between would have failed
+the same way. Changing the agent token again would do it again.
+
+Fix, on 🤖 `k3s-node-1`: move the file aside (keep it), let k3s recreate
+it from the datastore, then save the bootstrap data with a rotation
+(steps 3–5). The rotation's save is what makes the next restart clean.
+
+```bash
+sudo mv /var/lib/rancher/k3s/server/cred/passwd /root/k3s-passwd-before-recreate
+sudo chmod 600 /root/k3s-passwd-before-recreate
+sudo systemctl restart k3s
+```
+
+Running Pods keep running while the API is down. Nothing gets scheduled,
+and Argo CD and ESO stop until k3s is back.
