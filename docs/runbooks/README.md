@@ -13,6 +13,7 @@ need Julian's review; prefer read-only checks first.
 | [Move Nextcloud from AIO to k3s](migrate-nextcloud-to-k3s.md) | The ADR 0033 cutover: maintenance window, restore, rollback |
 | [Stalwart mail server](stalwart-mail-server.md) | Any Stalwart setting, app passwords, SSO/admin access |
 | [Rotate secrets](rotate-secrets.md) | Rotating or adding a Secrets Manager value |
+| [Rotate the k3s server token](rotate-k3s-server-token.md) | A copy of the server token may have left `k3s-node-1` |
 | [Verify and restore backups](verify-backups.md) | Restore drill (`verify-backups.sh`), restoring Nextcloud, Authelia, Paperless |
 | [Manage repository infrastructure](manage-repo-infra.md) | Adding a repo to `repo-infra`, importing existing settings |
 | [Deploy the personal website](deploy-personal-website.md) | `www.jkandler.de` (S3 + CloudFront) |
