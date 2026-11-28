@@ -128,7 +128,7 @@ not just "change both":
    ([`k3s-apps/modules/authelia/variables.tf`](https://github.com/KandlerLi/k3s-apps/blob/main/modules/authelia/variables.tf)'s own documented
    generation for each pair):
    ```bash
-   docker run --rm authelia/authelia:4.39.22 \
+   kubectl -n auth exec deploy/authelia -c authelia -- \
      authelia crypto hash generate pbkdf2 --variant sha512 \
      --random --random.length 64 --random.charset alphanumeric
    ```
