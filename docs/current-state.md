@@ -178,28 +178,30 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   runs on GitHub-hosted runners.
 - **[`stalwart-config`](https://github.com/KandlerLi/stalwart-config)** (CI-applied on merge, on its in-cluster
   runner): Stalwart's runtime settings through its management API.
-- **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)** (local apply only): the self-hosted
-  GitHub Actions runner (ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)), since
-  2026-11-26 only for `stalwart-config`, the one repository whose CI needs
-  the home network; every other repository's CI runs on GitHub-hosted
-  runners ([decisions](decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network)).
+- **[`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)**: the cluster's privileged layer, since
+  2026-11-28 as GitOps manifests in `platform/`, synced **by hand** by the
+  platform Argo CD (ADR 0037, tracker #80): namespaces with their Pod
+  Security labels, privilege-defining RBAC (including the apps Argo CD's
+  Roles, AppProject and Applications), cluster-scoped PersistentVolumes,
+  the privileged node-exporter DaemonSet, the External Secrets Operator
+  and Reloader (one each per app namespace, Roles only), the apps Argo CD's
+  install ([decisions](decisions.md#argo-cd-trial-core-mode-one-app), ADR 0031), and the self-hosted
+  GitHub Actions runner (ARC, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md)), only for `stalwart-config`, the
+  one repository whose CI needs the home network; every other repository's
+  CI runs on GitHub-hosted runners ([decisions](decisions.md#ci-on-github-hosted-runners-self-hosted-only-for-the-home-network)).
   Controller and listener in `arc-system` on `k3s-node-1`; one fresh
   runner Pod per job in `ci` on `k3s-node-2`, none at idle:
   `ghcr.io/actions/actions-runner` as uid 1001, no Docker, PSA
-  `restricted`; GitHub App registration; NetworkPolicy for every Pod in
-  `ci`: no inbound, outbound only DNS and the public internet, plus the
-  Stalwart API for the `stalwart-config` runner. Also
-  namespaces with their Pod
-  Security labels, cluster-scoped PersistentVolumes and privilege-
-  defining RBAC, the privileged node-exporter DaemonSet, the External
-  Secrets Operator and Reloader (one each per app namespace, Roles only,
-  with a SecretStore bound to that namespace's read-only IAM role from
-  `terraform-state`'s OIDC federation), and Argo CD (`argocd.tf`, see
-  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). Since 2026-11-28 also the
-  platform Argo CD (`argocd_platform.tf`, ADR 0037): cluster-wide, syncs
-  only `k3s-bootstrap`'s `platform/` and only by hand, with a ntfy push on
-  OutOfSync and every sync. Its stages move the rest of `k3s-bootstrap`
-  there (tracker #80). Today `platform/` holds only `platform-canary`.
+  `restricted`; NetworkPolicy for every Pod in `ci`: no inbound, outbound
+  only DNS and the public internet, plus the Stalwart API for the
+  `stalwart-config` runner. Still a local Terraform apply: the platform
+  Argo CD itself (`argocd_platform.tf`: cluster-wide, syncs only
+  `k3s-bootstrap`'s `platform/`, never automatically, ntfy push on
+  OutOfSync and every sync) and what holds a secret or the AWS account ID:
+  both Argo CDs' OIDC client Secrets, the GitHub App Secret
+  `arc-github-app`, and ESO's ServiceAccounts with their IAM role
+  annotation (bound to `terraform-state`'s read-only `k3s-eso-<namespace>`
+  roles).
 
 Namespaces (tracker #32), each with its Pod Security Admission level:
 

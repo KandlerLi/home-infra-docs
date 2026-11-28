@@ -2,12 +2,18 @@
 
 - Status: Accepted (2026-11-27)
 - Date: 2026-11-25
-- Deployment status: stage 0 live since 2026-11-28 (`k3s-bootstrap#105`,
-  `#107`, `#108`, `k3s-apps#254`, `#255`): headless install, then the
-  LAN-only UI with OIDC and ntfy notifications, tested end to end with the
-  canary ConfigMap. Stages 1–7 open (tracker #80). Supersedes the "local-only"
-  rule for `k3s-bootstrap` stage by stage, and narrows ADR 0031's "no
-  ClusterRole" to the apps instance
+- Deployment status: all stages live since 2026-11-28 (tracker #80).
+  Stage 0 (`k3s-bootstrap#105`, `#107`, `#108`, `k3s-apps#254`, `#255`):
+  headless install, then the LAN-only UI with OIDC and ntfy notifications,
+  tested end to end with the canary ConfigMap. Then `k3s-bootstrap#109`–`#120`:
+  namespaces, RBAC, Reloader and ESO, ARC, node-exporter, PVs and the apps
+  Argo CD; `#121`/`#122` moved the platform OIDC secret out of Helm values
+  and dropped the applied migration blocks. Deviation from §6: no new ESO
+  roles for `arc-system` and `argocd`; the GitHub App Secret, both OIDC
+  Secrets and ESO's ServiceAccounts (their role ARN holds the account ID)
+  stay a local Terraform apply instead. Supersedes the "local-only" rule
+  for `k3s-bootstrap` except for that remainder, and narrows ADR 0031's
+  "no ClusterRole" to the apps instance
 
 ## Context
 

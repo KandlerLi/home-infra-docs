@@ -112,7 +112,7 @@ API). Every other repository's CI, including every Docker build and
 v2.0.0 (2026-11-26).
 
 The runner runs in k3s ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s
-`modules/github_runner`, ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md))
+`platform/apps/arc/`, synced by the platform Argo CD, ARC since 2026-11-01, [ADR 0027](adr/0027-ci-runners-autoscale-with-arc.md))
 on a dedicated, tainted node (`k3s-node-2`, `ci=github-runner:NoSchedule`).
 ARC creates one Pod per job and deletes it afterwards. The runner Pod is
 `ghcr.io/actions/actions-runner` as uid 1001, without Docker, root or

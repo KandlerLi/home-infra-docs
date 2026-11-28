@@ -12,7 +12,7 @@ flowchart LR
     subgraph local["Applied locally by Julian"]
         ansible["home-infra<br/>[Container: Ansible]<br/>site.yml: homeserver; k3s.yml: k3s VMs"]
         tfstate["terraform-state<br/>[Container: Terraform]<br/>State bucket, operator identity, account baseline"]
-        k3sboot["k3s-bootstrap<br/>[Container: Terraform]<br/>CI runners, PVs, privilege-defining RBAC"]
+        k3sboot["k3s-bootstrap<br/>[Container: Terraform]<br/>Platform Argo CD, cluster Secrets"]
         repoinfra["repo-infra<br/>[Container: Terraform]<br/>GitHub settings, OIDC provider, per-repo CI roles"]
     end
 
@@ -36,7 +36,7 @@ flowchart LR
     gha -->|"Plan on PR, apply on merge"| k3sapps & awsrepos
     ansible -->|"Configures"| homeserver
     ansible -->|"Reads secrets"| secrets
-    k3sboot --> cluster
+    k3sboot -->|"Installs platform Argo CD,<br/>which syncs platform/ by hand"| cluster
     k3sapps --> cluster
     k3sapps -->|"Reads secrets"| secrets
     repoinfra --> githubn

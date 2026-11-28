@@ -26,37 +26,30 @@ with one Pod per job ([ADR 0027](../adr/0027-ci-runners-autoscale-with-arc.md),
 [`k3s-bootstrap`'s docs](https://github.com/KandlerLi/k3s-bootstrap/blob/main/docs/README.md), "Runner design"); the per-repository
 Deployments described above are gone.
 
-There's no dedicated operate/apply runbook for the current shape —
-it's applied the same way [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s other rare
-changes are, a local `terraform apply` with the k3s node's own
-cluster-admin kubeconfig (human-apply-only, never CI — see that
-repo's own README).
+Since 2026-11-28 ARC is part of [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s `platform/apps/arc/`,
+synced by hand by the platform Argo CD (ADR 0037). Only the GitHub App
+Secret `arc-github-app` stays a local Terraform apply.
 
-## Adding a repository — still the same mechanism, different apply step
-
-This runbook's original "Adding a repository" workflow is still
-substantially correct, just with a different final step. Confirmed
-directly against [`home-infra`](https://github.com/KandlerLi/home-infra)'s own
-`scripts/sync_github_runner_repositories.py` (its own docstring notes
-it used to also generate an Ansible variable file for the now-deleted
-VM-based role; Terraform is its only remaining consumer):
+## Adding a repository
 
 1. Grant the GitHub App (not a PAT) access to the new repository, via
    the App's own installation settings.
 2. Add `runner: true` to the repository's entry in
    [`repo-infra/config.yml`](https://github.com/KandlerLi/repo-infra/blob/main/config.yml).
 3. In [`home-infra`](https://github.com/KandlerLi/home-infra), run
-   `.venv/bin/python scripts/sync_github_runner_repositories.py` --
-   this writes directly to the sibling
-   [`k3s-bootstrap/repositories.auto.tfvars.json`](https://github.com/KandlerLi/k3s-bootstrap/blob/main/repositories.auto.tfvars.json) (Terraform
-   auto-loads any `*.auto.tfvars.json` in its root module directory,
-   nothing needs to reference it explicitly). Review the diff there
-   and commit it in `k3s-bootstrap`, not `home-infra`.
-4. Apply [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap) (human-apply-only, never CI).
+   `.venv/bin/python scripts/sync_github_runner_repositories.py`. It
+   writes the sibling `k3s-bootstrap`'s
+   `platform/apps/arc/scale-sets/kustomization.yaml` and an overlay for
+   the new repository (an existing overlay is never rewritten). Review the
+   diff and open the PR in `k3s-bootstrap`, not `home-infra`.
+4. After the merge, sync `platform-root` and then the new
+   `arc-runners-<repo>` by hand on `argo-platform.jkandler.de`.
 5. Confirm the new scale set's listener is running
    (`kubectl get pods -n arc-system`) and the scale set shows under the
    repository's runner settings. No runner is listed until a job runs.
 
 To remove a repository: remove `runner: true` from `config.yml`, re-run
-the sync script and apply `k3s-bootstrap`. Its Helm release is
-destroyed and ARC deletes the scale set from GitHub.
+the sync script, merge, and sync `platform-root`. The platform Argo CD
+never prunes, so then delete the orphaned Application
+`arc-runners-<repo>` in its UI (with its resources); ARC deletes the scale
+set from GitHub.

@@ -149,6 +149,11 @@ runner-backed repository is now: `runner: true` in `config.yml`, run
 `scripts/sync_github_runner_repositories.py` in `home-infra`, commit the
 regenerated file in `k3s-bootstrap`, and apply `k3s-bootstrap` locally.
 
+**Update 2026-11-28:** ARC moved to the platform Argo CD (ADR 0037). The
+script now writes `platform/apps/arc/scale-sets/kustomization.yaml` and an
+overlay per new repository (never rewriting an existing one); after the
+merge, sync `platform-root` and the new `arc-runners-<repo>` by hand.
+
 ## Secrets moved from SOPS/GPG to AWS Secrets Manager
 
 An audit (raised as "Secrets sprawl: audit, document, and consolidate")

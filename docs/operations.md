@@ -61,6 +61,10 @@ flow.
   within a few minutes, ESO delivers Secrets from Secrets Manager.
 - **CI-applied repos** (`aws/*`, [`stalwart-config`](https://github.com/KandlerLi/stalwart-config)): merge the PR; CI plans
   on the PR and applies on merge.
+- **Platform Argo CD** ([`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)'s `platform/`, ADR 0037): merge the PR,
+  wait for the OutOfSync push, then sync by hand on
+  `argo-platform.jkandler.de` (LAN): `platform-root` first, then each changed
+  child Application on its own page. Nothing syncs or prunes by itself.
 - **Local Terraform roots** ([`repo-infra`](https://github.com/KandlerLi/repo-infra),
   [`terraform-state`](https://github.com/KandlerLi/terraform-state), [`k3s-bootstrap`](https://github.com/KandlerLi/k3s-bootstrap)): `git pull` on
   `main` first (an apply from a stale checkout silently applies the old
