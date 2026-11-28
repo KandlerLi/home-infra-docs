@@ -124,6 +124,14 @@ forward-auth sets for backends that treat both spellings alike.
 | `vault.jkandler.de` `/api/`, `/identity/`, `/notifications/hub` | Vaultwarden client API (ADR 0028, 0029) | none; login only through Authelia OIDC (`SSO_ONLY`, `julian_only`), password grant rejected |
 | `vault.jkandler.de` (rest) | Vaultwarden web vault | forward-auth; `/admin` unrouted (404) |
 
+LAN only, not public: `argo-platform.jkandler.de`, the platform Argo CD
+(ADR 0037). It has no public DNS record (Blocky maps it to
+`192.168.178.100`), and its route admits only `192.168.178.0/24`
+(Traefik IP allowlist, a 403 for everyone else), then forward-auth for
+`user:julian` and Argo CD's own OIDC login (client `argocd-platform`).
+Checked 2026-11-28: 403 through the public IP, a redirect to Authelia
+from the LAN.
+
 ### DNS (Route 53)
 
 - [`dyndns`](https://github.com/KandlerLi/dyndns): the apex `jkandler.de` A record (dynamic, updated from the
@@ -136,6 +144,10 @@ forward-auth sets for backends that treat both spellings alike.
 LAN DNS: clients use Blocky in k3s via the homeserver
 (`192.168.178.100:53` over IPv4, the `blocky-ipv6-relay` over IPv6; the
 homeserver's IPv6 address is pinned via EUI-64 since 2026-09-24).
+Blocky's `customDNS` answers LAN-only names (today `argo-platform.jkandler.de`).
+The FRITZ!Box's DNS rebind protection has a host exception for that name
+(set by hand on 2026-11-28; the fritzbox provider has no resource for it).
+Without it the FRITZ!Box answers NXDOMAIN to clients that use it as DNS.
 
 ## k3s cluster
 
@@ -183,7 +195,11 @@ Workloads are declared in Git, never `kubectl apply` by hand:
   Secrets Operator and Reloader (one each per app namespace, Roles only,
   with a SecretStore bound to that namespace's read-only IAM role from
   `terraform-state`'s OIDC federation), and Argo CD (`argocd.tf`, see
-  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031).
+  [decisions](decisions.md#argo-cd-trial-core-mode-one-app) and ADR 0031). Since 2026-11-28 also the
+  platform Argo CD (`argocd_platform.tf`, ADR 0037): cluster-wide, syncs
+  only `k3s-bootstrap`'s `platform/` and only by hand, with a ntfy push on
+  OutOfSync and every sync. Its stages move the rest of `k3s-bootstrap`
+  there (tracker #80). Today `platform/` holds only `platform-canary`.
 
 Namespaces (tracker #32), each with its Pod Security Admission level:
 
@@ -196,6 +212,7 @@ Namespaces (tracker #32), each with its Pod Security Admission level:
 | `auth` | restricted | Authelia |
 | `apps` | restricted (from k3s-bootstrap#44) | every other `k3s-apps` workload, Traefik included |
 | `argocd` | restricted | Argo CD: controller, repo-server, server, Redis |
+| `argocd-platform` | restricted | the platform Argo CD (ADR 0037), plus its notifications controller |
 | `default` | baseline | no workloads; only the `prometheus-kubelet` ServiceAccount |
 
 Volumes on

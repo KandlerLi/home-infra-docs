@@ -2,7 +2,10 @@
 
 - Status: Accepted (2026-11-27)
 - Date: 2026-11-25
-- Deployment status: not started (tracker #80). Supersedes the "local-only"
+- Deployment status: stage 0 live since 2026-11-28 (`k3s-bootstrap#105`,
+  `#107`, `#108`, `k3s-apps#254`, `#255`): headless install, then the
+  LAN-only UI with OIDC and ntfy notifications, tested end to end with the
+  canary ConfigMap. Stages 1–7 open (tracker #80). Supersedes the "local-only"
   rule for `k3s-bootstrap` stage by stage, and narrows ADR 0031's "no
   ClusterRole" to the apps instance
 
@@ -103,7 +106,9 @@ possible from the home network, behind Authelia with a second factor.
 - **UI only from the home network:** no public DNS record. The hostname
   resolves only through Blocky to the homeserver, and its Traefik route
   carries an IP allowlist for the LAN, which the FRITZ!Box WireGuard
-  clients share (ADR 0025; to be confirmed in stage 0b). Authelia
+  clients share (ADR 0025; not yet tested over the VPN). The FRITZ!Box's
+  DNS rebind protection needs a host exception for the name (manual, see
+  current-state). Authelia
   forward-auth (`user:julian`, two-factor) and its own OIDC client
   (`julian_only`). No local admin, Dex, anonymous access, exec or API keys.
 - **Notifications:** Argo CD notifications for OutOfSync and for every
